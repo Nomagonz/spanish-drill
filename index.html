@@ -1079,6 +1079,13 @@ function render(){
                        : "Heard: " + r[0];
       };
       ctrl.appendChild(mt);
+      // iOS backs the Web Speech API with Apple's dictation service. When that is
+      // off or uncooperative the recognizer just ends with no result, which never
+      // trips the "blocked" path, so this fallback has to be reachable from here.
+      const dm = el("button","btn ghost","Use keyboard dictation instead");
+      dm.onclick = ()=>{ dictMode = true; voiceError = ""; micBlocked = false; phase="ask"; start(); };
+      ctrl.appendChild(dm);
+      ctrl.appendChild(el("div","hint","If the mic test hears nothing, check Settings › General › Keyboard › Enable Dictation. Failing that, use dictation mode above and tap the mic key on your keyboard."));
       ctrl.appendChild(el("div","hint","Headphones help — they stop the mic from hearing the app read the answer."));
     }
     return;
