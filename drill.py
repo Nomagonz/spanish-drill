@@ -6,8 +6,13 @@ Hands free: it says an English word, listens, grades what you said, and moves on
 Speech in is Whisper running on this machine. Speech out is the macOS `say` voice.
 Neither one is a browser, so none of the Web Speech API's rules apply.
 
-    ./run.sh              normal session
-    ./run.sh --model tiny faster start, less accurate
+    ./run.sh                  normal session
+    ./run.sh --model small    ~3x faster per word, measurably less accurate
+
+Model choice is accuracy over speed on purpose. Measured on 30 spoken cards,
+"small" graded 24/30 at 0.8s per word and "medium" 29/30 at 2.5s. Since the
+scheduler now adapts to right and wrong, a word misheard as a miss lowers that
+card's ease and poisons its schedule, which costs more than the two seconds.
 """
 import json, os, queue, re, subprocess, sys, threading, time, unicodedata
 from dataclasses import dataclass, field
@@ -237,7 +242,7 @@ class Listener:
     is enough for single words and keeps the whole thing dependency free.
     """
 
-    def __init__(self, model_name="small"):
+    def __init__(self, model_name="medium"):
         from faster_whisper import WhisperModel
         self.model = WhisperModel(model_name, device="cpu", compute_type="int8")
         self.floor = 0.004
@@ -618,16 +623,18 @@ class Window(QWidget):
         self.S.hints = self.hints.isChecked()
         self.S.save()
 
-        if self.listener is None:
-            self.status_lbl.setText("Loading Whisper…")
-            QApplication.processEvents()
-            try:
+        try:
+            if self.listener is None:
+                self.status_lbl.setText(f"Loading Whisper ({self.model_name})…")
+                QApplication.processEvents()
                 self.listener = Listener(self.model_name)
-                self.listener.calibrate()
-            except Exception as e:
-                self.prompt_lbl.setText("Mic or model failed")
-                self.status_lbl.setText(str(e)[:60])
-                return
+            self.status_lbl.setText("Listening to the room…")
+            QApplication.processEvents()
+            self.listener.calibrate()      # every session, not just the first
+        except Exception as e:
+            self.prompt_lbl.setText("Mic or model failed")
+            self.status_lbl.setText(str(e)[:60])
+            return
 
         self.go.setText("STOP")
         self.slip.setVisible(False)
@@ -689,7 +696,7 @@ class Window(QWidget):
 
 
 def main():
-    model = "small"
+    model = "medium"
     if "--model" in sys.argv:
         model = sys.argv[sys.argv.index("--model") + 1]
     app = QApplication(sys.argv)
