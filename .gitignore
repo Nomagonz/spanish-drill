@@ -3,3 +3,9 @@ HANDOFF.md
 
 # The pre-patch original, kept local for reference.
 spanish-voice-drill.html
+
+# Local desktop app runtime
+.venv/
+progress.json
+progress.json.tmp
+__pycache__/
