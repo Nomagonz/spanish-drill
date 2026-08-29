@@ -369,6 +369,22 @@ class Drill(QObject):
 
     # -- the loop ----------------------------------------------------------
     def run(self):
+        """
+        Wrapper so the thread ALWAYS finishes. Several paths below return early,
+        and an unhandled exception in a slot makes PyQt abort the whole process
+        rather than raise, so neither is allowed to escape.
+        """
+        try:
+            self._run()
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            self.status.emit("Crashed — see terminal")
+        finally:
+            self.running = False
+            self.finished.emit()
+
+    def _run(self):
         self.running = True
         voice = VOICES.get(self.S.dialect, "Paulina")
         while self.running:
@@ -415,7 +431,6 @@ class Drill(QObject):
                 if cmd == "stop":
                     self.running = False
                     self.status.emit("Paused")
-                    self.finished.emit()
                     return
                 if cmd == "skip":
                     self.queue.append(cid)
@@ -458,8 +473,6 @@ class Drill(QObject):
                 say(card["es"][0] + ". " + card["ex"], voice)
                 time.sleep(0.3)
 
-        self.finished.emit()
-
 
 def next_interval(c):
     d = c["ivl"]
@@ -486,6 +499,7 @@ class Window(QWidget):
         self.listener = None
         self.model_name = model_name
         self.thread = None
+        self._starting = False
         self.setWindowTitle("Spanish Drill")
         self.resize(560, 720)
         self.setStyleSheet(f"background:{CH};color:{SCREEN};")
@@ -613,6 +627,12 @@ class Window(QWidget):
             str(sum(1 for c in cards.values() if c["ivl"] >= MATURE_AT)))
 
     def toggle(self):
+        # processEvents() below pumps the event queue while the model loads, so
+        # a second click re-enters here. Without this guard the re-entrant call
+        # reassigns self.thread and destroys a running QThread, which is a
+        # qFatal abort, not an exception.
+        if self._starting:
+            return
         if self.thread and self.thread.isRunning():
             self.drill.stop()
             self.go.setText("GO")
@@ -623,18 +643,28 @@ class Window(QWidget):
         self.S.hints = self.hints.isChecked()
         self.S.save()
 
+        self._starting = True
+        self.go.setEnabled(False)
         try:
             if self.listener is None:
-                self.status_lbl.setText(f"Loading Whisper ({self.model_name})…")
+                # First run also downloads the model, which is slow and silent.
+                self.go.setText("LOADING…")
+                self.status_lbl.setText(f"Loading Whisper ({self.model_name})")
+                self.prompt_lbl.setText("Loading the speech model.\n"
+                                        "First run downloads it, which takes a minute.")
                 QApplication.processEvents()
                 self.listener = Listener(self.model_name)
-            self.status_lbl.setText("Listening to the room…")
+            self.go.setText("CALIBRATING…")
+            self.status_lbl.setText("Measuring room noise — stay quiet")
             QApplication.processEvents()
             self.listener.calibrate()      # every session, not just the first
         except Exception as e:
             self.prompt_lbl.setText("Mic or model failed")
             self.status_lbl.setText(str(e)[:60])
             return
+        finally:
+            self._starting = False
+            self.go.setEnabled(True)
 
         self.go.setText("STOP")
         self.slip.setVisible(False)
