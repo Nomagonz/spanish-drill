@@ -26,7 +26,14 @@ STATE_PATH = os.path.join(HERE, "progress.json")
 
 SR = 16000                      # Whisper wants 16 kHz mono
 DAY = 86400
-IVL = [0, 1, 3, 7, 16, 35, 90, 180]     # same boxes as the web version
+# SM-2. Every card carries its own ease factor, so difficulty is per word
+# rather than one ladder for everything.
+EASE_START = 2.5
+EASE_MIN = 1.3          # SM-2's floor; below this intervals stop growing
+FIRST_IVL = 1           # days, after the first successful recall
+SECOND_IVL = 6          # days, after the second
+LEECH_AT = 8            # lapses before a word is called out as a problem
+MATURE_AT = 21          # days; Anki's threshold for "this one has stuck"
 
 VOICES = {"es-MX": "Paulina", "es-ES": "Mónica"}
 
@@ -52,7 +59,7 @@ class State:
             for k, v in d.items():
                 if hasattr(s, k):
                     setattr(s, k, v)
-            s.cards = {int(k): v for k, v in s.cards.items()}
+            s.cards = {int(k): migrate(v) for k, v in s.cards.items()}
         except (FileNotFoundError, json.JSONDecodeError):
             pass
         if s.day != today():                    # a new day resets the daily caps
@@ -68,6 +75,64 @@ class State:
 
 def today():
     return int(time.time() // DAY)
+
+
+def new_card():
+    return {"ef": EASE_START, "ivl": 0, "reps": 0, "lapses": 0, "due": today()}
+
+
+def migrate(c):
+    """Old Leitner cards carried {b,d,r,l}. Keep their progress, give them an ease."""
+    if "ef" in c:
+        return c
+    box = c.get("b", 0)
+    old_ladder = [0, 1, 3, 7, 16, 35, 90, 180]
+    return {"ef": EASE_START,
+            "ivl": old_ladder[min(box, len(old_ladder) - 1)],
+            "reps": box,
+            "lapses": c.get("l", 0),
+            "due": c.get("d", today())}
+
+
+def quality(ok, close, silent, elapsed, window):
+    """
+    Map what we can actually observe onto SM-2's 0-5 scale.
+
+    Hesitation is real evidence: recalling a word instantly is not the same as
+    dragging it up after four seconds, and SM-2 wants that distinction.
+    """
+    if silent:
+        return 0                        # no answer at all
+    if not ok:
+        return 1                        # said something, it was wrong
+    if close:
+        return 3                        # right word, mangled
+    return 5 if elapsed <= window * 0.45 else 4
+
+
+def schedule(c, q):
+    """Textbook SM-2, with a failure sending the card back to relearning."""
+    if q >= 3:
+        if c["reps"] == 0:
+            c["ivl"] = FIRST_IVL
+        elif c["reps"] == 1:
+            c["ivl"] = SECOND_IVL
+        else:
+            c["ivl"] = max(1, round(c["ivl"] * c["ef"]))
+        c["reps"] += 1
+    else:
+        c["reps"] = 0
+        c["ivl"] = 0                    # due again today, not in a week
+        c["lapses"] += 1
+    # The ease itself moves, so a word that keeps biting you grows slower
+    # forever after, and an easy one accelerates.
+    c["ef"] = max(EASE_MIN, c["ef"] + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)))
+    c["due"] = today() + c["ivl"]
+    return c
+
+
+def is_leech(c):
+    return c["lapses"] >= LEECH_AT
 
 
 # -------------------------------------------------------------------- grading
@@ -250,7 +315,7 @@ class Drill(QObject):
     # -- scheduling, ported from the web version ---------------------------
     def due(self):
         t = today()
-        return [i for i, c in self.S.cards.items() if c["d"] <= t]
+        return [i for i, c in self.S.cards.items() if c["due"] <= t]
 
     def fresh(self):
         return [i for i in range(len(DECK)) if i not in self.S.cards]
@@ -259,7 +324,8 @@ class Drill(QObject):
         return max(0, self.S.new_per - self.S.new_done)
 
     def learned(self):
-        return sum(1 for c in self.S.cards.values() if c["b"] >= 3)
+        """Mature, in the Anki sense: the interval has stretched past 3 weeks."""
+        return sum(1 for c in self.S.cards.values() if c["ivl"] >= MATURE_AT)
 
     def build_queue(self):
         import random
@@ -275,19 +341,17 @@ class Drill(QObject):
                 pos += step + 1
         self.queue = q
 
-    def grade(self, cid, ok):
+    def grade(self, cid, q):
         import random
         is_new = cid not in self.S.cards
-        c = self.S.cards.get(cid, {"b": 0, "d": today(), "r": 0, "l": 0})
-        c["r"] += 1
-        if ok:
-            c["b"] = min(len(IVL) - 1, max(1, c["b"] + 1))
-            c["d"] = today() + IVL[c["b"]]
-        else:
-            c["b"], c["d"] = 0, today()
-            c["l"] += 1
+        c = migrate(self.S.cards.get(cid, new_card()))
+        schedule(c, q)
+        if q < 3:
             self.S.miss_today += 1
-            self.queue.insert(min(len(self.queue), 4 + random.randint(0, 2)), cid)
+            # Come back inside this session too, sooner for a word that has a
+            # history of biting, since that is what the lapse count is for.
+            gap = 2 if is_leech(c) else 4 + random.randint(0, 2)
+            self.queue.insert(min(len(self.queue), gap), cid)
         self.S.cards[cid] = c
         if is_new:
             self.S.new_done += 1
@@ -312,8 +376,14 @@ class Drill(QObject):
             cid = self.queue.pop(0)
             card = DECK[cid]
             c = self.S.cards.get(cid)
-            label = ("New word" if not c or c["r"] < 1
-                     else ("Relearning" if c["b"] == 0 else f"Review · box {c['b']}"))
+            if not c:
+                label = "New word"
+            elif is_leech(c):
+                label = f"Leech · missed {c['lapses']}x"
+            elif c["reps"] == 0:
+                label = "Relearning"
+            else:
+                label = f"Review · {c['ivl']}d · ease {c['ef']:.2f}"
             self.prompt.emit(card["en"], label)
             self.heard.emit("")
             self.emit_counts()
@@ -323,11 +393,13 @@ class Drill(QObject):
             if not self.running:
                 break
 
-            said, verdict, silent = None, None, False
+            said, verdict, silent, elapsed = None, None, False, 0.0
             while self.running:
                 self.status.emit("Listening")
+                t_ask = time.time()
                 said = self.listener.listen(self.S.window,
                                             should_stop=lambda: not self.running)
+                elapsed = time.time() - t_ask
                 if not self.running:
                     return
                 if said is None:
@@ -360,11 +432,14 @@ class Drill(QObject):
                 break
 
             ok = verdict is not None
-            c = self.grade(cid, ok)
+            close = bool(verdict and verdict["close"])
+            q = quality(ok, close, silent, elapsed, self.S.window)
+            c = self.grade(cid, q)
             self.result.emit({
                 "ok": ok, "said": "" if silent else (said or ""), "card": card,
-                "box": c, "close": bool(verdict and verdict["close"]),
+                "box": c, "close": close, "quality": q,
                 "silent": silent, "next": next_interval(c),
+                "leech": is_leech(c), "ease": c["ef"], "lapses": c["lapses"],
             })
             self.emit_counts()
 
@@ -382,12 +457,15 @@ class Drill(QObject):
 
 
 def next_interval(c):
-    if c["b"] == 0:
+    d = c["ivl"]
+    if d == 0:
         return "again this session"
-    d = IVL[c["b"]]
     if d == 1:
         return "again tomorrow"
-    return f"again in {d} days" if d < 30 else f"again in {round(d/30)} months"
+    if d < 30:
+        return f"again in {d} days"
+    m = round(d / 30)
+    return f"again in {m} month" + ("" if m == 1 else "s")
 
 
 # -------------------------------------------------------------------------- UI
@@ -522,11 +600,12 @@ class Window(QWidget):
     def refresh_counts(self):
         cards = self.S.cards
         t = today()
-        due = sum(1 for c in cards.values() if c["d"] <= t)
+        due = sum(1 for c in cards.values() if c["due"] <= t)
         self.cnt["new"].setText(str(max(0, self.S.new_per - self.S.new_done)))
         self.cnt["due"].setText(str(due))
         self.cnt["miss"].setText(str(self.S.miss_today))
-        self.cnt["known"].setText(str(sum(1 for c in cards.values() if c["b"] >= 3)))
+        self.cnt["known"].setText(
+            str(sum(1 for c in cards.values() if c["ivl"] >= MATURE_AT)))
 
     def toggle(self):
         if self.thread and self.thread.isRunning():
@@ -588,7 +667,12 @@ class Window(QWidget):
         self.ex_lbl.setText(r["card"]["ex"])
         self.gl_lbl.setText(r["card"]["gl"])
         said = f"  ·  you said: {r['said']}" if r["said"] else ""
-        self.sched_lbl.setText(r["next"] + said)
+        detail = f"  ·  ease {r['ease']:.2f}"
+        if r["lapses"]:
+            detail += f"  ·  missed {r['lapses']}x"
+        if r["leech"]:
+            detail += "  ·  LEECH"
+        self.sched_lbl.setText(r["next"] + said + detail)
         self.slip.setVisible(True)
 
     def on_finished(self):
