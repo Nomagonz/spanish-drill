@@ -730,7 +730,7 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
 /* ================= speech in ================= */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const VOICE_OK = !!SR;
-let rec = null, listening = false;
+let rec = null, listening = false, lastSRError = "";
 
 // resolves to: array of transcripts | null (silence) | "BLOCKED" (no mic access)
 function listenOnce(ms){
@@ -773,6 +773,7 @@ function listenOnce(ms){
         if(el) el.textContent = interim;
       };
       rec.onerror = (e)=>{
+        if(e.error && e.error !== "no-speech") lastSRError = e.error;
         // only a permission failure is fatal; no-speech / aborted / network get another turn
         if(e.error === "not-allowed" || e.error === "service-not-allowed"){
           micBlocked = true; closing = true; done("BLOCKED");
@@ -960,14 +961,13 @@ function voiceFail(kind){
 // Ask for the mic so the permission prompt appears, but never let this block the loop —
 // in a frame, getUserMedia can hang without ever resolving or rejecting.
 function requestMic(){
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-  let settled = false;
-  const timeout = new Promise(r=>setTimeout(()=>r("timeout"), 4000));
-  Promise.race([navigator.mediaDevices.getUserMedia({audio:true}), timeout])
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.resolve(false);
+  // 60s, not 4s: on a first run this races a permission dialog the user is still reading.
+  const timeout = new Promise(r=>setTimeout(()=>r("timeout"), 60000));
+  return Promise.race([navigator.mediaDevices.getUserMedia({audio:true}), timeout])
     .then(s=>{
-      if(settled || s === "timeout" || !s) return;
-      settled = true;
-      if(meterDisabled){ s.getTracks().forEach(t=>t.stop()); return; }  // iOS: release so it can't fight the recognizer
+      if(s === "timeout" || !s) return false;
+      if(meterDisabled){ s.getTracks().forEach(t=>t.stop()); return true; }  // iOS: release so it can't fight the recognizer
       micStream = s;
       try{
         const c = ac();
@@ -975,20 +975,25 @@ function requestMic(){
         analyser = c.createAnalyser(); analyser.fftSize = 512;
         src.connect(analyser);
       }catch(e){ meterDisabled = true; }
+      return true;
     })
     .catch(e=>{
       if(e && (e.name === "NotAllowedError" || e.name === "SecurityError")) micBlocked = true;
+      return false;
     });
 }
 
-function start(){
+async function start(){
   ac();
   if(window.speechSynthesis){ try{ speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); }catch(e){} }
   voiceError = ""; fastFails = 0;
   if(!queue.length) buildQueue();
   running = true;
   setStatus("Starting");
-  requestMic();                       // fire and forget
+  // Wait for the permission dialog to settle. Fire-and-forget meant the first
+  // run listened while the dialog was still up, and heard nothing.
+  await requestMic();
+  if(!running) return;                // paused while the dialog was open
   runLoop().catch(err=>{              // never fail silently
     console.error(err);
     crashMsg = (err && err.message) || String(err);
@@ -1054,12 +1059,23 @@ function render(){
     if(!VOICE_OK) ctrl.appendChild(el("div","hint","This browser has no speech recognition, so you'll type or self-grade. Chrome and Safari support voice."));
     else{
       const mt = el("button","btn ghost","Test the mic");
+      let micReady = false;
       mt.onclick = async ()=>{
-        ac(); requestMic();
+        ac();
+        // First press: just settle permission. The iOS dialog would otherwise sit on
+        // screen for the whole listening window, and every test would hear nothing.
+        if(!micReady){
+          mt.textContent = "Allow the mic…";
+          micReady = await requestMic();
+          mt.textContent = micReady ? "Mic ready — press again to test"
+                                    : "Mic blocked — Settings › Safari › Microphone";
+          return;
+        }
         mt.textContent = "Say anything…";
+        lastSRError = "";
         const r = await listenOnce(5000);
-        mt.textContent = r === "BLOCKED" ? "Mic blocked — open this file in a browser"
-                       : r === null      ? "Heard nothing. Try again"
+        mt.textContent = r === "BLOCKED" ? "Mic blocked — Settings › Safari › Microphone"
+                       : r === null      ? ("Heard nothing" + (lastSRError ? " (" + lastSRError + ")" : "") + ". Try again")
                        : "Heard: " + r[0];
       };
       ctrl.appendChild(mt);
