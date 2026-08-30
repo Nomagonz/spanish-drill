@@ -16,6 +16,9 @@ def build_parser():
     p.add_argument("--verify-model", default=VERIFY_MODEL,
                    help="model used by --review (default: %(default)s). "
                         "Names starting with 'gpt-' call the OpenAI API.")
+    p.add_argument("--placement", action="store_true",
+                   help="rapid placement test: right twice is known, wrong once "
+                        "goes to the learning pile")
     p.add_argument("--devices", action="store_true",
                    help="list the microphones this machine can record from")
     return p

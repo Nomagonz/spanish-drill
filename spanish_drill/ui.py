@@ -13,6 +13,7 @@ from .config import MAIN_MODEL, SILENT_FLOOR
 from .listener import Listener
 from .progress import Progress
 from .scheduler import MATURE_AT
+from .placement import PlacementSession
 from .session import DrillSession
 
 CHASSIS = "#1E2B26"; PANEL = "#2B3B34"; RULE = "#3C4F47"; SCREEN = "#ECE5D3"
@@ -144,6 +145,14 @@ class Window(QWidget):
         self.go.clicked.connect(self.toggle)
         root.addWidget(self.go)
 
+        self.placement = QPushButton("PLACEMENT TEST")
+        self.placement.setStyleSheet(
+            f"background:transparent;color:{MUTE};font:600 11px {MONO};"
+            f"letter-spacing:2px;padding:10px;border:1px solid {RULE};"
+            f"border-radius:3px;")
+        self.placement.clicked.connect(self.toggle_placement)
+        root.addWidget(self.placement)
+
         root.addWidget(_label(
             "Say “skip”, “repeat”, “no sé”, or “stop” at any time.",
             f"color:{MUTE};font:10px {MONO};"))
@@ -261,6 +270,7 @@ class Window(QWidget):
     def _start_preload(self):
         cached = model_is_cached(self.model_name)
         self.go.setEnabled(False)
+        self.placement.setEnabled(False)
         self.go.setText("LOADING MODELS…")
         self.status_label.setText("Loading from disk" if cached else "Downloading models")
         if not cached:
@@ -282,6 +292,7 @@ class Window(QWidget):
             return
         self.listener = listener
         self.go.setEnabled(True)
+        self.placement.setEnabled(True)
         self.go.setText("GO")
         self.status_label.setText("Ready")
         self.prompt_label.setText("Press Go.")
@@ -315,10 +326,24 @@ class Window(QWidget):
         self.progress.model = self.model_name
         self.progress.save()
 
-    def _start_session(self):
+    def toggle_placement(self):
+        """Rapid triage instead of a drill: right twice is known, wrong is not."""
+        if self._starting or not self.placement.isEnabled():
+            return
+        if self.thread and self.thread.isRunning():
+            self._request_stop()
+            return
+        self._apply_settings()
+        if self.listener is None:
+            self.status_label.setText("Models still loading…")
+            return
+        self._start_session(placement=True)
+
+    def _start_session(self, placement=False):
         self.go.setText("STOP")
         self.slip.setVisible(False)
-        session = DrillSession(self.progress, self.listener)
+        maker = PlacementSession if placement else DrillSession
+        session = maker(self.progress, self.listener)
         self.worker = SessionWorker(session)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
@@ -339,6 +364,7 @@ class Window(QWidget):
         self.worker.stop()
         self.go.setText("STOPPING…")
         self.go.setEnabled(False)
+        self.placement.setEnabled(False)
         self.status_label.setText("Stopping")
 
     # -- updates ----------------------------------------------------------
@@ -388,8 +414,15 @@ class Window(QWidget):
         self._refresh_tally()
 
     def _on_finished(self):
+        session = getattr(self.worker, "session", None)
+        if isinstance(session, PlacementSession):
+            s = session.summary()
+            if s["tested"]:
+                self.prompt_label.setText(
+                    f"{len(s['known'])} known · {len(s['to_learn'])} to learn")
         self.go.setText("GO")
         self.go.setEnabled(True)
+        self.placement.setEnabled(True)
         if self.thread:
             self.thread.quit()
             self.thread.wait()

@@ -1,11 +1,18 @@
 """Test-wide safety net.
 
-The drill speaks out loud and writes files next to the app. Neither belongs in
-a test run, so both are redirected before any test touches them.
+The drill speaks out loud, records audio and writes files next to the app.
+None of that belongs in a test run, so all of it is redirected before any test
+touches it.
 """
+import os
+
+# Qt needs a platform before it is imported anywhere.
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import pytest
 
 from spanish_drill import session as session_module
+
 
 
 @pytest.fixture(autouse=True)

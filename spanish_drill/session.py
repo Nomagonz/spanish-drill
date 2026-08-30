@@ -79,6 +79,7 @@ class DrillSession:
         self.rng = rng or random
         self.queue = []
         self.running = False
+        self.current = None         # deck index being asked, for observers
         self._stop_requested = False
 
     # -- control ----------------------------------------------------------
@@ -121,12 +122,13 @@ class DrillSession:
     def _loop(self):
         while self.running:
             if not self.queue:
-                self.queue = self.progress.build_queue(rng=self.rng)
+                self.queue = self.next_queue()
             if not self.queue:
                 self._emit("on_status", "Queue clear.")
                 return
 
             index = self.queue.pop(0)
+            self.current = index
             card = self.deck[index]
             self._emit("on_prompt", card, self._state_label(index))
             self._emit("on_heard", "")
@@ -142,6 +144,10 @@ class DrillSession:
                 return
 
             self._judge(index, card, said, elapsed, silent=said is None)
+
+    def next_queue(self):
+        """What to ask next. Overridden by other modes."""
+        return self.progress.build_queue(rng=self.rng)
 
     def _ask(self, card):
         """Speak the cue and listen. Returns (transcript, elapsed, control)."""
