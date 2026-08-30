@@ -240,19 +240,69 @@ def repair_false_miss(S, rec, new_q):
     return c, touched_interval
 
 
-def review(verify_model="large-v3", play=False):
+# A fixed, generic steer. It tells the recogniser to expect isolated Spanish
+# dictionary words, possibly repeated, which is what collapses "y el bar" back
+# to "llevar". It must NEVER contain the expected answer: prompting with the
+# word you are being tested on makes the recogniser agree with you and the
+# grade becomes meaningless.
+# Every example word here is verified absent from the deck (see the assertion
+# below), so the steer can never hand over the answer being tested.
+STEER = ("Palabras sueltas en español, a veces repetidas varias veces. "
+         "Por ejemplo: pintar, nadar, saltar, bailar, fresa, morado, tijeras.")
+_STEER_WORDS = {"pintar", "nadar", "saltar", "bailar", "fresa", "morado", "tijeras"}
+
+
+def is_steer_echo(text):
+    """
+    These models echo the prompt back when the audio has no usable speech.
+    That is not a transcript and must never be graded as one.
+    """
+    n = norm(text)
+    if not n:
+        return False
+    words = set(n.split())
+    return len(words & _STEER_WORDS) >= 3
+
+
+def _assert_steer_is_clean():
+    """A steer word that is also a deck answer would give that card away."""
+    clash = sorted({a for c in DECK for a in c["es"] if norm(a) in _STEER_WORDS})
+    if clash:
+        raise AssertionError(f"steer leaks deck answers: {clash}")
+
+
+def transcribe_openai(path, model="gpt-4o-transcribe"):
+    """One clip through OpenAI. Returns text, or None if the call fails."""
+    from openai import OpenAI
+    try:
+        client = OpenAI()               # reads OPENAI_API_KEY from the environment
+        with open(path, "rb") as f:
+            r = client.audio.transcriptions.create(
+                model=model, file=f, language="es",
+                prompt=STEER, response_format="json")
+        return (r.text or "").strip()
+    except Exception as e:
+        print(f"    [api error: {type(e).__name__}: {str(e)[:70]}]")
+        return None
+
+
+def review(verify_model="gpt-4o-transcribe", play=False):
     """Re-judge every recorded miss with a stronger model and repair the schedule."""
     recs = load_misses()
     pending = [r for r in recs if r.get("verdict") is None]
     if not pending:
         print(f"{len(recs)} miss(es) on file, none awaiting review.")
         return
-    print(f"{len(pending)} miss(es) to re-check with '{verify_model}'.")
-    print("First use of this model downloads it.\n")
+    _assert_steer_is_clean()
+    print(f"{len(pending)} answer(s) to re-check with '{verify_model}'.")
+    print("Local models download on first use; gpt-* models call the API.\n")
 
-    from faster_whisper import WhisperModel
     import wave
-    m = WhisperModel(verify_model, device="cpu", compute_type="int8")
+    use_api = verify_model.startswith("gpt-")
+    m = None
+    if not use_api:
+        from faster_whisper import WhisperModel
+        m = WhisperModel(verify_model, device="cpu", compute_type="int8")
     S = State.load()
     false_misses, confirmed, unverifiable, accepted = [], [], [], []
 
@@ -267,14 +317,28 @@ def review(verify_model="large-v3", play=False):
             r["verdict"] = "no-audio"
             unverifiable.append(r)
             continue
-        with wave.open(path) as w:
-            a = (np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
-                 .astype(np.float32) / 32768.0)
-        # Deliberately harder decoding than the live pass: this runs once,
-        # offline, with no one waiting on it.
-        segs, _ = m.transcribe(a, language="es", beam_size=10, best_of=5,
-                               temperature=[0.0, 0.2, 0.4], vad_filter=True)
-        second = " ".join(x.text for x in segs).strip()
+        if use_api:
+            second = transcribe_openai(path, verify_model)
+            if second is None:
+                r["verdict"] = None      # leave it pending, not wrongly judged
+                unverifiable.append(r)
+                continue
+        else:
+            with wave.open(path) as w:
+                a = (np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+                     .astype(np.float32) / 32768.0)
+            # Deliberately harder decoding than the live pass: this runs once,
+            # offline, with no one waiting on it.
+            segs, _ = m.transcribe(a, language="es", beam_size=10, best_of=5,
+                                   temperature=[0.0, 0.2, 0.4], vad_filter=True,
+                                   initial_prompt=STEER)
+            second = " ".join(x.text for x in segs).strip()
+        # Guard against the steer feeding itself back as a "transcript".
+        if is_steer_echo(second) or norm(second) in _STEER_WORDS:
+            r["verdict"] = "no-signal"
+            r["second_opinion"] = second
+            unverifiable.append(r)
+            continue
         r["second_opinion"] = second
         v = check(second, card)
         was_miss = r["quality"] < 3
@@ -318,7 +382,16 @@ def review(verify_model="large-v3", play=False):
             print(f"  {r['en'][:30]:<32} expected {r['expected'][0]!r:<18} "
                   f"heard {r['second_opinion']!r}")
     if unverifiable:
-        print(f"\nNo audio kept, left alone ({len(unverifiable)}).")
+        ns = [r for r in unverifiable if r.get("verdict") == "no-signal"]
+        na = [r for r in unverifiable if r.get("verdict") == "no-audio"]
+        if ns:
+            print(f"\nNO USABLE SPEECH in the recording ({len(ns)}) — "
+                  f"the recogniser returned nothing, so these were graded on "
+                  f"nothing and are left alone:")
+            for r in ns:
+                print(f"  {r['en'][:30]:<32} expected {r['expected'][0]!r}")
+        if na:
+            print(f"\nNo audio kept, left alone ({len(na)}).")
     print(f"{'-'*72}")
     graded_wrong = len(false_misses)
     print(f"Local model got {len(pending) - graded_wrong} of {len(pending)} right.")
@@ -498,17 +571,18 @@ class Listener:
         def cb(indata, frames, t, status):
             q.put(indata.copy())
 
-        frames, everything = [], []
-        speaking, silence_run, started = False, 0.0, time.time()
+        everything = []
+        heard_speech, first_idx, started = False, None, time.time()
         hop = 0.05
         with sd.InputStream(callback=cb, blocksize=int(SR * hop),
                             dtype="float32", device=self.device,
                             samplerate=SR, channels=1):
-            while True:
+            # Listen for the WHOLE window. Ending the turn shortly after the
+            # first pause used to clip the second attempt whenever a word was
+            # repeated, which is exactly when someone is struggling and repeats
+            # themselves several times.
+            while time.time() - started < max_seconds:
                 if should_stop and should_stop():
-                    self._keep(everything)
-                    return None
-                if time.time() - started > max_seconds and not speaking:
                     self._keep(everything)
                     return None
                 try:
@@ -518,21 +592,13 @@ class Listener:
                 everything.append(block)
                 rms = float(np.sqrt(np.mean(block ** 2)))
                 self.level = rms
-                if rms > self.floor:
-                    speaking, silence_run = True, 0.0
-                    frames.append(block)
-                elif speaking:
-                    silence_run += hop
-                    frames.append(block)
-                    if silence_run > 0.7:           # trailing pause ends the turn
-                        break
-                if speaking and time.time() - started > max_seconds + 6:
-                    break                            # hard cap on a rambler
+                if rms > self.floor and not heard_speech:
+                    heard_speech, first_idx = True, max(0, len(everything) - 4)
 
         self._keep(everything)
-        if not frames:
-            return None
-        audio = np.concatenate(frames).flatten()
+        if not heard_speech or not everything:
+            return None                     # genuinely nothing said
+        audio = np.concatenate(everything[first_idx:]).flatten()
         if len(audio) < SR * 0.25:
             return None
         # beam_size=5 measurably beats greedy on single words: greedy turned
@@ -1002,7 +1068,7 @@ def main():
     if "--model" in sys.argv:
         model = sys.argv[sys.argv.index("--model") + 1]
     if "--review" in sys.argv:
-        vm = "large-v3"
+        vm = "gpt-4o-transcribe"
         if "--verify-model" in sys.argv:
             vm = sys.argv[sys.argv.index("--verify-model") + 1]
         review(vm, play="--play" in sys.argv)
