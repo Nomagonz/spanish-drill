@@ -31,6 +31,7 @@ class SlowListener:
         self.floor = floor
         self.calibrate_seconds = calibrate_seconds
         self.calibrated = False
+        self.closed = False
         self.last_audio = None
 
     def calibrate(self):
@@ -43,6 +44,9 @@ class SlowListener:
 
     def set_device(self, name):
         pass
+
+    def close(self):
+        self.closed = True
 
 
 @pytest.fixture
@@ -102,6 +106,14 @@ class TestButtonStates:
         window.toggle()
         assert window.thread is None, (
             "toggle must not depend on the widget alone to stop re-entry")
+
+
+class TestShutdown:
+    def test_closing_the_window_releases_the_microphone(self, window):
+        """The stream is held open all session, so something has to let go."""
+        listener = window.listener
+        window.close()
+        assert listener.closed
 
 
 class TestStoppingEarly:

@@ -471,5 +471,11 @@ class Window(QWidget):
             self.worker.stop()
             self.thread.quit()
             self.thread.wait(3000)
+        release = getattr(self.listener, "close", None)
+        if release:
+            try:
+                release()       # let go of the microphone
+            except Exception:
+                pass
         self.progress.save()
         event.accept()

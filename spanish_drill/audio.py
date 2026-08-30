@@ -65,9 +65,54 @@ class Recorder:
         self.device = resolve_device(device_name)
         self.floor = 0.004
         self.level = 0.0
+        self._stream = None
+        self._inbox = queue.Queue()
+
+    # -- the stream -------------------------------------------------------
+    def open(self):
+        """Open the microphone once and leave it open.
+
+        Opening and closing a CoreAudio stream for every card deadlocks. The
+        drill hung twice inside AudioOutputUnitStop, waiting on CoreAudio's HAL
+        mutex, with every thread parked at zero percent CPU. Speaking and
+        playing cues in the same process makes it likelier still. One stream
+        for the whole session removes the transition entirely.
+        """
+        if self._stream is not None:
+            return
+        self._stream = sd.InputStream(
+            callback=self._on_audio, blocksize=int(SAMPLE_RATE * BLOCK_SECONDS),
+            dtype="float32", device=self.device,
+            samplerate=SAMPLE_RATE, channels=1)
+        self._stream.start()
+
+    def close(self):
+        stream, self._stream = self._stream, None
+        if stream is not None:
+            try:
+                stream.stop()
+                stream.close()
+            except Exception:
+                pass            # a failure to close must not take the app down
+
+    def _on_audio(self, indata, frames, time_info, status):
+        self._inbox.put(indata.copy())
+
+    def _flush(self):
+        """Drop whatever arrived while we were talking or thinking."""
+        while True:
+            try:
+                self._inbox.get_nowait()
+            except queue.Empty:
+                return
 
     def set_device(self, device_name):
-        self.device = resolve_device(device_name)
+        """Switching input is the one time the stream has to be replaced."""
+        new = resolve_device(device_name)
+        if new == self.device:
+            return
+        self.close()
+        self.device = new
 
     def calibrate(self, seconds=CALIBRATION_SECONDS):
         """Measure the room, every session rather than once per process.
@@ -75,10 +120,16 @@ class Recorder:
         A floor measured while music was playing stays wrong all session
         otherwise.
         """
-        buf = sd.rec(int(seconds * SAMPLE_RATE), samplerate=SAMPLE_RATE,
-                     channels=1, dtype="float32", device=self.device)
-        sd.wait()
-        rms = float(np.sqrt(np.mean(buf ** 2)))
+        self.open()
+        self._flush()
+        blocks, deadline = [], time.time() + seconds
+        while time.time() < deadline:
+            try:
+                blocks.append(self._inbox.get(timeout=0.3))
+            except queue.Empty:
+                break
+        buf = self._join(blocks)
+        rms = float(np.sqrt(np.mean(buf ** 2))) if buf is not None else 0.0
         self.floor = max(0.0025, rms * 2.5)
         return self.floor
 
@@ -93,14 +144,11 @@ class Recorder:
         `speech_audio` starts just before the first sound; the leading silence
         is dropped because feeding it to a recogniser invites hallucination.
         """
-        inbox = queue.Queue()
+        self.open()
+        self._flush()       # whatever arrived while the prompt was spoken
         blocks = []
-        heard_speech, first_block, stopped_early = False, None, False
+        heard_speech, first_block = False, None
         pause_run, last_check = 0.0, 0.0
-        block_frames = int(SAMPLE_RATE * BLOCK_SECONDS)
-
-        def callback(indata, frames, time_info, status):
-            inbox.put(indata.copy())
 
         def drain():
             # A pause callback can block this loop for a second or more while a
@@ -109,44 +157,41 @@ class Recorder:
             # clip is missing exactly the part recorded during the check.
             while True:
                 try:
-                    blocks.append(inbox.get_nowait())
+                    blocks.append(self._inbox.get_nowait())
                 except queue.Empty:
                     return
 
         started = time.time()
-        with sd.InputStream(callback=callback, blocksize=block_frames,
-                            dtype="float32", device=self.device,
-                            samplerate=SAMPLE_RATE, channels=1):
-            while time.time() - started < seconds:
-                if should_stop and should_stop():
-                    drain()
-                    return None, self._join(blocks), heard_speech, False
-                try:
-                    block = inbox.get(timeout=0.3)
-                except queue.Empty:
-                    continue
-                blocks.append(block)
+        while time.time() - started < seconds:
+            if should_stop and should_stop():
+                drain()
+                return None, self._join(blocks), heard_speech, False
+            try:
+                block = self._inbox.get(timeout=0.3)
+            except queue.Empty:
+                continue
+            blocks.append(block)
 
-                self.level = float(np.sqrt(np.mean(block ** 2)))
-                if self.level > self.floor:
-                    if not heard_speech:
-                        heard_speech = True
-                        first_block = max(0, len(blocks) - 4)   # a little lead-in
-                    pause_run = 0.0
-                elif heard_speech:
-                    pause_run += BLOCK_SECONDS
+            self.level = float(np.sqrt(np.mean(block ** 2)))
+            if self.level > self.floor:
+                if not heard_speech:
+                    heard_speech = True
+                    first_block = max(0, len(blocks) - 4)   # a little lead-in
+                pause_run = 0.0
+            elif heard_speech:
+                pause_run += BLOCK_SECONDS
 
-                if (on_pause is not None and heard_speech
-                        and pause_run >= self._pause_threshold
-                        and time.time() - last_check > self._check_interval):
-                    last_check = time.time()
-                    partial = self._join(blocks[first_block:])
-                    if partial is not None and len(partial) >= SAMPLE_RATE * MIN_SPEECH_SECONDS:
-                        accepted = on_pause(partial)
-                        drain()     # everything recorded while it ran
-                        if accepted:
-                            return partial, self._join(blocks), True, True
-            drain()                 # and anything still queued at the end
+            if (on_pause is not None and heard_speech
+                    and pause_run >= self._pause_threshold
+                    and time.time() - last_check > self._check_interval):
+                last_check = time.time()
+                partial = self._join(blocks[first_block:])
+                if partial is not None and len(partial) >= SAMPLE_RATE * MIN_SPEECH_SECONDS:
+                    accepted = on_pause(partial)
+                    drain()     # everything recorded while it ran
+                    if accepted:
+                        return partial, self._join(blocks), True, True
+        drain()                 # and anything still queued at the end
 
         window = self._join(blocks)
         if not heard_speech or window is None:

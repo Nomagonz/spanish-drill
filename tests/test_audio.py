@@ -21,13 +21,19 @@ BLOCK = int(SAMPLE_RATE * 0.05)
 
 
 class FakeStream:
-    """Feeds blocks to the callback on its own thread, like PortAudio does."""
+    """Feeds blocks to the callback on its own thread, like PortAudio does.
+
+    Mirrors the start/stop/close lifecycle the Recorder now uses: the stream is
+    opened once per session rather than once per card.
+    """
 
     def __init__(self, callback, level=0.0, **_):
         self.callback = callback
         self.level = level
         self._stop = threading.Event()
         self._thread = None
+        self.starts = 0
+        self.stops = 0
 
     def _pump(self):
         while not self._stop.is_set():
@@ -35,27 +41,50 @@ class FakeStream:
             self.callback(block, BLOCK, None, None)
             time.sleep(0.05)
 
-    def __enter__(self):
+    def start(self):
+        self.starts += 1
+        self._stop.clear()
         self._thread = threading.Thread(target=self._pump, daemon=True)
         self._thread.start()
-        return self
 
-    def __exit__(self, *exc):
+    def stop(self):
+        self.stops += 1
         self._stop.set()
-        self._thread.join(timeout=1)
+        if self._thread:
+            self._thread.join(timeout=1)
+
+    def close(self):
+        self.stop()
+
+
+def _install(monkeypatch, level):
+    """One stream instance, so the test can count how often it is opened.
+
+    The recorder deliberately leaves streams open now, so the fixture has to
+    stop them itself or the pump threads pile up and abort the interpreter.
+    """
+    made = []
+
+    def factory(**kw):
+        stream = FakeStream(kw["callback"], level=level)
+        made.append(stream)
+        return stream
+
+    monkeypatch.setattr(audio_module.sd, "InputStream", factory)
+    yield made
+    for stream in made:
+        stream.stop()
 
 
 @pytest.fixture
 def loud(monkeypatch):
     """A device that is always emitting well above the noise floor."""
-    monkeypatch.setattr(audio_module.sd, "InputStream",
-                        lambda **kw: FakeStream(kw["callback"], level=0.5))
+    yield from _install(monkeypatch, 0.5)
 
 
 @pytest.fixture
 def quiet(monkeypatch):
-    monkeypatch.setattr(audio_module.sd, "InputStream",
-                        lambda **kw: FakeStream(kw["callback"], level=0.0))
+    yield from _install(monkeypatch, 0.0)
 
 
 class TestWindow:
@@ -144,6 +173,71 @@ class TestEarlyExit:
         r.floor = 0.01
         _, _, _, early = r.record(5.0, should_stop=lambda: True)
         assert not early
+
+
+class TestStreamLifetime:
+    """The microphone is opened once per session, never once per card.
+
+    Opening and closing a CoreAudio stream per card deadlocks: the drill hung
+    twice inside AudioOutputUnitStop waiting on CoreAudio's HAL mutex, with
+    every thread parked at zero percent CPU.
+    """
+
+    def test_many_recordings_open_one_stream(self, loud):
+        r = Recorder()
+        r.floor = 0.01
+        for _ in range(5):
+            r.record(0.2)
+        assert len(loud) == 1, f"opened {len(loud)} streams for 5 cards"
+        assert loud[0].starts == 1
+        assert loud[0].stops == 0, "the stream must stay open between cards"
+
+    def test_calibrating_reuses_the_same_stream(self, loud):
+        r = Recorder()
+        r.calibrate(seconds=0.2)
+        r.record(0.2)
+        assert len(loud) == 1
+
+    def test_close_releases_it(self, loud):
+        r = Recorder()
+        r.record(0.2)
+        r.close()
+        assert loud[0].stops >= 1
+
+    def test_closing_twice_is_harmless(self, loud):
+        r = Recorder()
+        r.record(0.2)
+        r.close()
+        r.close()
+
+    def test_a_failure_to_close_does_not_propagate(self, loud):
+        r = Recorder()
+        r.record(0.2)
+        stream = loud[0]
+        real_stop = stream.stop
+        stream.stop = lambda: (_ for _ in ()).throw(OSError("HAL busy"))
+        try:
+            r.close()   # must not raise
+        finally:
+            stream.stop = real_stop
+
+    def test_changing_device_replaces_the_stream(self, loud, monkeypatch):
+        monkeypatch.setattr(audio_module, "input_devices",
+                            lambda: [(0, "Built-in"), (3, "Headset")])
+        r = Recorder()
+        r.record(0.2)
+        r.set_device("Headset")
+        r.record(0.2)
+        assert len(loud) == 2, "a new input needs a new stream"
+
+    def test_stale_audio_is_dropped_before_a_new_card(self, loud):
+        """Whatever was captured while the prompt was spoken is not an answer."""
+        r = Recorder()
+        r.floor = 0.01
+        r.open()
+        time.sleep(0.4)                 # audio piles up while "speaking"
+        _, window, _, _ = r.record(0.3)
+        assert len(window) / SAMPLE_RATE < 0.55
 
 
 class TestDeviceResolution:

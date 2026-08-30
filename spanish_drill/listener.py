@@ -29,6 +29,10 @@ class Listener:
     def calibrate(self):
         return self.recorder.calibrate()
 
+    def close(self):
+        """Release the microphone. The stream is held open all session."""
+        self.recorder.close()
+
     def listen(self, window, should_stop=None, accept=None):
         """Returns the transcript, or None if nothing usable was said."""
         self.last_audio = None
