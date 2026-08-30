@@ -1,49 +1,23 @@
-"""Speaking, via the macOS `say` voice.
+"""Speaking.
+
+Phrases are recorded once and replayed from disk; see voice.py for why. This
+module is the vocabulary the drill speaks in, and stays free of the mechanics.
 
 Interruptible on purpose: a Stop that waits out the rest of a sentence reads as
 a frozen button.
 """
-import subprocess
-import threading
-
+from . import voice
 from .config import ENGLISH_RATE, VOICES
 
-_lock = threading.Lock()
-_current = None
 
-
-def say(text, voice=None, rate=None):
+def say(text, voice_name=None, rate=ENGLISH_RATE):
     """Speak, blocking until finished or interrupted."""
-    global _current
-    if not text:
-        return
-    command = ["say"]
-    if voice:
-        command += ["-v", voice]
-    if rate:
-        command += ["-r", str(rate)]
-    try:
-        with _lock:
-            _current = subprocess.Popen(command + [text],
-                                        stdout=subprocess.DEVNULL,
-                                        stderr=subprocess.DEVNULL)
-        _current.wait()
-    except (FileNotFoundError, OSError):
-        pass                        # no `say` on this machine; run silently
-    finally:
-        with _lock:
-            _current = None
+    voice.speak(text, voice_name, rate or ENGLISH_RATE)
 
 
 def stop_speaking():
     """Cut off whatever is being spoken, so Stop feels immediate."""
-    with _lock:
-        process = _current
-    if process is not None:
-        try:
-            process.terminate()
-        except Exception:
-            pass
+    voice.stop()
 
 
 def spanish_voice(dialect):
@@ -55,4 +29,4 @@ def say_english(text):
 
 
 def say_spanish(text, dialect):
-    say(text, voice=spanish_voice(dialect))
+    say(text, voice_name=spanish_voice(dialect))

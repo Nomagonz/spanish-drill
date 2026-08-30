@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
                              QHBoxLayout, QLabel, QProgressBar, QPushButton,
                              QSizePolicy, QSpinBox, QVBoxLayout, QWidget)
 
+from . import voice
 from .audio import input_devices
 from .deck import categories, load_deck
 from .config import MAIN_MODEL, SILENT_FLOOR
@@ -54,6 +55,31 @@ class ModelLoader(QObject):
             self.done.emit(Listener(self.model_name, self.device_name), "")
         except Exception as exc:
             self.done.emit(None, f"{type(exc).__name__}: {exc}")
+
+
+class Prerecorder(QObject):
+    """Records the prompts for a category ahead of time, off the main thread.
+
+    Recording a phrase takes about nine tenths of a second. Doing it on demand
+    means paying that inside the first card that needs it; doing it in the
+    background means the drill only ever plays a file that already exists.
+    """
+    progress = pyqtSignal(int, int)
+    done = pyqtSignal(int)
+
+    def __init__(self, phrases):
+        super().__init__()
+        self.phrases = phrases
+        self._stop = False
+
+    def stop(self):
+        self._stop = True
+
+    def run(self):
+        made = voice.prerecord(self.phrases,
+                               should_stop=lambda: self._stop,
+                               on_progress=self.progress.emit)
+        self.done.emit(made)
 
 
 class SessionWorker(QObject):
@@ -115,6 +141,7 @@ class Window(QWidget):
         self.model_name = model_name or self.progress.model
         self.listener = None
         self.worker = self.thread = None
+        self._recorder = self._recorder_thread = None
         self._starting = False
 
         self.setWindowTitle("Spanish Drill")
@@ -133,6 +160,10 @@ class Window(QWidget):
         header.addWidget(_label(
             "DRILL · ES",
             f"color:{SCREEN};font:800 15px {DISPLAY};letter-spacing:2px;"))
+        self.mode_label = _label("", f"color:{SIGNAL};font:700 11px {MONO};"
+                                     "letter-spacing:3px;")
+        header.addSpacing(12)
+        header.addWidget(self.mode_label)
         header.addStretch(1)
         self.progress_note = _label("", f"color:{MUTE};font:10px {MONO};"
                                         "letter-spacing:1px;")
@@ -169,11 +200,13 @@ class Window(QWidget):
         root.addWidget(self.go)
 
         prow = QHBoxLayout()
-        self.retest = QCheckBox("re-test words already sorted")
-        self.retest.setStyleSheet(f"color:{MUTE};font:10px {MONO};")
-        prow.addWidget(self.retest)
-        prow.addStretch(1)
+        prow.addWidget(_label("test", f"color:{MUTE};font:10px {MONO};"))
+        self.scope = QComboBox()
+        self.scope.setStyleSheet(
+            f"background:{PANEL};color:{SCREEN};border:1px solid {RULE};padding:3px;")
+        prow.addWidget(self.scope, 1)
         root.addLayout(prow)
+        self._refresh_scope()
 
         self.placement = QPushButton("PLACEMENT TEST")
         self.placement.setStyleSheet(
@@ -213,7 +246,7 @@ class Window(QWidget):
         return wrapper
 
     def _screen(self):
-        frame = QFrame()
+        frame = self.screen = QFrame()
         frame.setStyleSheet(f"background:{SCREEN};border-radius:3px;")
         frame.setMinimumHeight(210)
         layout = QVBoxLayout(frame)
@@ -284,8 +317,17 @@ class Window(QWidget):
             self.category.setCurrentIndex(self.category.findData(chosen))
         self.category.setStyleSheet(
             f"background:{PANEL};color:{SCREEN};border:1px solid {RULE};padding:3px;")
+        self.category.currentIndexChanged.connect(self._on_category_changed)
         row.addWidget(self.category, 1)
         return row
+
+    def _on_category_changed(self):
+        """The scope counts are per category, so they move with it."""
+        self.progress.category = self.category.currentData() or "all"
+        self._refresh_scope()
+        self._refresh_counters()
+        if self.listener is not None:
+            self._start_prerecording()      # a new category needs new prompts
 
     def _settings_row(self):
         row = QHBoxLayout()
@@ -343,6 +385,34 @@ class Window(QWidget):
         self.go.setText("GO")
         self.status_label.setText("Ready")
         self.prompt_label.setText("Press Go.")
+        self._start_prerecording()
+
+    def _start_prerecording(self):
+        """Record this category's prompts quietly in the background."""
+        deck = load_deck()
+        wanted = [i for i in range(len(deck))
+                  if self.progress.in_category(i, deck)]
+        phrases = voice.phrases_for(deck, self.progress.dialect, wanted)
+        missing = [p for p in phrases if not voice.path_for(*p).exists()]
+        if not missing:
+            return
+        self._recorder = Prerecorder(missing)
+        self._recorder_thread = QThread()
+        self._recorder.moveToThread(self._recorder_thread)
+        self._recorder_thread.started.connect(self._recorder.run)
+        self._recorder.progress.connect(self._on_prerecord_progress)
+        self._recorder.done.connect(self._on_prerecord_done)
+        self._recorder_thread.start()
+
+    def _on_prerecord_progress(self, done, total):
+        if self.thread is None or not self.thread.isRunning():
+            self.status_label.setText(f"Recording prompts {done}/{total}")
+
+    def _on_prerecord_done(self, made):
+        self._recorder_thread.quit()
+        self._recorder_thread.wait()
+        if self.thread is None or not self.thread.isRunning():
+            self.status_label.setText("Ready")
 
     # -- running ----------------------------------------------------------
     def toggle(self):
@@ -393,9 +463,17 @@ class Window(QWidget):
         self._hide_progress()
         if placement:
             session = PlacementSession(self.progress, self.listener,
-                                       retest=self.retest.isChecked())
+                                       retest=self.scope.currentData() == "all")
+            self.mode_label.setText("PLACEMENT TEST")
+            self.placement.setText("STOP TEST")
+            self.go.setEnabled(False)
+            self.screen.setStyleSheet(
+                f"background:{SCREEN};border-radius:3px;"
+                f"border:2px solid {SIGNAL};")
         else:
             session = DrillSession(self.progress, self.listener)
+            self.mode_label.setText("")
+            self.screen.setStyleSheet(f"background:{SCREEN};border-radius:3px;")
         self.worker = SessionWorker(session)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
@@ -493,6 +571,10 @@ class Window(QWidget):
         self.go.setText("GO")
         self.go.setEnabled(True)
         self.placement.setEnabled(True)
+        self.placement.setText("PLACEMENT TEST")
+        self.mode_label.setText("")
+        self.screen.setStyleSheet(f"background:{SCREEN};border-radius:3px;")
+        self._refresh_scope()
         if self.thread:
             self.thread.quit()
             self.thread.wait()
@@ -508,6 +590,25 @@ class Window(QWidget):
         self.counter_labels["learning"].setText(
             f"LEARNING · {p.mature_count()} MATURE")
 
+    def _refresh_scope(self):
+        """Spell out what each option would actually ask, with live counts.
+
+        "re-test words already sorted" said nothing about how many that was,
+        or how to start over when the sorting turned out to be wrong.
+        """
+        deck = load_deck()
+        in_scope = [i for i in range(len(deck))
+                    if self.progress.in_category(i, deck)]
+        unsorted = [i for i in in_scope if i not in self.progress.cards]
+        current = self.scope.currentData() if self.scope.count() else "new"
+        self.scope.blockSignals(True)
+        self.scope.clear()
+        self.scope.addItem(f"only words never sorted ({len(unsorted)})", "new")
+        self.scope.addItem(f"start over, all of them ({len(in_scope)})", "all")
+        index = self.scope.findData(current)
+        self.scope.setCurrentIndex(max(0, index))
+        self.scope.blockSignals(False)
+
     def _refresh_tally(self):
         kept, overturned = self.progress.kept, self.progress.overturned
         total = kept + overturned
@@ -521,6 +622,12 @@ class Window(QWidget):
             self.worker.stop()
             self.thread.quit()
             self.thread.wait(3000)
+        recorder = getattr(self, "_recorder", None)
+        if recorder is not None:
+            recorder.stop()
+            self._recorder_thread.quit()
+            self._recorder_thread.wait(3000)
+        voice.stop()
         release = getattr(self.listener, "close", None)
         if release:
             try:

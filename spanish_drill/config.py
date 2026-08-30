@@ -31,8 +31,12 @@ MAIN_MODEL = "medium"
 SCOUT_MODEL = "small"
 VERIFY_MODEL = "gpt-4o-transcribe"
 
-# Speech out
+# Speech out. Prompts are recorded once and replayed: rendering is not racing a
+# clock, so it can use a higher sample rate than live synthesis, and the same
+# phrase sounds identical every time.
 VOICES = {"es-MX": "Paulina", "es-ES": "Mónica"}
 ENGLISH_RATE = 180
+PROMPT_CACHE = ROOT / "prompts"
+SAY_FORMAT = "LEI16@22050"      # 16-bit mono, what `say -o` writes natively
 
 DAY_SECONDS = 86_400

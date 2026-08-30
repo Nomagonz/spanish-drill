@@ -15,3 +15,6 @@ answers/
 
 # local backups of progress and past sessions
 backups/
+
+# Recorded prompt audio, rebuilt on demand
+prompts/

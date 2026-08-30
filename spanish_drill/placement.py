@@ -132,6 +132,12 @@ class PlacementSession(DrillSession):
             cues.wrong()
             say_spanish(card.answers[0], self.progress.dialect)
 
+    def _state_label(self, index):
+        """During a test the scheduling state is noise; say what mode this is."""
+        already = self.correct_so_far.get(index, 0)
+        return ("Placement · confirming" if already
+                else "Placement · sorting")
+
     @property
     def classified(self):
         return len(self.known) + len(self.to_learn)
