@@ -1,0 +1,34 @@
+"""Test-wide safety net.
+
+The drill speaks out loud and writes files next to the app. Neither belongs in
+a test run, so both are redirected before any test touches them.
+"""
+import pytest
+
+from spanish_drill import session as session_module
+
+
+@pytest.fixture(autouse=True)
+def silent(monkeypatch):
+    """No test should make the machine talk."""
+    monkeypatch.setattr(session_module, "say_english", lambda *a, **k: None)
+    monkeypatch.setattr(session_module, "say_spanish", lambda *a, **k: None)
+
+
+@pytest.fixture(autouse=True)
+def no_stray_writes(monkeypatch, tmp_path):
+    """Answer audio and logs go to a scratch directory, never the real one."""
+    from spanish_drill import answers
+    monkeypatch.setattr(answers, "ANSWERS_DIR", tmp_path / "answers")
+    monkeypatch.setattr(answers, "ANSWER_LOG", tmp_path / "answers" / "answers.jsonl")
+
+
+@pytest.fixture(autouse=True)
+def fast(monkeypatch):
+    """Drop the pauses that only exist to pace spoken feedback.
+
+    Deliberately narrow. Patching time.sleep globally would also silence the
+    pacing that audio capture depends on, which quietly turned the recorder's
+    timing tests into tests that could never fail.
+    """
+    monkeypatch.setattr(session_module, "pace", lambda *_: None)

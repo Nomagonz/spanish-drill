@@ -11,7 +11,7 @@ progress.json.tmp
 __pycache__/
 
 # Recorded answer audio from sessions
-misses/
+answers/
 
 # local backups of progress and past sessions
 backups/
