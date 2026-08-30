@@ -145,3 +145,52 @@ class TestFeedback:
         i = index_of("ser")
         run(progress, correct_for=set(), only=[i])
         assert all(DECK[i].example not in s for s in spoken)
+
+
+class TestItTerminates:
+    """A run must end, and end having classified everything it started."""
+
+    @pytest.mark.parametrize("accuracy", [1.0, 0.5, 0.0])
+    def test_a_full_category_finishes(self, tmp_path, accuracy):
+        import random
+        progress = Progress(path=tmp_path / "p.json", verify_live=False,
+                            category="verb")
+        rng = random.Random(1)
+        verbs = [i for i, c in enumerate(DECK) if c.pos == "verb"]
+
+        class Listener:
+            last_audio = None
+            def listen(self, window, should_stop=None, accept=None):
+                card = DECK[session.current]
+                return card.answers[0] if rng.random() < accuracy else "zzz"
+            def calibrate(self):
+                pass
+
+        session = PlacementSession(progress, Listener(), verifier=None,
+                                   rng=random.Random(2))
+        session.run()
+        assert not session.running
+        classified = len(session.known) + len(session.to_learn)
+        assert classified == len(verbs), (
+            f"stopped after {classified} of {len(verbs)}")
+
+    def test_a_word_is_asked_at_most_twice(self, tmp_path):
+        """Right twice passes; wrong once classifies. Neither loops."""
+        import random
+        progress = Progress(path=tmp_path / "p.json", verify_live=False,
+                            category="verb")
+        asked = []
+
+        class Listener:
+            last_audio = None
+            def listen(self, window, should_stop=None, accept=None):
+                asked.append(session.current)
+                return DECK[session.current].answers[0]
+            def calibrate(self):
+                pass
+
+        session = PlacementSession(progress, Listener(), verifier=None,
+                                   rng=random.Random(3))
+        session.run()
+        from collections import Counter
+        assert max(Counter(asked).values()) == 2

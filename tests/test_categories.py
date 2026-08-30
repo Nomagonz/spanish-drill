@@ -112,3 +112,36 @@ class TestSpokenPrompt:
         for c in DECK:
             spoken = c.spoken_prompt
             assert spoken and not spoken.startswith(",") and "  " not in spoken
+
+
+class TestPromptsAreClean:
+    """The prompts come from Wiktionary, whose markup does not always close.
+
+    Only objective damage is checked here. An earlier version of this test
+    flagged anything ending in "or", "and" or "to", which called y, con, o and
+    "according to" broken. A check that fires on correct data is worse than no
+    check, because it trains you to ignore it.
+    """
+
+    def test_no_leftover_markup(self):
+        import re
+        bad = [(c.answers[0], c.prompt) for c in DECK
+               if re.search(r"[\[\]{}|]", c.prompt)]
+        assert not bad, f"wiki markup survived cleaning: {bad}"
+
+    def test_no_grammatical_complement_markers(self):
+        import re
+        bad = [(c.answers[0], c.prompt) for c in DECK
+               if re.search(r"(?:^|\s)\+\S", c.prompt)]
+        assert not bad, f"complement markers left in: {bad}"
+
+    def test_no_wiktionary_boilerplate(self):
+        bad = [(c.answers[0], c.prompt) for c in DECK
+               if c.prompt.lower().startswith(("used ", "forms ", "indicating "))]
+        assert not bad, f"grammatical commentary, not a prompt: {bad}"
+
+    def test_no_ragged_whitespace_or_punctuation(self):
+        bad = [(c.answers[0], c.prompt) for c in DECK
+               if "  " in c.prompt or c.prompt != c.prompt.strip()
+               or c.prompt[:1] in ",;:" or c.prompt[-1:] in ",;:"]
+        assert not bad, f"ragged prompts: {bad}"

@@ -134,3 +134,47 @@ class TestPersistence:
         p = Progress(path=tmp_path / "p.json", day=0, missed_today=9, new_done=9)
         p.save()
         assert Progress.load(tmp_path / "p.json", today=1).missed_today == 0
+
+
+class TestAnswersThatLookLikeCommands:
+    """Four deck answers are also control words: para, parar, alto, siguiente.
+
+    Saying the right answer used to end or derail the session.
+    """
+
+    def _card_index(self, word):
+        return index_of(word)
+
+    def test_para_answers_its_card_instead_of_stopping(self, progress):
+        i = index_of("para")
+        progress.queue_override = [i]
+        results = run(progress, ScriptedListener("para"))
+        assert results and results[0].outcome is Outcome.CORRECT
+
+    def test_parar_answers_its_card_instead_of_stopping(self, progress):
+        i = index_of("parar")
+        progress.queue_override = [i]
+        results = run(progress, ScriptedListener("parar"))
+        assert results and results[0].outcome is Outcome.CORRECT
+
+    def test_siguiente_answers_its_card_instead_of_skipping(self, progress):
+        i = index_of("siguiente")
+        progress.queue_override = [i]
+        results = run(progress, ScriptedListener("siguiente"))
+        assert results and results[0].outcome is Outcome.CORRECT
+
+    def test_stop_still_stops_on_an_unrelated_card(self, progress):
+        progress.queue_override = [index_of("ser")]
+        session = DrillSession(progress, ScriptedListener("para"), verifier=None)
+        session.run()
+        assert not session.running
+
+    def test_skip_still_skips_on_an_unrelated_card(self, progress):
+        i = index_of("ser")
+        progress.queue_override = [i, index_of("estar")]
+        session = DrillSession(progress, ScriptedListener("siguiente", "estar"),
+                               verifier=None)
+        results = []
+        session.on_result = lambda r: (results.append(r), session.stop())
+        session.run()
+        assert progress.card(i) is None, "a skipped card must not be graded"

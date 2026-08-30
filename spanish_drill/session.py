@@ -170,7 +170,11 @@ class DrillSession:
                 return None, elapsed, None
 
             self._emit("on_heard", said)
-            command = command_of(said)
+            # The expected answer outranks the command vocabulary. "para" is
+            # the answer to "for, to", "parar" to "to stop", "alto" to "tall"
+            # and "siguiente" to "following". Reading those as commands meant
+            # answering correctly ended or derailed the session.
+            command = None if check(said, card) else command_of(said)
             if command == "stop":
                 self._emit("on_status", "Paused")
                 self.running = False
