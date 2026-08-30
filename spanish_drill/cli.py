@@ -19,6 +19,11 @@ def build_parser():
     p.add_argument("--placement", action="store_true",
                    help="rapid placement test: right twice is known, wrong once "
                         "goes to the learning pile")
+    p.add_argument("--category", default=None,
+                   help="restrict the drill to one part of speech, e.g. 'verb'. "
+                        "Use --categories to see what is available.")
+    p.add_argument("--categories", action="store_true",
+                   help="list the parts of speech in the deck")
     p.add_argument("--devices", action="store_true",
                    help="list the microphones this machine can record from")
     return p
@@ -26,6 +31,21 @@ def build_parser():
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
+
+    if args.categories:
+        from .deck import categories, load_deck
+        deck = load_deck()
+        print(f"  {'all':<14} {len(deck)}")
+        for pos in categories(deck):
+            print(f"  {pos:<14} {sum(1 for c in deck if c.pos == pos)}")
+        return 0
+
+    if args.category:
+        from .progress import Progress
+        p = Progress.load()
+        p.category = args.category
+        p.save()
+        print(f"drill restricted to: {args.category}")
 
     if args.devices:
         from .audio import input_devices

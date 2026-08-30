@@ -1,11 +1,57 @@
 [
  {
+  "en": "of, 's",
+  "es": [
+   "de"
+  ],
+  "ex": "¡Feliz día de acción de gracias!",
+  "gl": "Happy Thanksgiving!",
+  "pos": "preposition"
+ },
+ {
+  "en": "who, that",
+  "es": [
+   "que"
+  ],
+  "ex": "Hace un biruji que no veas.",
+  "gl": "It's chilly.",
+  "pos": "pronoun"
+ },
+ {
   "en": "to be (identity, permanent)",
   "es": [
    "ser"
   ],
   "ex": "Ella es maestra.",
-  "gl": "She is a teacher."
+  "gl": "She is a teacher.",
+  "pos": "verb"
+ },
+ {
+  "en": "and",
+  "es": [
+   "y"
+  ],
+  "ex": "Diciembre tiene treinta y un días.",
+  "gl": "December has thirty-one days.",
+  "pos": "conjunction"
+ },
+ {
+  "en": "in, at",
+  "es": [
+   "en"
+  ],
+  "ex": "Todo el mundo entró en pánico.",
+  "gl": "Everybody panicked.",
+  "pos": "preposition"
+ },
+ {
+  "en": "he, him",
+  "es": [
+   "él"
+  ],
+  "ex": "Él se portó como un idiota.",
+  "gl": "He acted foolishly.",
+  "pos": "pronoun"
  },
  {
   "en": "to be (state, location)",
@@ -13,7 +59,44 @@
    "estar"
   ],
   "ex": "Estoy en casa.",
-  "gl": "I'm at home."
+  "gl": "I'm at home.",
+  "pos": "verb"
+ },
+ {
+  "en": "one",
+  "es": [
+   "uno"
+  ],
+  "ex": "Tomás es un bueno para nada.",
+  "gl": "Tom's useless.",
+  "pos": "number"
+ },
+ {
+  "en": "have",
+  "es": [
+   "haber"
+  ],
+  "ex": "Aquí hay un poco de agua.",
+  "gl": "Here's some water.",
+  "pos": "verb"
+ },
+ {
+  "en": "first-person singular pronoun in the nominative case; I",
+  "es": [
+   "yo"
+  ],
+  "ex": "Yo me odio a mí mismo.",
+  "gl": "I hate myself.",
+  "pos": "pronoun"
+ },
+ {
+  "en": "by",
+  "es": [
+   "por"
+  ],
+  "ex": "Pregúntate a ti mismo por qué.",
+  "gl": "Ask yourself why.",
+  "pos": "preposition"
  },
  {
   "en": "to have",
@@ -21,31 +104,26 @@
    "tener"
   ],
   "ex": "Tengo dos hermanos.",
-  "gl": "I have two brothers."
+  "gl": "I have two brothers.",
+  "pos": "verb"
  },
  {
-  "en": "to do, to make",
+  "en": "A pronoun",
   "es": [
-   "hacer"
+   "se"
   ],
-  "ex": "¿Qué haces?",
-  "gl": "What are you doing?"
+  "ex": "Todo el mundo se está riendo.",
+  "gl": "Everyone's laughing.",
+  "pos": "pronoun"
  },
  {
-  "en": "to be able to, can",
+  "en": "you",
   "es": [
-   "poder"
+   "tú"
   ],
-  "ex": "No puedo ir hoy.",
-  "gl": "I can't go today."
- },
- {
-  "en": "to say, to tell",
-  "es": [
-   "decir"
-  ],
-  "ex": "¿Qué dijiste?",
-  "gl": "What did you say?"
+  "ex": "Yo estoy más adelante que tú.",
+  "gl": "I outrank you.",
+  "pos": "pronoun"
  },
  {
   "en": "to go",
@@ -53,39 +131,116 @@
    "ir"
   ],
   "ex": "Vamos al mercado.",
-  "gl": "We're going to the market."
+  "gl": "We're going to the market.",
+  "pos": "verb"
  },
  {
-  "en": "to see",
+  "en": "to do, to make",
   "es": [
-   "ver"
+   "hacer"
   ],
-  "ex": "No veo nada.",
-  "gl": "I don't see anything."
+  "ex": "¿Qué haces?",
+  "gl": "What are you doing?",
+  "pos": "verb"
  },
  {
-  "en": "to give",
+  "en": "with",
   "es": [
-   "dar"
+   "con"
   ],
-  "ex": "Dame el libro.",
-  "gl": "Give me the book."
+  "ex": "El cristal se rompe con facilidad.",
+  "gl": "Glass breaks easily.",
+  "pos": "preposition"
  },
  {
-  "en": "to know (a fact)",
+  "en": "what",
   "es": [
-   "saber"
+   "qué"
   ],
-  "ex": "No sé qué hacer.",
-  "gl": "I don't know what to do."
+  "ex": "¿Qué es una corrida de toros?",
+  "gl": "What is bullfighting?",
+  "pos": "pronoun"
  },
  {
-  "en": "to know (a person or place)",
+  "en": "his, hers",
   "es": [
-   "conocer"
+   "suyo"
   ],
-  "ex": "Conozco a su hermana.",
-  "gl": "I know his sister."
+  "ex": "Comparé mi coche con el suyo.",
+  "gl": "I compared my car with his.",
+  "pos": "determiner"
+ },
+ {
+  "en": "to be able to, can",
+  "es": [
+   "poder"
+  ],
+  "ex": "No puedo ir hoy.",
+  "gl": "I can't go today.",
+  "pos": "verb"
+ },
+ {
+  "en": "for, to",
+  "es": [
+   "para"
+  ],
+  "ex": "La comida para perros es cara.",
+  "gl": "Dog food is expensive.",
+  "pos": "preposition"
+ },
+ {
+  "en": "to say, to tell",
+  "es": [
+   "decir"
+  ],
+  "ex": "¿Qué dijiste?",
+  "gl": "What did you say?",
+  "pos": "verb"
+ },
+ {
+  "en": "this",
+  "es": [
+   "este"
+  ],
+  "ex": "Esta es la casa de Tom.",
+  "gl": "It's Tom's house.",
+  "pos": "determiner"
+ },
+ {
+  "en": "all, every",
+  "es": [
+   "todo"
+  ],
+  "ex": "Los policías están por todas partes.",
+  "gl": "Cops are everywhere.",
+  "pos": "determiner"
+ },
+ {
+  "en": "mine, my",
+  "es": [
+   "mío"
+  ],
+  "ex": "Lo que es mío es tuyo.",
+  "gl": "What's mine's yours.",
+  "pos": "determiner"
+ },
+ {
+  "en": "but",
+  "es": [
+   "pero"
+  ],
+  "ex": "¿Pero al menos lo has intentado?",
+  "gl": "Did you ever try?",
+  "pos": "conjunction"
+ },
+ {
+  "en": "if, whether",
+  "es": [
+   "si"
+  ],
+  "ex": "Ven el lunes, si es posible.",
+  "gl": "Come on Monday if possible.",
+  "pos": "conjunction"
  },
  {
   "en": "to want",
@@ -93,23 +248,134 @@
    "querer"
   ],
   "ex": "Quiero un café.",
-  "gl": "I want a coffee."
+  "gl": "I want a coffee.",
+  "pos": "verb"
  },
  {
-  "en": "to arrive",
+  "en": "prepositional form of se",
   "es": [
-   "llegar"
+   "sí"
   ],
-  "ex": "Llegamos tarde.",
-  "gl": "We arrived late."
+  "ex": "Los vecinos se ayudan entre sí.",
+  "gl": "Neighbors help each other.",
+  "pos": "pronoun"
  },
  {
-  "en": "to happen; to pass",
+  "en": "as",
   "es": [
-   "pasar"
+   "como"
   ],
-  "ex": "¿Qué pasa?",
-  "gl": "What's happening?"
+  "ex": "Tom no es como la mayoría.",
+  "gl": "Tom isn't conventional.",
+  "pos": "conjunction"
+ },
+ {
+  "en": "well",
+  "es": [
+   "bien"
+  ],
+  "ex": "Se me da bien la cocina.",
+  "gl": "I'm a good cook.",
+  "pos": "adverb"
+ },
+ {
+  "en": "more, -er",
+  "es": [
+   "más"
+  ],
+  "ex": "Eso es más o menos todo.",
+  "gl": "That's about it.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to see",
+  "es": [
+   "ver"
+  ],
+  "ex": "No veo nada.",
+  "gl": "I don't see anything.",
+  "pos": "verb"
+ },
+ {
+  "en": "yours, your",
+  "es": [
+   "tuyo"
+  ],
+  "ex": "Quiero un perro como el tuyo.",
+  "gl": "I want a dog like yours.",
+  "pos": "determiner"
+ },
+ {
+  "en": "to know (a fact)",
+  "es": [
+   "saber"
+  ],
+  "ex": "No sé qué hacer.",
+  "gl": "I don't know what to do.",
+  "pos": "verb"
+ },
+ {
+  "en": "that",
+  "es": [
+   "ese"
+  ],
+  "ex": "A las mujeres les encanta eso.",
+  "gl": "Women love that.",
+  "pos": "determiner"
+ },
+ {
+  "en": "here",
+  "es": [
+   "aquí"
+  ],
+  "ex": "Aquí tienes un poco de agua.",
+  "gl": "Here's some water.",
+  "pos": "adverb"
+ },
+ {
+  "en": "we",
+  "es": [
+   "nosotros"
+  ],
+  "ex": "Nos pusimos de acuerdo entre nosotros.",
+  "gl": "We agreed among ourselves.",
+  "pos": "pronoun"
+ },
+ {
+  "en": "to believe, to think",
+  "es": [
+   "creer"
+  ],
+  "ex": "Creo que sí.",
+  "gl": "I think so.",
+  "pos": "verb"
+ },
+ {
+  "en": "already; now",
+  "es": [
+   "ya"
+  ],
+  "ex": "Ya terminé.",
+  "gl": "I already finished.",
+  "pos": "adverb"
+ },
+ {
+  "en": "or",
+  "es": [
+   "o"
+  ],
+  "ex": "El francés es difícil, ¿o no?",
+  "gl": "French is difficult, isn't it?",
+  "pos": "conjunction"
+ },
+ {
+  "en": "to give",
+  "es": [
+   "dar"
+  ],
+  "ex": "Dame el libro.",
+  "gl": "Give me the book.",
+  "pos": "verb"
  },
  {
   "en": "should, ought to; to owe",
@@ -117,87 +383,71 @@
    "deber"
   ],
   "ex": "Debes descansar.",
-  "gl": "You should rest."
+  "gl": "You should rest.",
+  "pos": "verb"
  },
  {
-  "en": "to put, to place",
+  "en": "much, a lot",
   "es": [
-   "poner"
+   "mucho"
   ],
-  "ex": "Pon el libro en la mesa.",
-  "gl": "Put the book on the table."
+  "ex": "Tomás es de verdad muy apuesto.",
+  "gl": "Tom certainly is good-looking.",
+  "pos": "adverb"
  },
  {
-  "en": "to seem, to look like",
+  "en": "other, another",
   "es": [
-   "parecer"
+   "otro"
   ],
-  "ex": "Parece fácil.",
-  "gl": "It seems easy."
+  "ex": "No te dejes engañar otra vez.",
+  "gl": "Don't be fooled again.",
+  "pos": "determiner"
  },
  {
-  "en": "to leave, to go out",
+  "en": "like this, like that",
   "es": [
-   "salir"
+   "así"
   ],
-  "ex": "Salgo a las ocho.",
-  "gl": "I leave at eight."
+  "ex": "Eso es cierto, ¿no es así?",
+  "gl": "That's right, isn't it?",
+  "pos": "adverb"
  },
  {
-  "en": "to speak, to talk",
+  "en": "now",
   "es": [
-   "hablar"
+   "ahora"
   ],
-  "ex": "No hablo español muy bien.",
-  "gl": "I don't speak Spanish very well."
+  "ex": "Son las dos y media, ahora.",
+  "gl": "It's 2:30 now.",
+  "pos": "adverb"
  },
  {
-  "en": "to carry, to take along; to wear",
+  "en": "time (an occasion)",
   "es": [
-   "llevar"
+   "vez"
   ],
-  "ex": "Llevo una chaqueta.",
-  "gl": "I'm wearing a jacket."
+  "ex": "Otra vez, por favor.",
+  "gl": "Again, please.",
+  "pos": "noun"
  },
  {
-  "en": "to follow; to keep going",
+  "en": "when",
   "es": [
-   "seguir"
+   "cuando"
   ],
-  "ex": "Sigue derecho.",
-  "gl": "Keep going straight."
+  "ex": "Todavía funciona de vez en cuando.",
+  "gl": "It still works sometimes.",
+  "pos": "conjunction"
  },
  {
-  "en": "to find",
+  "en": "something, anything",
   "es": [
-   "encontrar"
+   "algo"
   ],
-  "ex": "No encuentro mis llaves.",
-  "gl": "I can't find my keys."
- },
- {
-  "en": "to call",
-  "es": [
-   "llamar"
-  ],
-  "ex": "Te llamo mañana.",
-  "gl": "I'll call you tomorrow."
- },
- {
-  "en": "to come",
-  "es": [
-   "venir"
-  ],
-  "ex": "¿Vienes conmigo?",
-  "gl": "Are you coming with me?"
- },
- {
-  "en": "to think",
-  "es": [
-   "pensar"
-  ],
-  "ex": "Pienso en ti.",
-  "gl": "I think about you."
+  "ex": "Claramente hay algo que está mal.",
+  "gl": "Something's obviously wrong.",
+  "pos": "pronoun"
  },
  {
   "en": "to leave behind; to let, to allow",
@@ -205,15 +455,62 @@
    "dejar"
   ],
   "ex": "Deja las llaves aquí.",
-  "gl": "Leave the keys here."
+  "gl": "Leave the keys here.",
+  "pos": "verb"
  },
  {
-  "en": "to live",
+  "en": "to speak, to talk",
   "es": [
-   "vivir"
+   "hablar"
   ],
-  "ex": "Vivo en Texas.",
-  "gl": "I live in Texas."
+  "ex": "No hablo español muy bien.",
+  "gl": "I don't speak Spanish very well.",
+  "pos": "verb"
+ },
+ {
+  "en": "good",
+  "es": [
+   "bueno"
+  ],
+  "ex": "Es un buen plan.",
+  "gl": "It's a good plan.",
+  "pos": "interjection"
+ },
+ {
+  "en": "to happen; to pass",
+  "es": [
+   "pasar"
+  ],
+  "ex": "¿Qué pasa?",
+  "gl": "What's happening?",
+  "pos": "verb"
+ },
+ {
+  "en": "nothing, zero",
+  "es": [
+   "nada"
+  ],
+  "ex": "Que no se te olvide nada.",
+  "gl": "Don't forget anything.",
+  "pos": "pronoun"
+ },
+ {
+  "en": "how?",
+  "es": [
+   "cómo"
+  ],
+  "ex": "¿Cómo te va en el colegio?",
+  "gl": "How's school?",
+  "pos": "adverb"
+ },
+ {
+  "en": "alone, only",
+  "es": [
+   "solo"
+  ],
+  "ex": "Vive solo.",
+  "gl": "He lives alone.",
+  "pos": "adverb"
  },
  {
   "en": "to feel",
@@ -221,7 +518,251 @@
    "sentir"
   ],
   "ex": "Siento frío.",
-  "gl": "I feel cold."
+  "gl": "I feel cold.",
+  "pos": "verb"
+ },
+ {
+  "en": "to think",
+  "es": [
+   "pensar"
+  ],
+  "ex": "Pienso en ti.",
+  "gl": "I think about you.",
+  "pos": "verb"
+ },
+ {
+  "en": "because",
+  "es": [
+   "porque"
+  ],
+  "ex": "Eso es porque eres una niña.",
+  "gl": "That's because you're a girl.",
+  "pos": "conjunction"
+ },
+ {
+  "en": "to wait; to hope",
+  "es": [
+   "esperar"
+  ],
+  "ex": "Espera un momento.",
+  "gl": "Wait a moment.",
+  "pos": "verb"
+ },
+ {
+  "en": "second person formal, you",
+  "es": [
+   "usted"
+  ],
+  "ex": "¿A usted le gusta la música?",
+  "gl": "Do you like music?",
+  "pos": "pronoun"
+ },
+ {
+  "en": "day",
+  "es": [
+   "día"
+  ],
+  "ex": "Fue un buen día.",
+  "gl": "It was a good day.",
+  "pos": "noun"
+ },
+ {
+  "en": "year",
+  "es": [
+   "año"
+  ],
+  "ex": "Tengo treinta años.",
+  "gl": "I'm thirty years old.",
+  "pos": "noun"
+ },
+ {
+  "en": "father, parent",
+  "es": [
+   "padre"
+  ],
+  "ex": "Ahí está la madre del cordero.",
+  "gl": "That's the snag.",
+  "pos": "noun"
+ },
+ {
+  "en": "to come",
+  "es": [
+   "venir"
+  ],
+  "ex": "¿Vienes conmigo?",
+  "gl": "Are you coming with me?",
+  "pos": "verb"
+ },
+ {
+  "en": "our, ours",
+  "es": [
+   "nuestro"
+  ],
+  "ex": "Él es nuestro profesor de inglés.",
+  "gl": "He's our English teacher.",
+  "pos": "determiner"
+ },
+ {
+  "en": "thanks",
+  "es": [
+   "gracias"
+  ],
+  "ex": "Le daré las gracias a Tom.",
+  "gl": "I'll thank Tom.",
+  "pos": "noun"
+ },
+ {
+  "en": "thing",
+  "es": [
+   "cosa"
+  ],
+  "ex": "Una cosa más.",
+  "gl": "One more thing.",
+  "pos": "noun"
+ },
+ {
+  "en": "two",
+  "es": [
+   "dos"
+  ],
+  "ex": "Son las dos de la tarde.",
+  "gl": "It's 2:00 p.m.",
+  "pos": "number"
+ },
+ {
+  "en": "without",
+  "es": [
+   "sin"
+  ],
+  "ex": "Café sin azúcar.",
+  "gl": "Coffee without sugar.",
+  "pos": "preposition"
+ },
+ {
+  "en": "over, above",
+  "es": [
+   "sobre"
+  ],
+  "ex": "Los ácidos actúan sobre los metales.",
+  "gl": "Acids act on metals.",
+  "pos": "preposition"
+ },
+ {
+  "en": "some, any",
+  "es": [
+   "alguno"
+  ],
+  "ex": "Me las compondré de algún modo.",
+  "gl": "I'll get along somehow.",
+  "pos": "determiner"
+ },
+ {
+  "en": "mister, sir",
+  "es": [
+   "señor"
+  ],
+  "ex": "Yo no conozco a esta señora.",
+  "gl": "I don't know this lady.",
+  "pos": "noun"
+ },
+ {
+  "en": "to look at, to watch",
+  "es": [
+   "mirar"
+  ],
+  "ex": "Mira esa casa.",
+  "gl": "Look at that house.",
+  "pos": "verb"
+ },
+ {
+  "en": "man",
+  "es": [
+   "hombre"
+  ],
+  "ex": "Ese hombre es mi tío.",
+  "gl": "That man is my uncle.",
+  "pos": "noun"
+ },
+ {
+  "en": "time (in general); weather",
+  "es": [
+   "tiempo"
+  ],
+  "ex": "No tengo tiempo.",
+  "gl": "I don't have time.",
+  "pos": "noun"
+ },
+ {
+  "en": "also, too",
+  "es": [
+   "también"
+  ],
+  "ex": "A mí también me ha gustado.",
+  "gl": "I enjoyed it, too.",
+  "pos": "adverb"
+ },
+ {
+  "en": "same, identical",
+  "es": [
+   "mismo"
+  ],
+  "ex": "Deja de culparte a ti mismo.",
+  "gl": "Stop blaming yourself.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to need",
+  "es": [
+   "necesitar"
+  ],
+  "ex": "Necesito ayuda.",
+  "gl": "I need help.",
+  "pos": "verb"
+ },
+ {
+  "en": "house, home",
+  "es": [
+   "casa"
+  ],
+  "ex": "Vamos a mi casa.",
+  "gl": "Let's go to my house.",
+  "pos": "noun"
+ },
+ {
+  "en": "to carry, to take along; to wear",
+  "es": [
+   "llevar"
+  ],
+  "ex": "Llevo una chaqueta.",
+  "gl": "I'm wearing a jacket.",
+  "pos": "verb"
+ },
+ {
+  "en": "so, as",
+  "es": [
+   "tan"
+  ],
+  "ex": "Está tan frío como el hielo.",
+  "gl": "It is freezing cold.",
+  "pos": "adverb"
+ },
+ {
+  "en": "then, so",
+  "es": [
+   "entonces"
+  ],
+  "ex": "Entonces, ¿qué hacemos?",
+  "gl": "So, what do we do?",
+  "pos": "adverb"
+ },
+ {
+  "en": "to find",
+  "es": [
+   "encontrar"
+  ],
+  "ex": "No encuentro mis llaves.",
+  "gl": "I can't find my keys.",
+  "pos": "verb"
  },
  {
   "en": "to return, to come back",
@@ -230,7 +771,99 @@
    "regresar"
   ],
   "ex": "Vuelvo en cinco minutos.",
-  "gl": "I'll be back in five minutes."
+  "gl": "I'll be back in five minutes.",
+  "pos": "verb"
+ },
+ {
+  "en": "to call",
+  "es": [
+   "llamar"
+  ],
+  "ex": "Te llamo mañana.",
+  "gl": "I'll call you tomorrow.",
+  "pos": "verb"
+ },
+ {
+  "en": "to seem, to look like",
+  "es": [
+   "parecer"
+  ],
+  "ex": "Parece fácil.",
+  "gl": "It seems easy.",
+  "pos": "verb"
+ },
+ {
+  "en": "new",
+  "es": [
+   "nuevo"
+  ],
+  "ex": "Tengo un coche nuevo.",
+  "gl": "I have a new car.",
+  "pos": "adjective"
+ },
+ {
+  "en": "better",
+  "es": [
+   "mejor"
+  ],
+  "ex": "Lo hice lo mejor que pude.",
+  "gl": "I did my best.",
+  "pos": "adjective"
+ },
+ {
+  "en": "first, first up",
+  "es": [
+   "primero"
+  ],
+  "ex": "Primero el trabajo, después el placer.",
+  "gl": "Business before pleasure.",
+  "pos": "adjective"
+ },
+ {
+  "en": "truth",
+  "es": [
+   "verdad"
+  ],
+  "ex": "Dime la verdad.",
+  "gl": "Tell me the truth.",
+  "pos": "noun"
+ },
+ {
+  "en": "until",
+  "es": [
+   "hasta"
+  ],
+  "ex": "No puedo esperar hasta el infinito.",
+  "gl": "I can't wait forever.",
+  "pos": "preposition"
+ },
+ {
+  "en": "who?, whom?",
+  "es": [
+   "quién"
+  ],
+  "ex": "¿A quién le gustan los frijoles?",
+  "gl": "Who likes beans?",
+  "pos": "pronoun"
+ },
+ {
+  "en": "life",
+  "es": [
+   "vida"
+  ],
+  "ex": "Así es la vida.",
+  "gl": "That's life.",
+  "pos": "noun"
+ },
+ {
+  "en": "never",
+  "es": [
+   "nunca",
+   "jamás"
+  ],
+  "ex": "Nunca he ido.",
+  "gl": "I've never been.",
+  "pos": "adverb"
  },
  {
   "en": "to take; to drink",
@@ -238,106 +871,62 @@
    "tomar"
   ],
   "ex": "Tomo café por la mañana.",
-  "gl": "I drink coffee in the morning."
+  "gl": "I drink coffee in the morning.",
+  "pos": "verb"
  },
  {
-  "en": "to look at, to watch",
+  "en": "to be, to end up",
   "es": [
-   "mirar"
+   "quedar"
   ],
-  "ex": "Mira esa casa.",
-  "gl": "Look at that house."
+  "ex": "Me voy a quedar en casa.",
+  "gl": "I'll stay home.",
+  "pos": "verb"
  },
  {
-  "en": "to tell (a story); to count",
+  "en": "big, large",
   "es": [
-   "contar"
+   "grande"
   ],
-  "ex": "Cuéntame la historia.",
-  "gl": "Tell me the story."
+  "ex": "Es una casa grande.",
+  "gl": "It's a big house.",
+  "pos": "adjective"
  },
  {
-  "en": "to begin, to start",
+  "en": "to arrive",
   "es": [
-   "empezar",
-   "comenzar"
+   "llegar"
   ],
-  "ex": "Empezamos a las nueve.",
-  "gl": "We start at nine."
+  "ex": "Llegamos tarde.",
+  "gl": "We arrived late.",
+  "pos": "verb"
  },
  {
-  "en": "to wait; to hope",
+  "en": "hello, hi",
   "es": [
-   "esperar"
+   "hola"
   ],
-  "ex": "Espera un momento.",
-  "gl": "Wait a moment."
+  "ex": "Di hola a tus amigos.",
+  "gl": "Say hello to your friends.",
+  "pos": "interjection"
  },
  {
-  "en": "to look for, to search for",
+  "en": "boy, kid",
   "es": [
-   "buscar"
+   "chico"
   ],
-  "ex": "Busco mi teléfono.",
-  "gl": "I'm looking for my phone."
+  "ex": "Una chica me llamó por teléfono.",
+  "gl": "A girl phoned me.",
+  "pos": "noun"
  },
  {
-  "en": "to work",
+  "en": "to put, to place",
   "es": [
-   "trabajar"
+   "poner"
   ],
-  "ex": "Trabajo los sábados.",
-  "gl": "I work on Saturdays."
- },
- {
-  "en": "to need",
-  "es": [
-   "necesitar"
-  ],
-  "ex": "Necesito ayuda.",
-  "gl": "I need help."
- },
- {
-  "en": "to believe, to think",
-  "es": [
-   "creer"
-  ],
-  "ex": "Creo que sí.",
-  "gl": "I think so."
- },
- {
-  "en": "to understand",
-  "es": [
-   "entender",
-   "comprender"
-  ],
-  "ex": "No entiendo.",
-  "gl": "I don't understand."
- },
- {
-  "en": "to ask for, to order, to request",
-  "es": [
-   "pedir"
-  ],
-  "ex": "Pedí una cerveza.",
-  "gl": "I ordered a beer."
- },
- {
-  "en": "to ask (a question)",
-  "es": [
-   "preguntar"
-  ],
-  "ex": "Me preguntó mi nombre.",
-  "gl": "He asked me my name."
- },
- {
-  "en": "to answer, to reply",
-  "es": [
-   "responder",
-   "contestar"
-  ],
-  "ex": "No respondió el mensaje.",
-  "gl": "She didn't answer the message."
+  "ex": "Pon el libro en la mesa.",
+  "gl": "Put the book on the table.",
+  "pos": "verb"
  },
  {
   "en": "to hear",
@@ -345,509 +934,89 @@
    "oír"
   ],
   "ex": "No te oigo.",
-  "gl": "I can't hear you."
+  "gl": "I can't hear you.",
+  "pos": "verb"
  },
  {
-  "en": "to listen (to)",
+  "en": "night",
   "es": [
-   "escuchar"
+   "noche"
   ],
-  "ex": "Escucho música.",
-  "gl": "I listen to music."
+  "ex": "Buenas noches.",
+  "gl": "Good night.",
+  "pos": "noun"
  },
  {
-  "en": "to read",
+  "en": "me",
   "es": [
-   "leer"
+   "mí"
   ],
-  "ex": "Leo antes de dormir.",
-  "gl": "I read before sleeping."
+  "ex": "Para mí eso es algo importante.",
+  "gl": "For me, it's important.",
+  "pos": "pronoun"
  },
  {
-  "en": "to write",
+  "en": "son",
   "es": [
-   "escribir"
+   "hijo"
   ],
-  "ex": "Escribo cartas.",
-  "gl": "I write letters."
+  "ex": "Deja a mis hijos en paz.",
+  "gl": "Leave my children alone.",
+  "pos": "noun"
  },
  {
-  "en": "to eat",
+  "en": "where?, in what place?",
   "es": [
-   "comer"
+   "dónde"
   ],
-  "ex": "Comemos a la una.",
-  "gl": "We eat at one."
+  "ex": "¿Dónde está el periódico de hoy?",
+  "gl": "Where's today's newspaper?",
+  "pos": "adverb"
  },
  {
-  "en": "to drink",
+  "en": "Used when negating two or more elements, and not, not A or",
   "es": [
-   "beber"
+   "ni"
   ],
-  "ex": "Bebo agua.",
-  "gl": "I drink water."
+  "ex": "No ha dicho ni una palabra.",
+  "gl": "He hasn't said a word.",
+  "pos": "conjunction"
  },
  {
-  "en": "to sleep",
+  "en": "to leave, to go out",
   "es": [
-   "dormir"
+   "salir"
   ],
-  "ex": "Duermo ocho horas.",
-  "gl": "I sleep eight hours."
+  "ex": "Salgo a las ocho.",
+  "gl": "I leave at eight.",
+  "pos": "verb"
  },
  {
-  "en": "to walk",
+  "en": "favor/favour",
   "es": [
-   "caminar",
-   "andar"
+   "favor"
   ],
-  "ex": "Camino al trabajo.",
-  "gl": "I walk to work."
+  "ex": "Por favor, bajen por las escaleras.",
+  "gl": "Please come downstairs.",
+  "pos": "noun"
  },
  {
-  "en": "to run",
+  "en": "to want, to please",
   "es": [
-   "correr"
+   "gustar"
   ],
-  "ex": "Corro por el parque.",
-  "gl": "I run through the park."
+  "ex": "A él le gusta el fútbol.",
+  "gl": "He likes soccer.",
+  "pos": "verb"
  },
  {
-  "en": "to buy",
+  "en": "to follow; to keep going",
   "es": [
-   "comprar"
+   "seguir"
   ],
-  "ex": "Compré pan.",
-  "gl": "I bought bread."
- },
- {
-  "en": "to sell",
-  "es": [
-   "vender"
-  ],
-  "ex": "Venden fruta aquí.",
-  "gl": "They sell fruit here."
- },
- {
-  "en": "to pay",
-  "es": [
-   "pagar"
-  ],
-  "ex": "Yo pago.",
-  "gl": "I'll pay."
- },
- {
-  "en": "to open",
-  "es": [
-   "abrir"
-  ],
-  "ex": "Abre la ventana.",
-  "gl": "Open the window."
- },
- {
-  "en": "to close",
-  "es": [
-   "cerrar"
-  ],
-  "ex": "Cierra la puerta.",
-  "gl": "Close the door."
- },
- {
-  "en": "to learn",
-  "es": [
-   "aprender"
-  ],
-  "ex": "Aprendo español.",
-  "gl": "I'm learning Spanish."
- },
- {
-  "en": "to teach",
-  "es": [
-   "enseñar"
-  ],
-  "ex": "Enseña matemáticas.",
-  "gl": "She teaches math."
- },
- {
-  "en": "to remember",
-  "es": [
-   "recordar",
-   "acordarse"
-  ],
-  "ex": "No recuerdo su nombre.",
-  "gl": "I don't remember his name."
- },
- {
-  "en": "to forget",
-  "es": [
-   "olvidar"
-  ],
-  "ex": "Olvidé las llaves.",
-  "gl": "I forgot the keys."
- },
- {
-  "en": "to try, to attempt",
-  "es": [
-   "intentar"
-  ],
-  "ex": "Voy a intentarlo.",
-  "gl": "I'm going to try it."
- },
- {
-  "en": "to change",
-  "es": [
-   "cambiar"
-  ],
-  "ex": "Cambié de idea.",
-  "gl": "I changed my mind."
- },
- {
-  "en": "to help",
-  "es": [
-   "ayudar"
-  ],
-  "ex": "¿Me ayudas?",
-  "gl": "Will you help me?"
- },
- {
-  "en": "to use",
-  "es": [
-   "usar",
-   "utilizar"
-  ],
-  "ex": "Uso el metro.",
-  "gl": "I use the subway."
- },
- {
-  "en": "to win; to earn",
-  "es": [
-   "ganar"
-  ],
-  "ex": "Gané el partido.",
-  "gl": "I won the match."
- },
- {
-  "en": "to lose; to miss (a train)",
-  "es": [
-   "perder"
-  ],
-  "ex": "Perdí el tren.",
-  "gl": "I missed the train."
- },
- {
-  "en": "to send",
-  "es": [
-   "mandar",
-   "enviar"
-  ],
-  "ex": "Te mando el archivo.",
-  "gl": "I'll send you the file."
- },
- {
-  "en": "to bring",
-  "es": [
-   "traer"
-  ],
-  "ex": "Trae una silla.",
-  "gl": "Bring a chair."
- },
- {
-  "en": "to show",
-  "es": [
-   "mostrar",
-   "enseñar"
-  ],
-  "ex": "Muéstrame la foto.",
-  "gl": "Show me the photo."
- },
- {
-  "en": "to fall",
-  "es": [
-   "caer",
-   "caerse"
-  ],
-  "ex": "Se cayó la taza.",
-  "gl": "The cup fell."
- },
- {
-  "en": "to raise, to lift",
-  "es": [
-   "levantar"
-  ],
-  "ex": "Levanta la mano.",
-  "gl": "Raise your hand."
- },
- {
-  "en": "to break",
-  "es": [
-   "romper"
-  ],
-  "ex": "Rompí el vaso.",
-  "gl": "I broke the glass."
- },
- {
-  "en": "to fix, to sort out",
-  "es": [
-   "arreglar"
-  ],
-  "ex": "Arreglé el coche.",
-  "gl": "I fixed the car."
- },
- {
-  "en": "to stay, to remain",
-  "es": [
-   "quedarse",
-   "quedar"
-  ],
-  "ex": "Me quedo en casa.",
-  "gl": "I'm staying home."
- },
- {
-  "en": "to reject, to turn down",
-  "es": [
-   "rechazar"
-  ],
-  "ex": "Rechazó la oferta.",
-  "gl": "He turned down the offer."
- },
- {
-  "en": "to manage to, to achieve",
-  "es": [
-   "lograr",
-   "conseguir"
-  ],
-  "ex": "Logré terminar.",
-  "gl": "I managed to finish."
- },
- {
-  "en": "to be worth",
-  "es": [
-   "valer"
-  ],
-  "ex": "No vale la pena.",
-  "gl": "It's not worth it."
- },
- {
-  "en": "to move (something)",
-  "es": [
-   "mover"
-  ],
-  "ex": "Mueve la silla.",
-  "gl": "Move the chair."
- },
- {
-  "en": "to build",
-  "es": [
-   "construir"
-  ],
-  "ex": "Construyen una casa.",
-  "gl": "They're building a house."
- },
- {
-  "en": "to grow",
-  "es": [
-   "crecer"
-  ],
-  "ex": "Los niños crecen rápido.",
-  "gl": "Children grow fast."
- },
- {
-  "en": "to fear, to be afraid of",
-  "es": [
-   "temer"
-  ],
-  "ex": "Temo lo peor.",
-  "gl": "I fear the worst."
- },
- {
-  "en": "to laugh",
-  "es": [
-   "reír",
-   "reírse"
-  ],
-  "ex": "Nos reímos mucho.",
-  "gl": "We laughed a lot."
- },
- {
-  "en": "to cry",
-  "es": [
-   "llorar"
-  ],
-  "ex": "El bebé llora.",
-  "gl": "The baby is crying."
- },
- {
-  "en": "to sing",
-  "es": [
-   "cantar"
-  ],
-  "ex": "Canta muy bien.",
-  "gl": "She sings very well."
- },
- {
-  "en": "to play (a game)",
-  "es": [
-   "jugar"
-  ],
-  "ex": "Jugamos al fútbol.",
-  "gl": "We play soccer."
- },
- {
-  "en": "to play (an instrument)",
-  "es": [
-   "tocar"
-  ],
-  "ex": "Toca la guitarra.",
-  "gl": "He plays the guitar."
- },
- {
-  "en": "to travel",
-  "es": [
-   "viajar"
-  ],
-  "ex": "Viajo a España.",
-  "gl": "I'm traveling to Spain."
- },
- {
-  "en": "to drive",
-  "es": [
-   "conducir",
-   "manejar"
-  ],
-  "ex": "No sé conducir.",
-  "gl": "I don't know how to drive."
- },
- {
-  "en": "to cook",
-  "es": [
-   "cocinar"
-  ],
-  "ex": "Cocino los domingos.",
-  "gl": "I cook on Sundays."
- },
- {
-  "en": "to wash",
-  "es": [
-   "lavar"
-  ],
-  "ex": "Lavo los platos.",
-  "gl": "I wash the dishes."
- },
- {
-  "en": "to wear, to put on (clothes)",
-  "es": [
-   "ponerse"
-  ],
-  "ex": "Me pongo el abrigo.",
-  "gl": "I'm putting on my coat."
- },
- {
-  "en": "to meet, to get together",
-  "es": [
-   "reunirse"
-  ],
-  "ex": "Nos reunimos el lunes.",
-  "gl": "We're meeting on Monday."
- },
- {
-  "en": "to allow, to permit",
-  "es": [
-   "permitir"
-  ],
-  "ex": "No permiten perros.",
-  "gl": "They don't allow dogs."
- },
- {
-  "en": "to avoid",
-  "es": [
-   "evitar"
-  ],
-  "ex": "Evita el tráfico.",
-  "gl": "Avoid the traffic."
- },
- {
-  "en": "to add",
-  "es": [
-   "añadir",
-   "agregar"
-  ],
-  "ex": "Añade sal.",
-  "gl": "Add salt."
- },
- {
-  "en": "to choose",
-  "es": [
-   "elegir",
-   "escoger"
-  ],
-  "ex": "Elige uno.",
-  "gl": "Choose one."
- },
- {
-  "en": "to decide",
-  "es": [
-   "decidir"
-  ],
-  "ex": "Decidí quedarme.",
-  "gl": "I decided to stay."
- },
- {
-  "en": "to explain",
-  "es": [
-   "explicar"
-  ],
-  "ex": "Explícame otra vez.",
-  "gl": "Explain it to me again."
- },
- {
-  "en": "to finish, to end",
-  "es": [
-   "terminar",
-   "acabar"
-  ],
-  "ex": "Terminé el libro.",
-  "gl": "I finished the book."
- },
- {
-  "en": "to happen, to occur",
-  "es": [
-   "ocurrir",
-   "suceder"
-  ],
-  "ex": "Ocurrió ayer.",
-  "gl": "It happened yesterday."
- },
- {
-  "en": "man",
-  "es": [
-   "hombre"
-  ],
-  "ex": "Ese hombre es mi tío.",
-  "gl": "That man is my uncle."
- },
- {
-  "en": "woman",
-  "es": [
-   "mujer"
-  ],
-  "ex": "La mujer del sombrero.",
-  "gl": "The woman with the hat."
- },
- {
-  "en": "child, boy",
-  "es": [
-   "niño"
-  ],
-  "ex": "El niño duerme.",
-  "gl": "The boy is sleeping."
- },
- {
-  "en": "girl",
-  "es": [
-   "niña"
-  ],
-  "ex": "La niña lee.",
-  "gl": "The girl is reading."
+  "ex": "Sigue derecho.",
+  "gl": "Keep going straight.",
+  "pos": "verb"
  },
  {
   "en": "friend",
@@ -856,143 +1025,89 @@
    "amiga"
   ],
   "ex": "Es mi mejor amigo.",
-  "gl": "He's my best friend."
+  "gl": "He's my best friend.",
+  "pos": "noun"
  },
  {
-  "en": "family",
+  "en": "oh",
   "es": [
-   "familia"
+   "oh"
   ],
-  "ex": "Mi familia es grande.",
-  "gl": "My family is big."
+  "ex": "Oh, no te preocupes por eso.",
+  "gl": "Oh, don't worry about that.",
+  "pos": "interjection"
  },
  {
-  "en": "house, home",
+  "en": "always",
   "es": [
-   "casa"
+   "siempre"
   ],
-  "ex": "Vamos a mi casa.",
-  "gl": "Let's go to my house."
+  "ex": "Siempre llega tarde.",
+  "gl": "He's always late.",
+  "pos": "adverb"
  },
  {
-  "en": "city",
+  "en": "dad",
   "es": [
-   "ciudad"
+   "papá"
   ],
-  "ex": "Barcelona es una ciudad bonita.",
-  "gl": "Barcelona is a beautiful city."
+  "ex": "Papá pintó las paredes de blanco.",
+  "gl": "Dad painted the walls white.",
+  "pos": "noun"
  },
  {
-  "en": "country (nation)",
+  "en": "before",
   "es": [
-   "país"
+   "antes"
   ],
-  "ex": "¿De qué país eres?",
-  "gl": "What country are you from?"
+  "ex": "Llámame antes.",
+  "gl": "Call me before.",
+  "pos": "adverb"
  },
  {
-  "en": "world",
+  "en": "since",
   "es": [
-   "mundo"
+   "desde"
   ],
-  "ex": "Todo el mundo lo sabe.",
-  "gl": "Everybody knows it."
+  "ex": "¿No podemos empezar desde el principio?",
+  "gl": "Can't we start over?",
+  "pos": "preposition"
  },
  {
-  "en": "day",
+  "en": "to know (a person or place)",
   "es": [
-   "día"
+   "conocer"
   ],
-  "ex": "Fue un buen día.",
-  "gl": "It was a good day."
+  "ex": "Conozco a su hermana.",
+  "gl": "I know his sister.",
+  "pos": "verb"
  },
  {
-  "en": "night",
+  "en": "little",
   "es": [
-   "noche"
+   "poco"
   ],
-  "ex": "Buenas noches.",
-  "gl": "Good night."
+  "ex": "Un poco de jugo, por favor.",
+  "gl": "Some juice, please.",
+  "pos": "adverb"
  },
  {
-  "en": "morning",
+  "en": "there",
   "es": [
-   "mañana"
+   "ahí"
   ],
-  "ex": "Por la mañana corro.",
-  "gl": "In the morning I run."
+  "ex": "Me arrepiento de haber ido ahí.",
+  "gl": "I regret going there.",
+  "pos": "adverb"
  },
  {
-  "en": "afternoon, evening",
+  "en": "someone, somebody",
   "es": [
-   "tarde"
+   "alguien"
   ],
-  "ex": "Nos vemos en la tarde.",
-  "gl": "See you in the afternoon."
- },
- {
-  "en": "week",
-  "es": [
-   "semana"
-  ],
-  "ex": "La semana pasada llovió.",
-  "gl": "It rained last week."
- },
- {
-  "en": "month",
-  "es": [
-   "mes"
-  ],
-  "ex": "El mes que viene.",
-  "gl": "Next month."
- },
- {
-  "en": "year",
-  "es": [
-   "año"
-  ],
-  "ex": "Tengo treinta años.",
-  "gl": "I'm thirty years old."
- },
- {
-  "en": "hour; time (o'clock)",
-  "es": [
-   "hora"
-  ],
-  "ex": "¿Qué hora es?",
-  "gl": "What time is it?"
- },
- {
-  "en": "time (an occasion)",
-  "es": [
-   "vez"
-  ],
-  "ex": "Otra vez, por favor.",
-  "gl": "Again, please."
- },
- {
-  "en": "time (in general); weather",
-  "es": [
-   "tiempo"
-  ],
-  "ex": "No tengo tiempo.",
-  "gl": "I don't have time."
- },
- {
-  "en": "life",
-  "es": [
-   "vida"
-  ],
-  "ex": "Así es la vida.",
-  "gl": "That's life."
- },
- {
-  "en": "death",
-  "es": [
-   "muerte"
-  ],
-  "ex": "Le tiene miedo a la muerte.",
-  "gl": "He's afraid of death."
+  "ex": "¿Alguien me ha echado de menos?",
+  "gl": "Did anyone miss me?",
+  "pos": "pronoun"
  },
  {
   "en": "work, job",
@@ -1000,194 +1115,161 @@
    "trabajo"
   ],
   "ex": "Me gusta mi trabajo.",
-  "gl": "I like my job."
+  "gl": "I like my job.",
+  "pos": "noun"
  },
  {
-  "en": "money",
+  "en": "woman",
   "es": [
-   "dinero"
+   "mujer"
   ],
-  "ex": "No tengo dinero.",
-  "gl": "I don't have money."
+  "ex": "La mujer del sombrero.",
+  "gl": "The woman with the hat.",
+  "pos": "noun"
  },
  {
-  "en": "food, meal",
+  "en": "between, among",
   "es": [
-   "comida"
+   "entre"
   ],
-  "ex": "La comida está lista.",
-  "gl": "The food is ready."
+  "ex": "Entre tú y yo.",
+  "gl": "Between you and me.",
+  "pos": "preposition"
  },
  {
-  "en": "water",
+  "en": "after, afterwards",
   "es": [
-   "agua"
+   "después"
   ],
-  "ex": "Un vaso de agua.",
-  "gl": "A glass of water."
+  "ex": "Hablamos después.",
+  "gl": "We'll talk afterwards.",
+  "pos": "adverb"
  },
  {
-  "en": "bread",
+  "en": "part",
   "es": [
-   "pan"
+   "parte"
   ],
-  "ex": "Compré pan fresco.",
-  "gl": "I bought fresh bread."
+  "ex": "En alguna parte.",
+  "gl": "Somewhere.",
+  "pos": "noun"
  },
  {
-  "en": "car",
+  "en": "mu, the Greek letter Μ",
   "es": [
-   "coche",
-   "carro",
-   "auto"
+   "mi"
   ],
-  "ex": "Mi coche es viejo.",
-  "gl": "My car is old."
+  "ex": "La cena va por mi cuenta.",
+  "gl": "Dinner's on me.",
+  "pos": "noun"
  },
  {
-  "en": "road, way, path",
+  "en": "agreement",
   "es": [
-   "camino"
+   "acuerdo"
   ],
-  "ex": "Es un camino largo.",
-  "gl": "It's a long road."
+  "ex": "No puedo estar más de acuerdo.",
+  "gl": "I can't agree more.",
+  "pos": "noun"
  },
  {
-  "en": "street",
+  "en": "to listen (to)",
   "es": [
-   "calle"
+   "escuchar"
   ],
-  "ex": "Vive en esta calle.",
-  "gl": "He lives on this street."
+  "ex": "Escucho música.",
+  "gl": "I listen to music.",
+  "pos": "verb"
  },
  {
-  "en": "door",
+  "en": "moment, instant",
   "es": [
-   "puerta"
+   "momento"
   ],
-  "ex": "Cierra la puerta.",
-  "gl": "Close the door."
+  "ex": "Pregúntame cualquier cosa en cualquier momento.",
+  "gl": "Ask me anything anytime.",
+  "pos": "noun"
  },
  {
-  "en": "window",
+  "en": "to kill, slay",
   "es": [
-   "ventana"
+   "matar"
   ],
-  "ex": "Abre la ventana.",
-  "gl": "Open the window."
+  "ex": "¿Alguna vez has matado a alguien?",
+  "gl": "Have you ever killed anybody?",
+  "pos": "verb"
  },
  {
-  "en": "table",
+  "en": "where, in what place",
   "es": [
-   "mesa"
+   "donde"
   ],
-  "ex": "Ponlo en la mesa.",
-  "gl": "Put it on the table."
+  "ex": "Tú puedes ir a donde sea.",
+  "gl": "You may go anywhere.",
+  "pos": "pronoun"
  },
  {
-  "en": "chair",
+  "en": "safe, sure",
   "es": [
-   "silla"
+   "seguro"
   ],
-  "ex": "Esta silla está rota.",
-  "gl": "This chair is broken."
+  "ex": "¿Estás seguro?",
+  "gl": "Are you sure?",
+  "pos": "adjective"
  },
  {
-  "en": "bed",
+  "en": "world",
   "es": [
-   "cama"
+   "mundo"
   ],
-  "ex": "Voy a la cama.",
-  "gl": "I'm going to bed."
+  "ex": "Todo el mundo lo sabe.",
+  "gl": "Everybody knows it.",
+  "pos": "noun"
  },
  {
-  "en": "book",
+  "en": "people",
   "es": [
-   "libro"
+   "gente"
   ],
-  "ex": "Leí ese libro.",
-  "gl": "I read that book."
+  "ex": "La gente ama a los perros.",
+  "gl": "People love dogs.",
+  "pos": "noun"
  },
  {
-  "en": "word",
+  "en": "child, boy",
   "es": [
-   "palabra"
+   "niño"
   ],
-  "ex": "No entendí esa palabra.",
-  "gl": "I didn't understand that word."
+  "ex": "El niño duerme.",
+  "gl": "The boy is sleeping.",
+  "pos": "noun"
  },
  {
-  "en": "name",
+  "en": "hour; time (o'clock)",
   "es": [
-   "nombre"
+   "hora"
   ],
-  "ex": "¿Cuál es tu nombre?",
-  "gl": "What's your name?"
+  "ex": "¿Qué hora es?",
+  "gl": "What time is it?",
+  "pos": "noun"
  },
  {
-  "en": "hand",
+  "en": "to look for, to search for",
   "es": [
-   "mano"
+   "buscar"
   ],
-  "ex": "Dame la mano.",
-  "gl": "Give me your hand."
+  "ex": "Busco mi teléfono.",
+  "gl": "I'm looking for my phone.",
+  "pos": "verb"
  },
  {
-  "en": "eye",
+  "en": "problem",
   "es": [
-   "ojo"
+   "problema"
   ],
-  "ex": "Tiene los ojos verdes.",
-  "gl": "She has green eyes."
- },
- {
-  "en": "head",
-  "es": [
-   "cabeza"
-  ],
-  "ex": "Me duele la cabeza.",
-  "gl": "My head hurts."
- },
- {
-  "en": "heart",
-  "es": [
-   "corazón"
-  ],
-  "ex": "Mi corazón late rápido.",
-  "gl": "My heart beats fast."
- },
- {
-  "en": "face",
-  "es": [
-   "cara",
-   "rostro"
-  ],
-  "ex": "Tiene una cara amable.",
-  "gl": "He has a kind face."
- },
- {
-  "en": "foot",
-  "es": [
-   "pie"
-  ],
-  "ex": "Voy a pie.",
-  "gl": "I'm going on foot."
- },
- {
-  "en": "body",
-  "es": [
-   "cuerpo"
-  ],
-  "ex": "Todo el cuerpo me duele.",
-  "gl": "My whole body hurts."
- },
- {
-  "en": "voice",
-  "es": [
-   "voz"
-  ],
-  "ex": "Habla en voz baja.",
-  "gl": "He speaks quietly."
+  "ex": "No hay problema.",
+  "gl": "No problem.",
+  "pos": "noun"
  },
  {
   "en": "place, spot",
@@ -1196,23 +1278,760 @@
    "sitio"
   ],
   "ex": "Es un buen lugar.",
-  "gl": "It's a good place."
+  "gl": "It's a good place.",
+  "pos": "noun"
  },
  {
-  "en": "thing",
+  "en": "no one, nobody",
   "es": [
-   "cosa"
+   "nadie"
   ],
-  "ex": "Una cosa más.",
-  "gl": "One more thing."
+  "ex": "No soy el esclavo de nadie.",
+  "gl": "I'm nobody's slave.",
+  "pos": "pronoun"
  },
  {
-  "en": "part",
+  "en": "such",
   "es": [
-   "parte"
+   "tal"
   ],
-  "ex": "En alguna parte.",
-  "gl": "Somewhere."
+  "ex": "¿Qué tal un poco de leche?",
+  "gl": "How about some milk?",
+  "pos": "pronoun"
+ },
+ {
+  "en": "to help",
+  "es": [
+   "ayudar"
+  ],
+  "ex": "¿Me ayudas?",
+  "gl": "Will you help me?",
+  "pos": "verb"
+ },
+ {
+  "en": "to lose; to miss (a train)",
+  "es": [
+   "perder"
+  ],
+  "ex": "Perdí el tren.",
+  "gl": "I missed the train.",
+  "pos": "verb"
+ },
+ {
+  "en": "person",
+  "es": [
+   "persona"
+  ],
+  "ex": "Me gusta ver a las personas.",
+  "gl": "I like watching people.",
+  "pos": "noun"
+ },
+ {
+  "en": "kind, type",
+  "es": [
+   "tipo"
+  ],
+  "ex": "Él es un tipo de fiar.",
+  "gl": "He's a stand-up guy.",
+  "pos": "noun"
+ },
+ {
+  "en": "clear",
+  "es": [
+   "claro"
+  ],
+  "ex": "Está más claro que el agua.",
+  "gl": "It's as clear as crystal.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to understand",
+  "es": [
+   "entender",
+   "comprender"
+  ],
+  "ex": "No entiendo.",
+  "gl": "I don't understand.",
+  "pos": "verb"
+ },
+ {
+  "en": "less",
+  "es": [
+   "menos"
+  ],
+  "ex": "Tom echó de menos a Mary.",
+  "gl": "Tom missed Mary.",
+  "pos": "adverb"
+ },
+ {
+  "en": "outside",
+  "es": [
+   "fuera"
+  ],
+  "ex": "Fuera hace un frío de perros.",
+  "gl": "It's freezing outside.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to finish, to end",
+  "es": [
+   "acabar"
+  ],
+  "ex": "Me acabo de encontrar con él.",
+  "gl": "I just met him.",
+  "pos": "verb"
+ },
+ {
+  "en": "to treat",
+  "es": [
+   "tratar"
+  ],
+  "ex": "La aritmética trata de los números.",
+  "gl": "Arithmetic deals with numbers.",
+  "pos": "verb"
+ },
+ {
+  "en": "three",
+  "es": [
+   "tres"
+  ],
+  "ex": "Él se fue hace tres días.",
+  "gl": "He left three days ago.",
+  "pos": "number"
+ },
+ {
+  "en": "final, last",
+  "es": [
+   "último"
+  ],
+  "ex": "¿Cuándo pasó eso por última vez?",
+  "gl": "When did that last happen?",
+  "pos": "adjective"
+ },
+ {
+  "en": "to work",
+  "es": [
+   "trabajar"
+  ],
+  "ex": "Trabajo los sábados.",
+  "gl": "I work on Saturdays.",
+  "pos": "verb"
+ },
+ {
+  "en": "to die",
+  "es": [
+   "morir"
+  ],
+  "ex": "Se van a morir de hambre.",
+  "gl": "They'll starve.",
+  "pos": "verb"
+ },
+ {
+  "en": "each, every",
+  "es": [
+   "cada"
+  ],
+  "ex": "Cada uno aprende de forma distinta.",
+  "gl": "Everyone learns differently.",
+  "pos": "determiner"
+ },
+ {
+  "en": "money",
+  "es": [
+   "dinero"
+  ],
+  "ex": "No tengo dinero.",
+  "gl": "I don't have money.",
+  "pos": "noun"
+ },
+ {
+  "en": "morning",
+  "es": [
+   "mañana"
+  ],
+  "ex": "Por la mañana corro.",
+  "gl": "In the morning I run.",
+  "pos": "noun"
+ },
+ {
+  "en": "brother",
+  "es": [
+   "hermano"
+  ],
+  "ex": "Ella es la hermana de Tom.",
+  "gl": "She's Tom's sister.",
+  "pos": "noun"
+ },
+ {
+  "en": "who",
+  "es": [
+   "quien"
+  ],
+  "ex": "Él es quien probablemente tendrá éxito.",
+  "gl": "He's the most likely to succeed.",
+  "pos": "pronoun"
+ },
+ {
+  "en": "to live",
+  "es": [
+   "vivir"
+  ],
+  "ex": "Vivo en Texas.",
+  "gl": "I live in Texas.",
+  "pos": "verb"
+ },
+ {
+  "en": "to be worth",
+  "es": [
+   "valer"
+  ],
+  "ex": "No vale la pena.",
+  "gl": "It's not worth it.",
+  "pos": "verb"
+ },
+ {
+  "en": "there",
+  "es": [
+   "allí"
+  ],
+  "ex": "Ahora mismo no puedo ir allí.",
+  "gl": "I can't come now.",
+  "pos": "adverb"
+ },
+ {
+  "en": "today, tonight",
+  "es": [
+   "hoy"
+  ],
+  "ex": "Hoy es un día de sol.",
+  "gl": "It's sunny today.",
+  "pos": "adverb"
+ },
+ {
+  "en": "then",
+  "es": [
+   "luego"
+  ],
+  "ex": "Podemos hablar de eso luego.",
+  "gl": "We can talk about that later.",
+  "pos": "adverb"
+ },
+ {
+  "en": "hand",
+  "es": [
+   "mano"
+  ],
+  "ex": "Dame la mano.",
+  "gl": "Give me your hand.",
+  "pos": "noun"
+ },
+ {
+  "en": "so much, long",
+  "es": [
+   "tanto"
+  ],
+  "ex": "Estaba al tanto de esta historia.",
+  "gl": "I heard that story.",
+  "pos": "adverb"
+ },
+ {
+  "en": "perhaps, maybe",
+  "es": [
+   "quizá"
+  ],
+  "ex": "Quizá debería habérselo dicho a Tom.",
+  "gl": "Maybe I should've told Tom.",
+  "pos": "adverb"
+ },
+ {
+  "en": "case",
+  "es": [
+   "caso"
+  ],
+  "ex": "En caso de incendio, marque 119.",
+  "gl": "In case of fire, dial 119.",
+  "pos": "noun"
+ },
+ {
+  "en": "name",
+  "es": [
+   "nombre"
+  ],
+  "ex": "¿Cuál es tu nombre?",
+  "gl": "What's your name?",
+  "pos": "noun"
+ },
+ {
+  "en": "to enter, to come in",
+  "es": [
+   "entrar"
+  ],
+  "ex": "En boca cerrada no entran moscas.",
+  "gl": "Silence is golden.",
+  "pos": "verb"
+ },
+ {
+  "en": "shape, form",
+  "es": [
+   "forma"
+  ],
+  "ex": "Ambas formas de escribir son correctas.",
+  "gl": "Both spellings are correct.",
+  "pos": "noun"
+ },
+ {
+  "en": "to begin, to start",
+  "es": [
+   "empezar",
+   "comenzar"
+  ],
+  "ex": "Empezamos a las nueve.",
+  "gl": "We start at nine.",
+  "pos": "verb"
+ },
+ {
+  "en": "to achieve, succeed in",
+  "es": [
+   "conseguir"
+  ],
+  "ex": "Sin esfuerzo no se consigue nada.",
+  "gl": "No pain, no gain.",
+  "pos": "verb"
+ },
+ {
+  "en": "to ask for, to order, to request",
+  "es": [
+   "pedir"
+  ],
+  "ex": "Pedí una cerveza.",
+  "gl": "I ordered a beer.",
+  "pos": "verb"
+ },
+ {
+  "en": "to try, to attempt",
+  "es": [
+   "intentar"
+  ],
+  "ex": "Voy a intentarlo.",
+  "gl": "I'm going to try it.",
+  "pos": "verb"
+ },
+ {
+  "en": "no, none",
+  "es": [
+   "ninguno"
+  ],
+  "ex": "No puedo ir a ningún lugar.",
+  "gl": "I can't go anywhere.",
+  "pos": "determiner"
+ },
+ {
+  "en": "to bring",
+  "es": [
+   "traer"
+  ],
+  "ex": "Trae una silla.",
+  "gl": "Bring a chair.",
+  "pos": "verb"
+ },
+ {
+  "en": "small",
+  "es": [
+   "pequeño"
+  ],
+  "ex": "Un problema pequeño.",
+  "gl": "A small problem.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to matter, to be important",
+  "es": [
+   "importar"
+  ],
+  "ex": "No me importa lo más mínimo.",
+  "gl": "I couldn't care less.",
+  "pos": "verb"
+ },
+ {
+  "en": "still, yet",
+  "es": [
+   "aún"
+  ],
+  "ex": "Aún no he perdido las esperanzas.",
+  "gl": "I haven't abandoned hope yet.",
+  "pos": "adverb"
+ },
+ {
+  "en": "count, tally",
+  "es": [
+   "cuenta"
+  ],
+  "ex": "¿Quién va a pagar la cuenta?",
+  "gl": "Who'll pay the bill?",
+  "pos": "noun"
+ },
+ {
+  "en": "reason",
+  "es": [
+   "razón"
+  ],
+  "ex": "Tienes razón.",
+  "gl": "You're right.",
+  "pos": "noun"
+ },
+ {
+  "en": "to ask (a question)",
+  "es": [
+   "preguntar"
+  ],
+  "ex": "Me preguntó mi nombre.",
+  "gl": "He asked me my name.",
+  "pos": "verb"
+ },
+ {
+  "en": "to finish, to end",
+  "es": [
+   "terminar",
+   "acabar"
+  ],
+  "ex": "Terminé el libro.",
+  "gl": "I finished the book.",
+  "pos": "verb"
+ },
+ {
+  "en": "idea",
+  "es": [
+   "idea"
+  ],
+  "ex": "Esto no fue idea de Tom.",
+  "gl": "This wasn't Tom's idea.",
+  "pos": "noun"
+ },
+ {
+  "en": "only, single",
+  "es": [
+   "único"
+  ],
+  "ex": "Lo único que tengo son libros.",
+  "gl": "All I have is books.",
+  "pos": "adjective"
+ },
+ {
+  "en": "badly, poorly",
+  "es": [
+   "mal"
+  ],
+  "ex": "Se me dan mal los deportes.",
+  "gl": "I'm bad at sports.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to suppose, to surmise",
+  "es": [
+   "suponer"
+  ],
+  "ex": "Yo supongo que ellos hablan francés.",
+  "gl": "I guess they speak French.",
+  "pos": "verb"
+ },
+ {
+  "en": "dead",
+  "es": [
+   "muerto"
+  ],
+  "ex": "La madre de Tomás está muerta.",
+  "gl": "Tom's mother's dead.",
+  "pos": "adjective"
+ },
+ {
+  "en": "during, in",
+  "es": [
+   "durante"
+  ],
+  "ex": "Los osos hibernan durante el invierno.",
+  "gl": "Bears hibernate during the winter.",
+  "pos": "preposition"
+ },
+ {
+  "en": "past, bygones",
+  "es": [
+   "pasado"
+  ],
+  "ex": "Las clases comenzaron el mes pasado.",
+  "gl": "Classes started last month.",
+  "pos": "noun"
+ },
+ {
+  "en": "to remember",
+  "es": [
+   "recordar",
+   "acordarse"
+  ],
+  "ex": "No recuerdo su nombre.",
+  "gl": "I don't remember his name.",
+  "pos": "verb"
+ },
+ {
+  "en": "week",
+  "es": [
+   "semana"
+  ],
+  "ex": "La semana pasada llovió.",
+  "gl": "It rained last week.",
+  "pos": "noun"
+ },
+ {
+  "en": "true",
+  "es": [
+   "cierto"
+  ],
+  "ex": "Es posible que eso sea cierto.",
+  "gl": "It may be true.",
+  "pos": "adjective"
+ },
+ {
+  "en": "against",
+  "es": [
+   "contra"
+  ],
+  "ex": "Está contra la pared.",
+  "gl": "It's against the wall.",
+  "pos": "preposition"
+ },
+ {
+  "en": "late",
+  "es": [
+   "tarde"
+  ],
+  "ex": "Llegué tarde.",
+  "gl": "I arrived late.",
+  "pos": "adverb"
+ },
+ {
+  "en": "second",
+  "es": [
+   "segundo"
+  ],
+  "ex": "Tengo alrededor de treinta primos segundos.",
+  "gl": "I have about thirty second cousins.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to change",
+  "es": [
+   "cambiar"
+  ],
+  "ex": "Cambié de idea.",
+  "gl": "I changed my mind.",
+  "pos": "verb"
+ },
+ {
+  "en": "family",
+  "es": [
+   "familia"
+  ],
+  "ex": "Mi familia es grande.",
+  "gl": "My family is big.",
+  "pos": "noun"
+ },
+ {
+  "en": "to use",
+  "es": [
+   "usar",
+   "utilizar"
+  ],
+  "ex": "Uso el metro.",
+  "gl": "I use the subway.",
+  "pos": "verb"
+ },
+ {
+  "en": "Civility, polity",
+  "es": [
+   "policía"
+  ],
+  "ex": "Vamos a llamar a la policía.",
+  "gl": "Let's call the police.",
+  "pos": "noun"
+ },
+ {
+  "en": "to eat",
+  "es": [
+   "comer"
+  ],
+  "ex": "Comemos a la una.",
+  "gl": "We eat at one.",
+  "pos": "verb"
+ },
+ {
+  "en": "with me",
+  "es": [
+   "conmigo"
+  ],
+  "ex": "Tu secreto está a salvo conmigo.",
+  "gl": "Your secret's safe with me.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to put out, to get out",
+  "es": [
+   "sacar"
+  ],
+  "ex": "Sacamos un sobresaliente en el examen.",
+  "gl": "We aced the exam.",
+  "pos": "verb"
+ },
+ {
+  "en": "while",
+  "es": [
+   "mientras"
+  ],
+  "ex": "Leo mientras espero.",
+  "gl": "I read while I wait.",
+  "pos": "conjunction"
+ },
+ {
+  "en": "to keep",
+  "es": [
+   "mantener"
+  ],
+  "ex": "Manténgase en la línea, por favor.",
+  "gl": "Hold the line, please.",
+  "pos": "verb"
+ },
+ {
+  "en": "really, actually",
+  "es": [
+   "realmente"
+  ],
+  "ex": "Eso es realmente lo que pasó.",
+  "gl": "That's what really happened.",
+  "pos": "adverb"
+ },
+ {
+  "en": "serious, earnest",
+  "es": [
+   "serio"
+  ],
+  "ex": "No puedes estar hablando en serio.",
+  "gl": "You cannot be serious.",
+  "pos": "adjective"
+ },
+ {
+  "en": "country (nation)",
+  "es": [
+   "país"
+  ],
+  "ex": "¿De qué país eres?",
+  "gl": "What country are you from?",
+  "pos": "noun"
+ },
+ {
+  "en": "to tell (a story); to count",
+  "es": [
+   "contar"
+  ],
+  "ex": "Cuéntame la historia.",
+  "gl": "Tell me the story.",
+  "pos": "verb"
+ },
+ {
+  "en": "minute",
+  "es": [
+   "minuto"
+  ],
+  "ex": "No necesito más que un minuto.",
+  "gl": "I only need a minute.",
+  "pos": "noun"
+ },
+ {
+  "en": "shit",
+  "es": [
+   "mierda"
+  ],
+  "ex": "¡Eres una mentirosa de mierda!",
+  "gl": "You're a filthy liar!",
+  "pos": "noun"
+ },
+ {
+  "en": "to forget",
+  "es": [
+   "olvidar"
+  ],
+  "ex": "Olvidé las llaves.",
+  "gl": "I forgot the keys.",
+  "pos": "verb"
+ },
+ {
+  "en": "own",
+  "es": [
+   "propio"
+  ],
+  "ex": "Llevó a cabo su propio plan.",
+  "gl": "He carried out his plan.",
+  "pos": "adjective"
+ },
+ {
+  "en": "so, then",
+  "es": [
+   "pues"
+  ],
+  "ex": "-Necesito más. -Pues no hay más.",
+  "gl": "\"I need more.\" \"Well, there's no more.\"",
+  "pos": "conjunction"
+ },
+ {
+  "en": "though, although",
+  "es": [
+   "aunque"
+  ],
+  "ex": "Aunque es listo no es sabio.",
+  "gl": "Though he is clever, he isn't wise.",
+  "pos": "conjunction"
+ },
+ {
+  "en": "story, history",
+  "es": [
+   "historia"
+  ],
+  "ex": "Él estudia la historia de América.",
+  "gl": "He studies American history.",
+  "pos": "noun"
+ },
+ {
+  "en": "love",
+  "es": [
+   "amor"
+  ],
+  "ex": "El amor lo cambia todo.",
+  "gl": "Love changes everything.",
+  "pos": "noun"
+ },
+ {
+  "en": "side",
+  "es": [
+   "lado"
+  ],
+  "ex": "Sentí que me daban de lado.",
+  "gl": "I felt left out.",
+  "pos": "noun"
+ },
+ {
+  "en": "together",
+  "es": [
+   "junto"
+  ],
+  "ex": "Él vive junto a mi casa.",
+  "gl": "He lives next to me.",
+  "pos": "adjective"
+ },
+ {
+  "en": "toward",
+  "es": [
+   "hacia"
+  ],
+  "ex": "Caminó hacia la puerta.",
+  "gl": "He walked toward the door.",
+  "pos": "preposition"
  },
  {
   "en": "way, manner",
@@ -1222,567 +2041,35 @@
    "modo"
   ],
   "ex": "De esa manera funciona.",
-  "gl": "That way it works."
+  "gl": "That way it works.",
+  "pos": "noun"
  },
  {
-  "en": "reason",
+  "en": "head",
   "es": [
-   "razón"
+   "cabeza"
   ],
-  "ex": "Tienes razón.",
-  "gl": "You're right."
+  "ex": "Me duele la cabeza.",
+  "gl": "My head hurts.",
+  "pos": "noun"
  },
  {
-  "en": "question",
+  "en": "point",
   "es": [
-   "pregunta"
+   "punto"
   ],
-  "ex": "Tengo una pregunta.",
-  "gl": "I have a question."
+  "ex": "Son casi las seis en punto.",
+  "gl": "It's almost six o'clock.",
+  "pos": "noun"
  },
  {
-  "en": "answer",
+  "en": "comparative of \"grande\": bigger",
   "es": [
-   "respuesta"
+   "mayor"
   ],
-  "ex": "No hay respuesta.",
-  "gl": "There's no answer."
- },
- {
-  "en": "problem",
-  "es": [
-   "problema"
-  ],
-  "ex": "No hay problema.",
-  "gl": "No problem."
- },
- {
-  "en": "story, history",
-  "es": [
-   "historia"
-  ],
-  "ex": "Cuéntame la historia.",
-  "gl": "Tell me the story."
- },
- {
-  "en": "truth",
-  "es": [
-   "verdad"
-  ],
-  "ex": "Dime la verdad.",
-  "gl": "Tell me the truth."
- },
- {
-  "en": "lie",
-  "es": [
-   "mentira"
-  ],
-  "ex": "Eso es mentira.",
-  "gl": "That's a lie."
- },
- {
-  "en": "love",
-  "es": [
-   "amor"
-  ],
-  "ex": "El amor lo cambia todo.",
-  "gl": "Love changes everything."
- },
- {
-  "en": "fear",
-  "es": [
-   "miedo"
-  ],
-  "ex": "Tengo miedo.",
-  "gl": "I'm afraid."
- },
- {
-  "en": "hope",
-  "es": [
-   "esperanza"
-  ],
-  "ex": "Hay esperanza.",
-  "gl": "There is hope."
- },
- {
-  "en": "store, shop",
-  "es": [
-   "tienda"
-  ],
-  "ex": "La tienda cierra a las nueve.",
-  "gl": "The store closes at nine."
- },
- {
-  "en": "school",
-  "es": [
-   "escuela",
-   "colegio"
-  ],
-  "ex": "Los niños van a la escuela.",
-  "gl": "The kids go to school."
- },
- {
-  "en": "company, firm",
-  "es": [
-   "empresa",
-   "compañía"
-  ],
-  "ex": "Trabajo en una empresa pequeña.",
-  "gl": "I work at a small company."
- },
- {
-  "en": "government",
-  "es": [
-   "gobierno"
-  ],
-  "ex": "El gobierno cambió la ley.",
-  "gl": "The government changed the law."
- },
- {
-  "en": "law",
-  "es": [
-   "ley"
-  ],
-  "ex": "Es contra la ley.",
-  "gl": "It's against the law."
- },
- {
-  "en": "war",
-  "es": [
-   "guerra"
-  ],
-  "ex": "La guerra terminó.",
-  "gl": "The war ended."
- },
- {
-  "en": "sun",
-  "es": [
-   "sol"
-  ],
-  "ex": "Hace sol hoy.",
-  "gl": "It's sunny today."
- },
- {
-  "en": "sky; heaven",
-  "es": [
-   "cielo"
-  ],
-  "ex": "El cielo está gris.",
-  "gl": "The sky is gray."
- },
- {
-  "en": "sea",
-  "es": [
-   "mar"
-  ],
-  "ex": "Vivimos cerca del mar.",
-  "gl": "We live near the sea."
- },
- {
-  "en": "tree",
-  "es": [
-   "árbol"
-  ],
-  "ex": "Hay un árbol grande.",
-  "gl": "There's a big tree."
- },
- {
-  "en": "dog",
-  "es": [
-   "perro"
-  ],
-  "ex": "Mi perro es viejo.",
-  "gl": "My dog is old."
- },
- {
-  "en": "fire",
-  "es": [
-   "fuego"
-  ],
-  "ex": "Enciende el fuego.",
-  "gl": "Light the fire."
- },
- {
-  "en": "light",
-  "es": [
-   "luz"
-  ],
-  "ex": "Apaga la luz.",
-  "gl": "Turn off the light."
- },
- {
-  "en": "owner",
-  "es": [
-   "dueño",
-   "dueña"
-  ],
-  "ex": "¿Quién es el dueño?",
-  "gl": "Who's the owner?"
- },
- {
-  "en": "trace, footprint, mark",
-  "es": [
-   "huella"
-  ],
-  "ex": "Dejó una huella profunda.",
-  "gl": "It left a deep mark."
- },
- {
-  "en": "breath",
-  "es": [
-   "aliento"
-  ],
-  "ex": "Me quedé sin aliento.",
-  "gl": "I was left breathless."
- },
- {
-  "en": "good",
-  "es": [
-   "bueno"
-  ],
-  "ex": "Es un buen plan.",
-  "gl": "It's a good plan."
- },
- {
-  "en": "bad",
-  "es": [
-   "malo"
-  ],
-  "ex": "Fue una mala idea.",
-  "gl": "It was a bad idea."
- },
- {
-  "en": "big, large",
-  "es": [
-   "grande"
-  ],
-  "ex": "Es una casa grande.",
-  "gl": "It's a big house."
- },
- {
-  "en": "small",
-  "es": [
-   "pequeño"
-  ],
-  "ex": "Un problema pequeño.",
-  "gl": "A small problem."
- },
- {
-  "en": "new",
-  "es": [
-   "nuevo"
-  ],
-  "ex": "Tengo un coche nuevo.",
-  "gl": "I have a new car."
- },
- {
-  "en": "old (thing)",
-  "es": [
-   "viejo",
-   "antiguo"
-  ],
-  "ex": "Es un edificio viejo.",
-  "gl": "It's an old building."
- },
- {
-  "en": "young",
-  "es": [
-   "joven"
-  ],
-  "ex": "Es muy joven.",
-  "gl": "He's very young."
- },
- {
-  "en": "long",
-  "es": [
-   "largo"
-  ],
-  "ex": "Fue un día largo.",
-  "gl": "It was a long day."
- },
- {
-  "en": "short (length)",
-  "es": [
-   "corto"
-  ],
-  "ex": "El camino es corto.",
-  "gl": "The road is short."
- },
- {
-  "en": "tall, high",
-  "es": [
-   "alto"
-  ],
-  "ex": "Es más alto que yo.",
-  "gl": "He's taller than me."
- },
- {
-  "en": "strong",
-  "es": [
-   "fuerte"
-  ],
-  "ex": "El café está fuerte.",
-  "gl": "The coffee is strong."
- },
- {
-  "en": "weak",
-  "es": [
-   "débil"
-  ],
-  "ex": "Me siento débil.",
-  "gl": "I feel weak."
- },
- {
-  "en": "fast, quick",
-  "es": [
-   "rápido"
-  ],
-  "ex": "Habla muy rápido.",
-  "gl": "He speaks very fast."
- },
- {
-  "en": "slow",
-  "es": [
-   "lento",
-   "despacio"
-  ],
-  "ex": "El servicio es lento.",
-  "gl": "The service is slow."
- },
- {
-  "en": "easy",
-  "es": [
-   "fácil"
-  ],
-  "ex": "No es fácil.",
-  "gl": "It's not easy."
- },
- {
-  "en": "difficult, hard",
-  "es": [
-   "difícil"
-  ],
-  "ex": "Es una pregunta difícil.",
-  "gl": "It's a hard question."
- },
- {
-  "en": "happy",
-  "es": [
-   "feliz",
-   "contento"
-  ],
-  "ex": "Estoy feliz por ti.",
-  "gl": "I'm happy for you."
- },
- {
-  "en": "sad",
-  "es": [
-   "triste"
-  ],
-  "ex": "La película es triste.",
-  "gl": "The movie is sad."
- },
- {
-  "en": "angry",
-  "es": [
-   "enojado",
-   "enfadado"
-  ],
-  "ex": "Está enojado conmigo.",
-  "gl": "He's angry with me."
- },
- {
-  "en": "tired",
-  "es": [
-   "cansado"
-  ],
-  "ex": "Estoy muy cansado.",
-  "gl": "I'm very tired."
- },
- {
-  "en": "sick, ill",
-  "es": [
-   "enfermo"
-  ],
-  "ex": "Mi madre está enferma.",
-  "gl": "My mother is sick."
- },
- {
-  "en": "hot (temperature)",
-  "es": [
-   "caliente"
-  ],
-  "ex": "El agua está caliente.",
-  "gl": "The water is hot."
- },
- {
-  "en": "cold",
-  "es": [
-   "frío"
-  ],
-  "ex": "Hace frío afuera.",
-  "gl": "It's cold outside."
- },
- {
-  "en": "dark",
-  "es": [
-   "oscuro"
-  ],
-  "ex": "El cuarto está oscuro.",
-  "gl": "The room is dark."
- },
- {
-  "en": "clean",
-  "es": [
-   "limpio"
-  ],
-  "ex": "La cocina está limpia.",
-  "gl": "The kitchen is clean."
- },
- {
-  "en": "dirty",
-  "es": [
-   "sucio"
-  ],
-  "ex": "Tus zapatos están sucios.",
-  "gl": "Your shoes are dirty."
- },
- {
-  "en": "full",
-  "es": [
-   "lleno"
-  ],
-  "ex": "El vaso está lleno.",
-  "gl": "The glass is full."
- },
- {
-  "en": "empty",
-  "es": [
-   "vacío"
-  ],
-  "ex": "La calle está vacía.",
-  "gl": "The street is empty."
- },
- {
-  "en": "expensive",
-  "es": [
-   "caro"
-  ],
-  "ex": "Es demasiado caro.",
-  "gl": "It's too expensive."
- },
- {
-  "en": "cheap",
-  "es": [
-   "barato"
-  ],
-  "ex": "Encontré uno barato.",
-  "gl": "I found a cheap one."
- },
- {
-  "en": "heavy",
-  "es": [
-   "pesado"
-  ],
-  "ex": "La caja es pesada.",
-  "gl": "The box is heavy."
- },
- {
-  "en": "dangerous",
-  "es": [
-   "peligroso"
-  ],
-  "ex": "Es un barrio peligroso.",
-  "gl": "It's a dangerous neighborhood."
- },
- {
-  "en": "safe, sure",
-  "es": [
-   "seguro"
-  ],
-  "ex": "¿Estás seguro?",
-  "gl": "Are you sure?"
- },
- {
-  "en": "ready",
-  "es": [
-   "listo"
-  ],
-  "ex": "Ya estoy listo.",
-  "gl": "I'm ready now."
- },
- {
-  "en": "busy",
-  "es": [
-   "ocupado"
-  ],
-  "ex": "Estoy ocupado ahora.",
-  "gl": "I'm busy right now."
- },
- {
-  "en": "free (no cost)",
-  "es": [
-   "gratis"
-  ],
-  "ex": "La entrada es gratis.",
-  "gl": "Admission is free."
- },
- {
-  "en": "free (at liberty)",
-  "es": [
-   "libre"
-  ],
-  "ex": "Estoy libre el viernes.",
-  "gl": "I'm free on Friday."
- },
- {
-  "en": "always",
-  "es": [
-   "siempre"
-  ],
-  "ex": "Siempre llega tarde.",
-  "gl": "He's always late."
- },
- {
-  "en": "never",
-  "es": [
-   "nunca",
-   "jamás"
-  ],
-  "ex": "Nunca he ido.",
-  "gl": "I've never been."
- },
- {
-  "en": "sometimes",
-  "es": [
-   "a veces"
-  ],
-  "ex": "A veces cocino.",
-  "gl": "Sometimes I cook."
- },
- {
-  "en": "often",
-  "es": [
-   "a menudo"
-  ],
-  "ex": "Viene a menudo.",
-  "gl": "He comes often."
- },
- {
-  "en": "almost",
-  "es": [
-   "casi"
-  ],
-  "ex": "Casi me caigo.",
-  "gl": "I almost fell."
- },
- {
-  "en": "already; now",
-  "es": [
-   "ya"
-  ],
-  "ex": "Ya terminé.",
-  "gl": "I already finished."
+  "ex": "Sé amable con la gente mayor.",
+  "gl": "Be kind to old people.",
+  "pos": "adjective"
  },
  {
   "en": "still, yet",
@@ -1791,223 +2078,53 @@
    "aún"
   ],
   "ex": "Todavía no llega.",
-  "gl": "He still hasn't arrived."
+  "gl": "He still hasn't arrived.",
+  "pos": "adverb"
  },
  {
-  "en": "soon",
+  "en": "any, whatever",
   "es": [
-   "pronto"
+   "cualquiera"
   ],
-  "ex": "Vuelvo pronto.",
-  "gl": "I'll be back soon."
+  "ex": "Me puedo esconder en cualquier lugar.",
+  "gl": "I can hide anywhere.",
+  "pos": "determiner"
  },
  {
-  "en": "late",
+  "en": "almost",
   "es": [
-   "tarde"
+   "casi"
   ],
-  "ex": "Llegué tarde.",
-  "gl": "I arrived late."
+  "ex": "Casi me caigo.",
+  "gl": "I almost fell.",
+  "pos": "adverb"
  },
  {
-  "en": "early",
+  "en": "month",
   "es": [
-   "temprano"
+   "mes"
   ],
-  "ex": "Me levanto temprano.",
-  "gl": "I get up early."
+  "ex": "El mes que viene.",
+  "gl": "Next month.",
+  "pos": "noun"
  },
  {
-  "en": "then, so",
+  "en": "city",
   "es": [
-   "entonces"
+   "ciudad"
   ],
-  "ex": "Entonces, ¿qué hacemos?",
-  "gl": "So, what do we do?"
+  "ex": "Barcelona es una ciudad bonita.",
+  "gl": "Barcelona is a beautiful city.",
+  "pos": "noun"
  },
  {
-  "en": "before",
+  "en": "important, that cares",
   "es": [
-   "antes"
+   "importante"
   ],
-  "ex": "Llámame antes.",
-  "gl": "Call me before."
- },
- {
-  "en": "after, afterwards",
-  "es": [
-   "después"
-  ],
-  "ex": "Hablamos después.",
-  "gl": "We'll talk afterwards."
- },
- {
-  "en": "while",
-  "es": [
-   "mientras"
-  ],
-  "ex": "Leo mientras espero.",
-  "gl": "I read while I wait."
- },
- {
-  "en": "toward",
-  "es": [
-   "hacia"
-  ],
-  "ex": "Caminó hacia la puerta.",
-  "gl": "He walked toward the door."
- },
- {
-  "en": "against",
-  "es": [
-   "contra"
-  ],
-  "ex": "Está contra la pared.",
-  "gl": "It's against the wall."
- },
- {
-  "en": "without",
-  "es": [
-   "sin"
-  ],
-  "ex": "Café sin azúcar.",
-  "gl": "Coffee without sugar."
- },
- {
-  "en": "between, among",
-  "es": [
-   "entre"
-  ],
-  "ex": "Entre tú y yo.",
-  "gl": "Between you and me."
- },
- {
-  "en": "under, underneath",
-  "es": [
-   "debajo de",
-   "bajo"
-  ],
-  "ex": "Está debajo de la cama.",
-  "gl": "It's under the bed."
- },
- {
-  "en": "behind",
-  "es": [
-   "detrás de"
-  ],
-  "ex": "Está detrás de ti.",
-  "gl": "It's behind you."
- },
- {
-  "en": "in front of",
-  "es": [
-   "delante de",
-   "enfrente de"
-  ],
-  "ex": "Espera delante de la tienda.",
-  "gl": "Wait in front of the store."
- },
- {
-  "en": "near, close to",
-  "es": [
-   "cerca de",
-   "cerca"
-  ],
-  "ex": "Vivo cerca del centro.",
-  "gl": "I live near downtown."
- },
- {
-  "en": "far (from)",
-  "es": [
-   "lejos de",
-   "lejos"
-  ],
-  "ex": "Está lejos de aquí.",
-  "gl": "It's far from here."
- },
- {
-  "en": "together",
-  "es": [
-   "juntos"
-  ],
-  "ex": "Vamos juntos.",
-  "gl": "Let's go together."
- },
- {
-  "en": "alone, only",
-  "es": [
-   "solo"
-  ],
-  "ex": "Vive solo.",
-  "gl": "He lives alone."
- },
- {
-  "en": "maybe, perhaps",
-  "es": [
-   "quizás",
-   "tal vez",
-   "quizá"
-  ],
-  "ex": "Quizás mañana.",
-  "gl": "Maybe tomorrow."
- },
- {
-  "en": "instead of",
-  "es": [
-   "en vez de",
-   "en lugar de"
-  ],
-  "ex": "Té en vez de café.",
-  "gl": "Tea instead of coffee."
- },
- {
-  "en": "besides, also, furthermore",
-  "es": [
-   "además"
-  ],
-  "ex": "Además, es barato.",
-  "gl": "Besides, it's cheap."
- },
- {
-  "en": "however, nevertheless",
-  "es": [
-   "sin embargo"
-  ],
-  "ex": "Sin embargo, no funcionó.",
-  "gl": "However, it didn't work."
- },
- {
-  "en": "therefore, so",
-  "es": [
-   "por lo tanto",
-   "así que"
-  ],
-  "ex": "Llovía, así que no salimos.",
-  "gl": "It was raining, so we didn't go out."
- },
- {
-  "en": "even (including)",
-  "es": [
-   "incluso"
-  ],
-  "ex": "Incluso mi madre lo sabe.",
-  "gl": "Even my mother knows."
- },
- {
-  "en": "barely, hardly",
-  "es": [
-   "apenas"
-  ],
-  "ex": "Apenas lo conozco.",
-  "gl": "I barely know him."
- },
- {
-  "en": "enough, quite, fairly",
-  "es": [
-   "bastante"
-  ],
-  "ex": "Es bastante caro.",
-  "gl": "It's quite expensive."
+  "ex": "No te preocupes. No es importante.",
+  "gl": "Don't worry. It's not important.",
+  "pos": "adjective"
  },
  {
   "en": "too much, too many",
@@ -2015,57 +2132,2394 @@
    "demasiado"
   ],
   "ex": "Hablas demasiado.",
-  "gl": "You talk too much."
+  "gl": "You talk too much.",
+  "pos": "adverb"
  },
  {
-  "en": "at least",
+  "en": "to worry, to concern",
   "es": [
-   "por lo menos",
-   "al menos"
+   "preocupar"
   ],
-  "ex": "Por lo menos lo intentaste.",
-  "gl": "At least you tried."
+  "ex": "No se preocupen por mi perro.",
+  "gl": "Don't worry about my dog.",
+  "pos": "verb"
  },
  {
-  "en": "of course",
+  "en": "to win; to earn",
   "es": [
-   "por supuesto",
-   "claro"
+   "ganar"
   ],
-  "ex": "Por supuesto que sí.",
-  "gl": "Of course."
+  "ex": "Gané el partido.",
+  "gl": "I won the match.",
+  "pos": "verb"
  },
  {
-  "en": "anyway, in any case",
+  "en": "how much, how many",
   "es": [
-   "de todos modos",
-   "de todas formas"
+   "cuánto"
   ],
-  "ex": "De todos modos, gracias.",
-  "gl": "Thanks anyway."
+  "ex": "¡Cuánto te he echado de menos!",
+  "gl": "How I've missed you!",
+  "pos": "determiner"
  },
  {
-  "en": "on purpose",
+  "en": "uncle",
   "es": [
-   "a propósito"
+   "tío"
   ],
-  "ex": "Lo hizo a propósito.",
-  "gl": "He did it on purpose."
+  "ex": "Ella visitó a su tía ayer.",
+  "gl": "He visited his aunt yesterday.",
+  "pos": "noun"
  },
  {
-  "en": "as soon as possible",
+  "en": "door",
   "es": [
-   "lo antes posible"
+   "puerta"
   ],
-  "ex": "Llámame lo antes posible.",
-  "gl": "Call me as soon as possible."
+  "ex": "Cierra la puerta.",
+  "gl": "Close the door.",
+  "pos": "noun"
  },
  {
-  "en": "nowadays, these days",
+  "en": "word",
   "es": [
-   "hoy en día"
+   "palabra"
   ],
-  "ex": "Hoy en día todo es digital.",
-  "gl": "These days everything is digital."
+  "ex": "No entendí esa palabra.",
+  "gl": "I didn't understand that word.",
+  "pos": "noun"
+ },
+ {
+  "en": "eye",
+  "es": [
+   "ojo"
+  ],
+  "ex": "Tiene los ojos verdes.",
+  "gl": "She has green eyes.",
+  "pos": "noun"
+ },
+ {
+  "en": "water",
+  "es": [
+   "agua"
+  ],
+  "ex": "Un vaso de agua.",
+  "gl": "A glass of water.",
+  "pos": "noun"
+ },
+ {
+  "en": "half",
+  "es": [
+   "medio"
+  ],
+  "ex": "Son casi las dos y media.",
+  "gl": "It's nearly 2:30.",
+  "pos": "noun"
+ },
+ {
+  "en": "inside",
+  "es": [
+   "dentro"
+  ],
+  "ex": "Sé que lo metí ahí dentro.",
+  "gl": "I know I packed it.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to open",
+  "es": [
+   "abrir"
+  ],
+  "ex": "Abre la ventana.",
+  "gl": "Open the window.",
+  "pos": "verb"
+ },
+ {
+  "en": "to play (a game)",
+  "es": [
+   "jugar"
+  ],
+  "ex": "Jugamos al fútbol.",
+  "gl": "We play soccer.",
+  "pos": "verb"
+ },
+ {
+  "en": "called",
+  "es": [
+   "llamado"
+  ],
+  "ex": "¿Quién ha llamado a la policía?",
+  "gl": "Who called the police?",
+  "pos": "adjective"
+ },
+ {
+  "en": "a crazy person, a madman",
+  "es": [
+   "loco"
+  ],
+  "ex": "Él está loco por el fútbol.",
+  "gl": "He's crazy about soccer.",
+  "pos": "noun"
+ },
+ {
+  "en": "to happen, to occur",
+  "es": [
+   "ocurrir",
+   "suceder"
+  ],
+  "ex": "Ocurrió ayer.",
+  "gl": "It happened yesterday.",
+  "pos": "verb"
+ },
+ {
+  "en": "tall, high",
+  "es": [
+   "alto"
+  ],
+  "ex": "Es más alto que yo.",
+  "gl": "He's taller than me.",
+  "pos": "adjective"
+ },
+ {
+  "en": "that",
+  "es": [
+   "aquel"
+  ],
+  "ex": "¿Qué tan alta es aquella montaña?",
+  "gl": "How high is that mountain?",
+  "pos": "determiner"
+ },
+ {
+  "en": "end",
+  "es": [
+   "fin"
+  ],
+  "ex": "Pasa un buen fin de semana.",
+  "gl": "Have a good weekend.",
+  "pos": "noun"
+ },
+ {
+  "en": "to pay",
+  "es": [
+   "pagar"
+  ],
+  "ex": "Yo pago.",
+  "gl": "I'll pay.",
+  "pos": "verb"
+ },
+ {
+  "en": "road, way, path",
+  "es": [
+   "camino"
+  ],
+  "ex": "Es un camino largo.",
+  "gl": "It's a long road.",
+  "pos": "noun"
+ },
+ {
+  "en": "husband",
+  "es": [
+   "esposo"
+  ],
+  "ex": "El esposo de Mary es rico.",
+  "gl": "Mary's husband is rich.",
+  "pos": "noun"
+ },
+ {
+  "en": "to allow, to permit",
+  "es": [
+   "permitir"
+  ],
+  "ex": "No permiten perros.",
+  "gl": "They don't allow dogs.",
+  "pos": "verb"
+ },
+ {
+  "en": "to receive, get",
+  "es": [
+   "recibir"
+  ],
+  "ex": "He recibido un correo electrónico raro.",
+  "gl": "I got a weird email.",
+  "pos": "verb"
+ },
+ {
+  "en": "question",
+  "es": [
+   "pregunta"
+  ],
+  "ex": "Tengo una pregunta.",
+  "gl": "I have a question.",
+  "pos": "noun"
+ },
+ {
+  "en": "to read",
+  "es": [
+   "leer"
+  ],
+  "ex": "Leo antes de dormir.",
+  "gl": "I read before sleeping.",
+  "pos": "verb"
+ },
+ {
+  "en": "to signify",
+  "es": [
+   "significar"
+  ],
+  "ex": "El semáforo en verde significa marcha.",
+  "gl": "A green light means go.",
+  "pos": "verb"
+ },
+ {
+  "en": "to happen, to befall",
+  "es": [
+   "suceder"
+  ],
+  "ex": "Lo que sucedió después fue desagradable.",
+  "gl": "What followed was unpleasant.",
+  "pos": "verb"
+ },
+ {
+  "en": "death",
+  "es": [
+   "muerte"
+  ],
+  "ex": "Le tiene miedo a la muerte.",
+  "gl": "He's afraid of death.",
+  "pos": "noun"
+ },
+ {
+  "en": "million",
+  "es": [
+   "millón"
+  ],
+  "ex": "Usted es nuestro cliente un millón.",
+  "gl": "You're our one millionth customer.",
+  "pos": "noun"
+ },
+ {
+  "en": "general, overall",
+  "es": [
+   "general"
+  ],
+  "ex": "En general, los japoneses son conservadores.",
+  "gl": "On the whole, the Japanese are conservative.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to sleep",
+  "es": [
+   "dormir"
+  ],
+  "ex": "Duermo ocho horas.",
+  "gl": "I sleep eight hours.",
+  "pos": "verb"
+ },
+ {
+  "en": "reality",
+  "es": [
+   "realidad"
+  ],
+  "ex": "Su sueño se había hecho realidad.",
+  "gl": "Her dream has come true.",
+  "pos": "noun"
+ },
+ {
+  "en": "to fall",
+  "es": [
+   "caer",
+   "caerse"
+  ],
+  "ex": "Se cayó la taza.",
+  "gl": "The cup fell.",
+  "pos": "verb"
+ },
+ {
+  "en": "fast, quick",
+  "es": [
+   "rápido"
+  ],
+  "ex": "Habla muy rápido.",
+  "gl": "He speaks very fast.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to send",
+  "es": [
+   "enviar"
+  ],
+  "ex": "Tom envió un aviso a Mary.",
+  "gl": "Tom paged Mary.",
+  "pos": "verb"
+ },
+ {
+  "en": "to bring close",
+  "es": [
+   "acercar"
+  ],
+  "ex": "Esto no es acerca de ellos.",
+  "gl": "This isn't about them.",
+  "pos": "verb"
+ },
+ {
+  "en": "team",
+  "es": [
+   "equipo"
+  ],
+  "ex": "Yo necesito un equipo de personas.",
+  "gl": "I need a crew.",
+  "pos": "noun"
+ },
+ {
+  "en": "which one, what",
+  "es": [
+   "cuál"
+  ],
+  "ex": "¿Cuál es el menú de hoy?",
+  "gl": "What's today's menu?",
+  "pos": "pronoun"
+ },
+ {
+  "en": "help, aid",
+  "es": [
+   "ayuda"
+  ],
+  "ex": "No te fíes de su ayuda.",
+  "gl": "Don't rely on his help.",
+  "pos": "noun"
+ },
+ {
+  "en": "body",
+  "es": [
+   "cuerpo"
+  ],
+  "ex": "Todo el cuerpo me duele.",
+  "gl": "My whole body hurts.",
+  "pos": "noun"
+ },
+ {
+  "en": "chief, president",
+  "es": [
+   "jefe"
+  ],
+  "ex": "El jefe de Tom es canadiense.",
+  "gl": "Tom's boss is Canadian.",
+  "pos": "noun"
+ },
+ {
+  "en": "president, head",
+  "es": [
+   "presidente"
+  ],
+  "ex": "Los estudiantes la eligieron como presidenta.",
+  "gl": "The students chose her chairman.",
+  "pos": "noun"
+ },
+ {
+  "en": "to move (something)",
+  "es": [
+   "mover"
+  ],
+  "ex": "Mueve la silla.",
+  "gl": "Move the chair.",
+  "pos": "verb"
+ },
+ {
+  "en": "to buy",
+  "es": [
+   "comprar"
+  ],
+  "ex": "Compré pan.",
+  "gl": "I bought bread.",
+  "pos": "verb"
+ },
+ {
+  "en": "assumption, hypothesis",
+  "es": [
+   "supuesto"
+  ],
+  "ex": "Por supuesto que no es verdad.",
+  "gl": "Of course it isn't true.",
+  "pos": "noun"
+ },
+ {
+  "en": "under",
+  "es": [
+   "bajo"
+  ],
+  "ex": "Haz eso bajo tu propia responsabilidad.",
+  "gl": "Do that at your own risk.",
+  "pos": "preposition"
+ },
+ {
+  "en": "government",
+  "es": [
+   "gobierno"
+  ],
+  "ex": "El gobierno cambió la ley.",
+  "gl": "The government changed the law.",
+  "pos": "noun"
+ },
+ {
+  "en": "to begin, to commence",
+  "es": [
+   "comenzar"
+  ],
+  "ex": "Yo estaba a punto de comenzar.",
+  "gl": "I was about to start.",
+  "pos": "verb"
+ },
+ {
+  "en": "young",
+  "es": [
+   "joven"
+  ],
+  "ex": "Es muy joven.",
+  "gl": "He's very young.",
+  "pos": "adjective"
+ },
+ {
+  "en": "old (thing)",
+  "es": [
+   "viejo",
+   "antiguo"
+  ],
+  "ex": "Es un edificio viejo.",
+  "gl": "It's an old building.",
+  "pos": "noun"
+ },
+ {
+  "en": "Earth",
+  "es": [
+   "tierra"
+  ],
+  "ex": "La Tierra es un bello planeta.",
+  "gl": "Earth is a beautiful planet.",
+  "pos": "noun"
+ },
+ {
+  "en": "number",
+  "es": [
+   "número"
+  ],
+  "ex": "Aquí tienes mi número de teléfono.",
+  "gl": "Here's my phone number.",
+  "pos": "noun"
+ },
+ {
+  "en": "four",
+  "es": [
+   "cuatro"
+  ],
+  "ex": "Un cuadrado tiene cuatro lados iguales.",
+  "gl": "A square has four equal sides.",
+  "pos": "number"
+ },
+ {
+  "en": "happy",
+  "es": [
+   "feliz",
+   "contento"
+  ],
+  "ex": "Estoy feliz por ti.",
+  "gl": "I'm happy for you.",
+  "pos": "adjective"
+ },
+ {
+  "en": "end",
+  "es": [
+   "final"
+  ],
+  "ex": "La historia tiene un final feliz.",
+  "gl": "The story ends happily.",
+  "pos": "noun"
+ },
+ {
+  "en": "to return, go back",
+  "es": [
+   "regresar"
+  ],
+  "ex": "No regreséis a casa muy tarde.",
+  "gl": "Don't come home too late.",
+  "pos": "verb"
+ },
+ {
+  "en": "group",
+  "es": [
+   "grupo"
+  ],
+  "ex": "Mi grupo sanguíneo es A positivo.",
+  "gl": "My blood type is A positive.",
+  "pos": "noun"
+ },
+ {
+  "en": "war",
+  "es": [
+   "guerra"
+  ],
+  "ex": "La guerra terminó.",
+  "gl": "The war ended.",
+  "pos": "noun"
+ },
+ {
+  "en": "affection, fondness",
+  "es": [
+   "cariño"
+  ],
+  "ex": "Esto no es cariño verdadero.",
+  "gl": "This isn't true love.",
+  "pos": "noun"
+ },
+ {
+  "en": "besides, also, furthermore",
+  "es": [
+   "además"
+  ],
+  "ex": "Además, es barato.",
+  "gl": "Besides, it's cheap.",
+  "pos": "adverb"
+ },
+ {
+  "en": "possible",
+  "es": [
+   "posible"
+  ],
+  "ex": "Es posible que cometa un error.",
+  "gl": "I might make a mistake.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to throw, toss",
+  "es": [
+   "echar"
+  ],
+  "ex": "Tomás echa de menos a María.",
+  "gl": "Tom misses Mary.",
+  "pos": "verb"
+ },
+ {
+  "en": "lecture",
+  "es": [
+   "clase"
+  ],
+  "ex": "Las clases se retomarán el lunes.",
+  "gl": "Classes will resume Monday.",
+  "pos": "noun"
+ },
+ {
+  "en": "suchlike, like",
+  "es": [
+   "cual"
+  ],
+  "ex": "Cada cual que limpie su habitación.",
+  "gl": "Everyone, clean your rooms.",
+  "pos": "pronoun"
+ },
+ {
+  "en": "weapon, arm",
+  "es": [
+   "arma"
+  ],
+  "ex": "Su buena memoria es su arma.",
+  "gl": "A good memory is his weapon.",
+  "pos": "noun"
+ },
+ {
+  "en": "five",
+  "es": [
+   "cinco"
+  ],
+  "ex": "Le pagué a ella cinco dólares.",
+  "gl": "I paid her five dollars.",
+  "pos": "number"
+ },
+ {
+  "en": "soon",
+  "es": [
+   "pronto"
+  ],
+  "ex": "Vuelvo pronto.",
+  "gl": "I'll be back soon.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to turn into, to cause to become",
+  "es": [
+   "convertir"
+  ],
+  "ex": "Los renacuajos se convierten en ranas.",
+  "gl": "Tadpoles become frogs.",
+  "pos": "verb"
+ },
+ {
+  "en": "difficult, hard",
+  "es": [
+   "difícil"
+  ],
+  "ex": "Es una pregunta difícil.",
+  "gl": "It's a hard question.",
+  "pos": "adjective"
+ },
+ {
+  "en": "face",
+  "es": [
+   "cara",
+   "rostro"
+  ],
+  "ex": "Tiene una cara amable.",
+  "gl": "He has a kind face.",
+  "pos": "noun"
+ },
+ {
+  "en": "but",
+  "es": [
+   "sino"
+  ],
+  "ex": "Fui no una vez, sino dos.",
+  "gl": "I went not once, but twice.",
+  "pos": "conjunction"
+ },
+ {
+  "en": "ingenious, genius",
+  "es": [
+   "genial"
+  ],
+  "ex": "Pienso que es una idea genial.",
+  "gl": "I think it's a neat idea.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to play (an instrument)",
+  "es": [
+   "tocar"
+  ],
+  "ex": "Toca la guitarra.",
+  "gl": "He plays the guitar.",
+  "pos": "verb"
+ },
+ {
+  "en": "long",
+  "es": [
+   "largo"
+  ],
+  "ex": "Fue un día largo.",
+  "gl": "It was a long day.",
+  "pos": "adjective"
+ },
+ {
+  "en": "play",
+  "es": [
+   "juego"
+  ],
+  "ex": "El fútbol es un juego antiguo.",
+  "gl": "Football is an old game.",
+  "pos": "noun"
+ },
+ {
+  "en": "to write",
+  "es": [
+   "escribir"
+  ],
+  "ex": "Escribo cartas.",
+  "gl": "I write letters.",
+  "pos": "verb"
+ },
+ {
+  "en": "to put in, insert",
+  "es": [
+   "meter"
+  ],
+  "ex": "Tom se metió en la cama.",
+  "gl": "Tom got into bed.",
+  "pos": "verb"
+ },
+ {
+  "en": "equal, same",
+  "es": [
+   "igual"
+  ],
+  "ex": "Es igual para todo el mundo.",
+  "gl": "It's the same for everyone.",
+  "pos": "adjective"
+ },
+ {
+  "en": "even (including)",
+  "es": [
+   "incluso"
+  ],
+  "ex": "Incluso mi madre lo sabe.",
+  "gl": "Even my mother knows.",
+  "pos": "adverb"
+ },
+ {
+  "en": "doctor",
+  "es": [
+   "doctor"
+  ],
+  "ex": "No he visto a un doctor.",
+  "gl": "I haven't seen a doctor.",
+  "pos": "noun"
+ },
+ {
+  "en": "heart",
+  "es": [
+   "corazón"
+  ],
+  "ex": "Mi corazón late rápido.",
+  "gl": "My heart beats fast.",
+  "pos": "noun"
+ },
+ {
+  "en": "to detain",
+  "es": [
+   "detener"
+  ],
+  "ex": "El tiempo no puede ser detenido.",
+  "gl": "Time cannot be stopped.",
+  "pos": "verb"
+ },
+ {
+  "en": "farewell, goodbye",
+  "es": [
+   "adiós"
+  ],
+  "ex": "Supongo que esto es un adiós.",
+  "gl": "I guess this is goodbye.",
+  "pos": "noun"
+ },
+ {
+  "en": "at least, at the least",
+  "es": [
+   "siquiera"
+  ],
+  "ex": "Ni siquiera lo nombres otra vez.",
+  "gl": "Don't ever mention his name again.",
+  "pos": "adverb"
+ },
+ {
+  "en": "it, neuter",
+  "es": [
+   "ello"
+  ],
+  "ex": "Te vas a arrepentir de ello.",
+  "gl": "You'll regret it.",
+  "pos": "pronoun"
+ },
+ {
+  "en": "to decide",
+  "es": [
+   "decidir"
+  ],
+  "ex": "Decidí quedarme.",
+  "gl": "I decided to stay.",
+  "pos": "verb"
+ },
+ {
+  "en": "luck, fortune",
+  "es": [
+   "suerte"
+  ],
+  "ex": "No tengo suerte en el amor.",
+  "gl": "I'm unlucky in love.",
+  "pos": "noun"
+ },
+ {
+  "en": "yesterday",
+  "es": [
+   "ayer"
+  ],
+  "ex": "Ella murió ayer por la tarde.",
+  "gl": "She died yesterday afternoon.",
+  "pos": "adverb"
+ },
+ {
+  "en": "book",
+  "es": [
+   "libro"
+  ],
+  "ex": "Leí ese libro.",
+  "gl": "I read that book.",
+  "pos": "noun"
+ },
+ {
+  "en": "to run",
+  "es": [
+   "correr"
+  ],
+  "ex": "Corro por el parque.",
+  "gl": "I run through the park.",
+  "pos": "verb"
+ },
+ {
+  "en": "according to",
+  "es": [
+   "según"
+  ],
+  "ex": "Tom es, según parece, canadiense.",
+  "gl": "Tom is apparently a Canadian.",
+  "pos": "preposition"
+ },
+ {
+  "en": "to work, to function",
+  "es": [
+   "funcionar"
+  ],
+  "ex": "El plan no va a funcionar.",
+  "gl": "The plan won't work.",
+  "pos": "verb"
+ },
+ {
+  "en": "alive, living",
+  "es": [
+   "vivo"
+  ],
+  "ex": "Gracias a Dios que estoy vivo.",
+  "gl": "Thank God I'm alive.",
+  "pos": "adjective"
+ },
+ {
+  "en": "light",
+  "es": [
+   "luz"
+  ],
+  "ex": "Apaga la luz.",
+  "gl": "Turn off the light.",
+  "pos": "noun"
+ },
+ {
+  "en": "just",
+  "es": [
+   "justo"
+  ],
+  "ex": "Él está justo detrás de ti.",
+  "gl": "He's right behind you.",
+  "pos": "adjective"
+ },
+ {
+  "en": "fear",
+  "es": [
+   "miedo"
+  ],
+  "ex": "Tengo miedo.",
+  "gl": "I'm afraid.",
+  "pos": "noun"
+ },
+ {
+  "en": "way, manner",
+  "es": [
+   "modo"
+  ],
+  "ex": "Tom cambió al modo de conducción.",
+  "gl": "Tom shifted the car into drive.",
+  "pos": "noun"
+ },
+ {
+  "en": "relation",
+  "es": [
+   "relación"
+  ],
+  "ex": "Tiene cierta relación con este problema.",
+  "gl": "It has some bearing on this problem.",
+  "pos": "noun"
+ },
+ {
+  "en": "change, shift",
+  "es": [
+   "cambio"
+  ],
+  "ex": "Creo que es un cambio permanente.",
+  "gl": "I think it's a permanent change.",
+  "pos": "noun"
+ },
+ {
+  "en": "public",
+  "es": [
+   "público"
+  ],
+  "ex": "La opinión pública empezó a cambiar.",
+  "gl": "Public opinion began to change.",
+  "pos": "adjective"
+ },
+ {
+  "en": "right",
+  "es": [
+   "derecho"
+  ],
+  "ex": "Se me durmió el pie derecho.",
+  "gl": "My right foot is sleeping.",
+  "pos": "noun"
+ },
+ {
+  "en": "to present, to submit",
+  "es": [
+   "presentar"
+  ],
+  "ex": "Deberías haberte presentado a ti mismo.",
+  "gl": "You should've introduced yourself.",
+  "pos": "verb"
+ },
+ {
+  "en": "close, near",
+  "es": [
+   "cerca"
+  ],
+  "ex": "La universidad está cerca de aquí.",
+  "gl": "The university's near here.",
+  "pos": "adverb"
+ },
+ {
+  "en": "sufficient, enough",
+  "es": [
+   "suficiente"
+  ],
+  "ex": "Una sola lengua no es suficiente.",
+  "gl": "One language is not enough.",
+  "pos": "adjective"
+ },
+ {
+  "en": "proof, evidence",
+  "es": [
+   "prueba"
+  ],
+  "ex": "Tengo una prueba la próxima semana.",
+  "gl": "I have a test next week.",
+  "pos": "noun"
+ },
+ {
+  "en": "near",
+  "es": [
+   "próximo"
+  ],
+  "ex": "Él se jubila la próxima primavera.",
+  "gl": "He retires next spring.",
+  "pos": "adjective"
+ },
+ {
+  "en": "strong",
+  "es": [
+   "fuerte"
+  ],
+  "ex": "El café está fuerte.",
+  "gl": "The coffee is strong.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to exist",
+  "es": [
+   "existir"
+  ],
+  "ex": "Pienso que el amor no existe.",
+  "gl": "I think love doesn't exist.",
+  "pos": "verb"
+ },
+ {
+  "en": "sense",
+  "es": [
+   "sentido"
+  ],
+  "ex": "Lo que dices no tiene sentido.",
+  "gl": "You're talking nonsense.",
+  "pos": "noun"
+ },
+ {
+  "en": "order",
+  "es": [
+   "orden"
+  ],
+  "ex": "¿Quién dio la orden de hacerlo?",
+  "gl": "Who gave the order to do it?",
+  "pos": "noun"
+ },
+ {
+  "en": "dog",
+  "es": [
+   "perro"
+  ],
+  "ex": "Mi perro es viejo.",
+  "gl": "My dog is old.",
+  "pos": "noun"
+ },
+ {
+  "en": "human",
+  "es": [
+   "humano"
+  ],
+  "ex": "Las relaciones humanas son complejas.",
+  "gl": "Human relationships are complex.",
+  "pos": "adjective"
+ },
+ {
+  "en": "turn",
+  "es": [
+   "vuelta"
+  ],
+  "ex": "El tren se dio la vuelta.",
+  "gl": "The train flipped over.",
+  "pos": "noun"
+ },
+ {
+  "en": "ready",
+  "es": [
+   "listo"
+  ],
+  "ex": "Ya estoy listo.",
+  "gl": "I'm ready now.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to show",
+  "es": [
+   "mostrar",
+   "enseñar"
+  ],
+  "ex": "Muéstrame la foto.",
+  "gl": "Show me the photo.",
+  "pos": "verb"
+ },
+ {
+  "en": "to go up or come up",
+  "es": [
+   "subir"
+  ],
+  "ex": "No me han subido el sueldo.",
+  "gl": "I didn't get a raise.",
+  "pos": "verb"
+ },
+ {
+  "en": "car",
+  "es": [
+   "coche",
+   "carro",
+   "auto"
+  ],
+  "ex": "Mi coche es viejo.",
+  "gl": "My car is old.",
+  "pos": "noun"
+ },
+ {
+  "en": "to serve",
+  "es": [
+   "servir"
+  ],
+  "ex": "Su consejo no sirvió de mucho.",
+  "gl": "His advice didn't help much.",
+  "pos": "verb"
+ },
+ {
+  "en": "to seat",
+  "es": [
+   "sentar"
+  ],
+  "ex": "Tom se sentó encarando a Mary.",
+  "gl": "Tom sat facing Mary.",
+  "pos": "verb"
+ },
+ {
+  "en": "to save",
+  "es": [
+   "salvar"
+  ],
+  "ex": "El airbag me salvó la vida.",
+  "gl": "The airbag saved my life.",
+  "pos": "verb"
+ },
+ {
+  "en": "white",
+  "es": [
+   "blanco"
+  ],
+  "ex": "Mis dientes son de color blanco.",
+  "gl": "My teeth are white.",
+  "pos": "adjective"
+ },
+ {
+  "en": "force",
+  "es": [
+   "fuerza"
+  ],
+  "ex": "Tom abrazó con fuerza a Mary.",
+  "gl": "Tom hugged Mary tightly.",
+  "pos": "noun"
+ },
+ {
+  "en": "system",
+  "es": [
+   "sistema"
+  ],
+  "ex": "Tenemos un buen sistema de calefacción.",
+  "gl": "We have a good heating system.",
+  "pos": "noun"
+ },
+ {
+  "en": "to explain",
+  "es": [
+   "explicar"
+  ],
+  "ex": "Explícame otra vez.",
+  "gl": "Explain it to me again.",
+  "pos": "verb"
+ },
+ {
+  "en": "enough, quite, fairly",
+  "es": [
+   "bastante"
+  ],
+  "ex": "Es bastante caro.",
+  "gl": "It's quite expensive.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to raise, to lift",
+  "es": [
+   "levantar"
+  ],
+  "ex": "Levanta la mano.",
+  "gl": "Raise your hand.",
+  "pos": "verb"
+ },
+ {
+  "en": "forward",
+  "es": [
+   "adelante"
+  ],
+  "ex": "El proyecto de ley salió adelante.",
+  "gl": "The bill went through.",
+  "pos": "adverb"
+ },
+ {
+  "en": "thousand",
+  "es": [
+   "mil"
+  ],
+  "ex": "Cada persona ha pagado mil dólares.",
+  "gl": "Each individual paid 1,000 dollars.",
+  "pos": "number"
+ },
+ {
+  "en": "to consider, to regard",
+  "es": [
+   "considerar"
+  ],
+  "ex": "Las ballenas están consideradas como mamíferos.",
+  "gl": "Whales are classified as mammals.",
+  "pos": "verb"
+ },
+ {
+  "en": "step, footstep",
+  "es": [
+   "paso"
+  ],
+  "ex": "Un árbol caído bloqueaba el paso.",
+  "gl": "A fallen tree blocked the path.",
+  "pos": "noun"
+ },
+ {
+  "en": "to secure",
+  "es": [
+   "asegurar"
+  ],
+  "ex": "Me aseguraré de que se repare.",
+  "gl": "I'll make sure it's repaired.",
+  "pos": "verb"
+ },
+ {
+  "en": "to accept, to take up",
+  "es": [
+   "aceptar"
+  ],
+  "ex": "Tom aceptó la oferta de trabajo.",
+  "gl": "Tom accepted the job offer.",
+  "pos": "verb"
+ },
+ {
+  "en": "to remove, to take away",
+  "es": [
+   "quitar"
+  ],
+  "ex": "Quítale el polvo a la estantería.",
+  "gl": "Dust the shelves.",
+  "pos": "verb"
+ },
+ {
+  "en": "plan",
+  "es": [
+   "plan"
+  ],
+  "ex": "¿Cuál era el plan de Tom?",
+  "gl": "What was Tom's plan?",
+  "pos": "noun"
+ },
+ {
+  "en": "street",
+  "es": [
+   "calle"
+  ],
+  "ex": "Vive en esta calle.",
+  "gl": "He lives on this street.",
+  "pos": "noun"
+ },
+ {
+  "en": "town, village",
+  "es": [
+   "pueblo"
+  ],
+  "ex": "¿A qué distancia está el pueblo?",
+  "gl": "How far is it to town?",
+  "pos": "noun"
+ },
+ {
+  "en": "care",
+  "es": [
+   "cuidado"
+  ],
+  "ex": "Contesta a mi pregunta con cuidado.",
+  "gl": "Answer my question carefully.",
+  "pos": "noun"
+ },
+ {
+  "en": "black",
+  "es": [
+   "negro"
+  ],
+  "ex": "La ropa negra absorbe la luz.",
+  "gl": "Black cloth absorbs light.",
+  "pos": "adjective"
+ },
+ {
+  "en": "there, over there",
+  "es": [
+   "allá"
+  ],
+  "ex": "¿Hace falta que yo vaya allá?",
+  "gl": "Do I need to go there?",
+  "pos": "adverb"
+ },
+ {
+  "en": "party",
+  "es": [
+   "partido"
+  ],
+  "ex": "¿Qué tal el partido de hoy?",
+  "gl": "How was today's game?",
+  "pos": "noun"
+ },
+ {
+  "en": "different",
+  "es": [
+   "diferente"
+  ],
+  "ex": "¿A cuántas escuelas diferentes has asistido?",
+  "gl": "How many different schools have you attended?",
+  "pos": "adjective"
+ },
+ {
+  "en": "in front of, before",
+  "es": [
+   "ante"
+  ],
+  "ex": "Tom pasó de largo ante Mary.",
+  "gl": "Tom ran past Mary.",
+  "pos": "preposition"
+ },
+ {
+  "en": "party",
+  "es": [
+   "fiesta"
+  ],
+  "ex": "El lunes es día de fiesta.",
+  "gl": "Monday's a holiday.",
+  "pos": "noun"
+ },
+ {
+  "en": "to love, have great affection for",
+  "es": [
+   "amar"
+  ],
+  "ex": "Nos amamos el uno al otro.",
+  "gl": "We love each other.",
+  "pos": "verb"
+ },
+ {
+  "en": "to take, catch",
+  "es": [
+   "coger"
+  ],
+  "ex": "Coge mi bolígrafo. Mira a ver.",
+  "gl": "Here, try my pen.",
+  "pos": "verb"
+ },
+ {
+  "en": "to shoot, to fire",
+  "es": [
+   "disparar"
+  ],
+  "ex": "Yo le disparé a un oso.",
+  "gl": "I shot a bear.",
+  "pos": "verb"
+ },
+ {
+  "en": "to excuse, forgive",
+  "es": [
+   "disculpar"
+  ],
+  "ex": "No hace falta que te disculpes.",
+  "gl": "You don't have to apologize.",
+  "pos": "verb"
+ },
+ {
+  "en": "foot",
+  "es": [
+   "pie"
+  ],
+  "ex": "Voy a pie.",
+  "gl": "I'm going on foot.",
+  "pos": "noun"
+ },
+ {
+  "en": "to drink",
+  "es": [
+   "beber"
+  ],
+  "ex": "Bebo agua.",
+  "gl": "I drink water.",
+  "pos": "verb"
+ },
+ {
+  "en": "forehead, brow",
+  "es": [
+   "frente"
+  ],
+  "ex": "Él me besó en la frente.",
+  "gl": "He kissed me on the forehead.",
+  "pos": "noun"
+ },
+ {
+  "en": "school",
+  "es": [
+   "escuela",
+   "colegio"
+  ],
+  "ex": "Los niños van a la escuela.",
+  "gl": "The kids go to school.",
+  "pos": "noun"
+ },
+ {
+  "en": "blood",
+  "es": [
+   "sangre"
+  ],
+  "ex": "Es necesaria una transfusión de sangre.",
+  "gl": "A blood transfusion is necessary.",
+  "pos": "noun"
+ },
+ {
+  "en": "opportunity, chance",
+  "es": [
+   "oportunidad"
+  ],
+  "ex": "Le di una oportunidad a Tomás.",
+  "gl": "I gave Tom a chance.",
+  "pos": "noun"
+ },
+ {
+  "en": "boy or young adult",
+  "es": [
+   "muchacho"
+  ],
+  "ex": "Él vio a una bonita muchacha.",
+  "gl": "He saw a pretty girl.",
+  "pos": "noun"
+ },
+ {
+  "en": "real",
+  "es": [
+   "real"
+  ],
+  "ex": "¿Puede alguno de éstos ser real?",
+  "gl": "Can any of this be true?",
+  "pos": "adjective"
+ },
+ {
+  "en": "situation, scenario",
+  "es": [
+   "situación"
+  ],
+  "ex": "Estoy plenamente informado de la situación.",
+  "gl": "I know all about the situation.",
+  "pos": "noun"
+ },
+ {
+  "en": "law",
+  "es": [
+   "ley"
+  ],
+  "ex": "Es contra la ley.",
+  "gl": "It's against the law.",
+  "pos": "noun"
+ },
+ {
+  "en": "to sell",
+  "es": [
+   "vender"
+  ],
+  "ex": "Venden fruta aquí.",
+  "gl": "They sell fruit here.",
+  "pos": "verb"
+ },
+ {
+  "en": "telephone",
+  "es": [
+   "teléfono"
+  ],
+  "ex": "No me llame más por teléfono.",
+  "gl": "Don't call me again.",
+  "pos": "noun"
+ },
+ {
+  "en": "bad",
+  "es": [
+   "malo"
+  ],
+  "ex": "Fue una mala idea.",
+  "gl": "It was a bad idea.",
+  "pos": "noun"
+ },
+ {
+  "en": "strange, unusual",
+  "es": [
+   "extraño"
+  ],
+  "ex": "¿Te percataste de alguna cosa extraña?",
+  "gl": "Did you notice anything unusual?",
+  "pos": "adjective"
+ },
+ {
+  "en": "to pardon, excuse",
+  "es": [
+   "perdonar"
+  ],
+  "ex": "Por favor, perdóneme por llegar tarde.",
+  "gl": "Please excuse me for coming late.",
+  "pos": "verb"
+ },
+ {
+  "en": "above, over",
+  "es": [
+   "arriba"
+  ],
+  "ex": "Tom está arriba, en su habitación.",
+  "gl": "Tom is upstairs in his bedroom.",
+  "pos": "adverb"
+ },
+ {
+  "en": "to appear, to turn up",
+  "es": [
+   "aparecer"
+  ],
+  "ex": "Él apareció una hora más tarde.",
+  "gl": "He turned up an hour later.",
+  "pos": "verb"
+ },
+ {
+  "en": "service",
+  "es": [
+   "servicio"
+  ],
+  "ex": "¿No estás de servicio esta noche?",
+  "gl": "Aren't you on duty tonight?",
+  "pos": "noun"
+ },
+ {
+  "en": "boyfriend",
+  "es": [
+   "novio"
+  ],
+  "ex": "La novia de Tom es canadiense.",
+  "gl": "Tom's girlfriend is Canadian.",
+  "pos": "noun"
+ },
+ {
+  "en": "neither, nor",
+  "es": [
+   "tampoco"
+  ],
+  "ex": "Yo no confío en ti tampoco.",
+  "gl": "I don't trust you either.",
+  "pos": "adverb"
+ },
+ {
+  "en": "special",
+  "es": [
+   "especial"
+  ],
+  "ex": "Tengo una sorpresa especial para ti.",
+  "gl": "I have a special surprise for you.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to marry, wed someone to",
+  "es": [
+   "casar"
+  ],
+  "ex": "Él se casó con mi primo.",
+  "gl": "He married my cousin.",
+  "pos": "verb"
+ },
+ {
+  "en": "position, employment",
+  "es": [
+   "puesto"
+  ],
+  "ex": "Yo no lo he puesto aquí.",
+  "gl": "I didn't put this here.",
+  "pos": "noun"
+ },
+ {
+  "en": "dollar",
+  "es": [
+   "dólar"
+  ],
+  "ex": "Él gana veinte dólares al día.",
+  "gl": "He earns twenty dollars a day.",
+  "pos": "noun"
+ },
+ {
+  "en": "when",
+  "es": [
+   "cuándo"
+  ],
+  "ex": "¿Cuándo se lo preguntaste a Tom?",
+  "gl": "When did you ask Tom?",
+  "pos": "adverb"
+ },
+ {
+  "en": "hard",
+  "es": [
+   "duro"
+  ],
+  "ex": "Es un hueso duro de roer.",
+  "gl": "He is a tough cookie.",
+  "pos": "adjective"
+ },
+ {
+  "en": "national, nationwide",
+  "es": [
+   "nacional"
+  ],
+  "ex": "El lunes próximo es fiesta nacional.",
+  "gl": "Next Monday is a national holiday.",
+  "pos": "adjective"
+ },
+ {
+  "en": "memory",
+  "es": [
+   "recuerdo"
+  ],
+  "ex": "Esa foto me trajo muchos recuerdos.",
+  "gl": "That picture brought back a lot of memories.",
+  "pos": "noun"
+ },
+ {
+  "en": "to manage to, to achieve",
+  "es": [
+   "lograr",
+   "conseguir"
+  ],
+  "ex": "Logré terminar.",
+  "gl": "I managed to finish.",
+  "pos": "verb"
+ },
+ {
+  "en": "to rob",
+  "es": [
+   "robar"
+  ],
+  "ex": "Alguien me ha robado el pasaporte.",
+  "gl": "Someone stole my passport.",
+  "pos": "verb"
+ },
+ {
+  "en": "safety, security",
+  "es": [
+   "seguridad"
+  ],
+  "ex": "¿Hay alguna actualización de la seguridad?",
+  "gl": "Are there any security updates?",
+  "pos": "noun"
+ },
+ {
+  "en": "to promise",
+  "es": [
+   "prometer"
+  ],
+  "ex": "Prometo que no voy a morder.",
+  "gl": "I promise I won't bite.",
+  "pos": "verb"
+ },
+ {
+  "en": "to teach",
+  "es": [
+   "enseñar"
+  ],
+  "ex": "Enseña matemáticas.",
+  "gl": "She teaches math.",
+  "pos": "verb"
+ },
+ {
+  "en": "work",
+  "es": [
+   "obra"
+  ],
+  "ex": "¿A qué hora empieza la obra?",
+  "gl": "What time does the play begin?",
+  "pos": "noun"
+ },
+ {
+  "en": "to discover",
+  "es": [
+   "descubrir"
+  ],
+  "ex": "Tomás va a descubrir la verdad.",
+  "gl": "Tom will find out the truth.",
+  "pos": "verb"
+ },
+ {
+  "en": "to walk, to go",
+  "es": [
+   "andar"
+  ],
+  "ex": "Le pregunté sin andarme con rodeos.",
+  "gl": "I asked him point-blank.",
+  "pos": "verb"
+ },
+ {
+  "en": "easy",
+  "es": [
+   "fácil"
+  ],
+  "ex": "No es fácil.",
+  "gl": "It's not easy.",
+  "pos": "adjective"
+ },
+ {
+  "en": "film",
+  "es": [
+   "película"
+  ],
+  "ex": "La película está clasificada como X.",
+  "gl": "The movie is X-rated.",
+  "pos": "noun"
+ },
+ {
+  "en": "as much, however much",
+  "es": [
+   "cuanto"
+  ],
+  "ex": "Unas cuantas de éstas son mías.",
+  "gl": "A few of these are mine.",
+  "pos": "adverb"
+ },
+ {
+  "en": "list, roll",
+  "es": [
+   "lista"
+  ],
+  "ex": "Aquí está la lista de vinos.",
+  "gl": "Here's the wine list.",
+  "pos": "noun"
+ },
+ {
+  "en": "after, following",
+  "es": [
+   "tras"
+  ],
+  "ex": "Los clientes llegaron uno tras otro.",
+  "gl": "Customers came one after another.",
+  "pos": "preposition"
+ },
+ {
+  "en": "both",
+  "es": [
+   "ambos"
+  ],
+  "ex": "Ambas son buenas jugadoras de ajedrez.",
+  "gl": "They're both good chess players.",
+  "pos": "pronoun"
+ },
+ {
+  "en": "Spanish",
+  "es": [
+   "español"
+  ],
+  "ex": "Ellos son capaces de hablar español.",
+  "gl": "They're able to speak Spanish.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to sound, to ring",
+  "es": [
+   "sonar"
+  ],
+  "ex": "Sonó el timbre de la puerta.",
+  "gl": "The doorbell rang.",
+  "pos": "verb"
+ },
+ {
+  "en": "to report",
+  "es": [
+   "referir"
+  ],
+  "ex": "No sé a qué te refieres.",
+  "gl": "I don't know what you mean.",
+  "pos": "verb"
+ },
+ {
+  "en": "wine",
+  "es": [
+   "vino"
+  ],
+  "ex": "Los niños no pueden tomar vino.",
+  "gl": "Children can't drink wine.",
+  "pos": "noun"
+ },
+ {
+  "en": "center",
+  "es": [
+   "centro"
+  ],
+  "ex": "Voy al centro de la ciudad.",
+  "gl": "I'm going downtown.",
+  "pos": "noun"
+ },
+ {
+  "en": "matter, issue",
+  "es": [
+   "asunto"
+  ],
+  "ex": "Le expliqué a él ese asunto.",
+  "gl": "I explained the matter to him.",
+  "pos": "noun"
+ },
+ {
+  "en": "to charm, to enchant",
+  "es": [
+   "encantar"
+  ],
+  "ex": "A todos les encantan los deportes.",
+  "gl": "Everyone loves sports.",
+  "pos": "verb"
+ },
+ {
+  "en": "embargo",
+  "es": [
+   "embargo"
+  ],
+  "ex": "Él le disparó al pájaro, sin embargo falló.",
+  "gl": "He shot at the bird, but missed it.",
+  "pos": "noun"
+ },
+ {
+  "en": "to imagine",
+  "es": [
+   "imaginar"
+  ],
+  "ex": "Me imaginé que algo estaba pasando.",
+  "gl": "I figured something was up.",
+  "pos": "verb"
+ },
+ {
+  "en": "information, data",
+  "es": [
+   "información"
+  ],
+  "ex": "Introduzca la información en el ordenador.",
+  "gl": "Enter the information into the computer.",
+  "pos": "noun"
+ },
+ {
+  "en": "room",
+  "es": [
+   "habitación"
+  ],
+  "ex": "Odio a mi compañero de habitación.",
+  "gl": "I hate my roommate.",
+  "pos": "noun"
+ },
+ {
+  "en": "to learn",
+  "es": [
+   "aprender"
+  ],
+  "ex": "Aprendo español.",
+  "gl": "I'm learning Spanish.",
+  "pos": "verb"
+ },
+ {
+  "en": "lack, shortage",
+  "es": [
+   "falta"
+  ],
+  "ex": "Yo sé lo que hace falta.",
+  "gl": "I know what's missing.",
+  "pos": "noun"
+ },
+ {
+  "en": "sky; heaven",
+  "es": [
+   "cielo"
+  ],
+  "ex": "El cielo está gris.",
+  "gl": "The sky is gray.",
+  "pos": "noun"
+ },
+ {
+  "en": "six",
+  "es": [
+   "seis"
+  ],
+  "ex": "Ven a casa a las seis.",
+  "gl": "Come home at six.",
+  "pos": "number"
+ },
+ {
+  "en": "to carry out, to perform",
+  "es": [
+   "realizar"
+  ],
+  "ex": "Algún día se realizará tu sueño.",
+  "gl": "Someday your dream will come true.",
+  "pos": "verb"
+ },
+ {
+  "en": "business, enterprise",
+  "es": [
+   "negocio"
+  ],
+  "ex": "Es un gran hombre de negocios.",
+  "gl": "He's a tycoon.",
+  "pos": "noun"
+ },
+ {
+  "en": "sleep, slumber",
+  "es": [
+   "sueño"
+  ],
+  "ex": "No pierdas el sueño por eso.",
+  "gl": "Don't lose sleep over that.",
+  "pos": "noun"
+ },
+ {
+  "en": "behind",
+  "es": [
+   "atrás"
+  ],
+  "ex": "No puedes dejar atrás a Tom.",
+  "gl": "You can't leave Tom behind.",
+  "pos": "adverb"
+ },
+ {
+  "en": "social",
+  "es": [
+   "social"
+  ],
+  "ex": "Muchas canciones tradicionales trataban de problemas sociales.",
+  "gl": "Many folk songs were about social problems.",
+  "pos": "adjective"
+ },
+ {
+  "en": "captain",
+  "es": [
+   "capitán"
+  ],
+  "ex": "El capitán nos dio la bienvenida.",
+  "gl": "The captain welcomed us.",
+  "pos": "noun"
+ },
+ {
+  "en": "food, meal",
+  "es": [
+   "comida"
+  ],
+  "ex": "La comida está lista.",
+  "gl": "The food is ready.",
+  "pos": "noun"
+ },
+ {
+  "en": "baby",
+  "es": [
+   "bebé"
+  ],
+  "ex": "Los bebés se caen a menudo.",
+  "gl": "Babies often fall down.",
+  "pos": "noun"
+ },
+ {
+  "en": "free (at liberty)",
+  "es": [
+   "libre"
+  ],
+  "ex": "Estoy libre el viernes.",
+  "gl": "I'm free on Friday.",
+  "pos": "adjective"
+ },
+ {
+  "en": "voice",
+  "es": [
+   "voz"
+  ],
+  "ex": "Habla en voz baja.",
+  "gl": "He speaks quietly.",
+  "pos": "noun"
+ },
+ {
+  "en": "photo, photograph",
+  "es": [
+   "foto"
+  ],
+  "ex": "¿Has usado mi cámara de fotos?",
+  "gl": "Did you use my camera?",
+  "pos": "noun"
+ },
+ {
+  "en": "down, downwards",
+  "es": [
+   "abajo"
+  ],
+  "ex": "Viven en el piso de abajo.",
+  "gl": "They live downstairs.",
+  "pos": "adverb"
+ },
+ {
+  "en": "pair",
+  "es": [
+   "par"
+  ],
+  "ex": "Trae un par de sillas más.",
+  "gl": "Bring a couple more chairs.",
+  "pos": "noun"
+ },
+ {
+  "en": "peace",
+  "es": [
+   "paz"
+  ],
+  "ex": "Todo el mundo desea la paz.",
+  "gl": "The entire world desires peace.",
+  "pos": "noun"
+ },
+ {
+  "en": "to reassure",
+  "es": [
+   "confiar"
+  ],
+  "ex": "Tom no debería confiar en Mary.",
+  "gl": "Tom shouldn't trust Mary.",
+  "pos": "verb"
+ },
+ {
+  "en": "fault",
+  "es": [
+   "culpa"
+  ],
+  "ex": "No ha sido por mi culpa.",
+  "gl": "That's not my mistake.",
+  "pos": "noun"
+ },
+ {
+  "en": "to close",
+  "es": [
+   "cerrar"
+  ],
+  "ex": "Ya es la hora de cerrar.",
+  "gl": "It's closing time.",
+  "pos": "verb"
+ },
+ {
+  "en": "to offer, to offer up",
+  "es": [
+   "ofrecer"
+  ],
+  "ex": "Eso es todo lo que ofrecemos.",
+  "gl": "That's all we're offering.",
+  "pos": "verb"
+ },
+ {
+  "en": "notice",
+  "es": [
+   "noticia"
+  ],
+  "ex": "No tener noticias son buenas noticias.",
+  "gl": "No news is good news.",
+  "pos": "noun"
+ },
+ {
+  "en": "to go down, come down",
+  "es": [
+   "bajar"
+  ],
+  "ex": "Todos queremos que bajen los precios.",
+  "gl": "We all want prices to fall.",
+  "pos": "verb"
+ },
+ {
+  "en": "to wish",
+  "es": [
+   "desear"
+  ],
+  "ex": "Eso es lo que yo deseo.",
+  "gl": "That's what I wish.",
+  "pos": "verb"
+ },
+ {
+  "en": "to calm",
+  "es": [
+   "callar"
+  ],
+  "ex": "¿Por qué están todos tan callados?",
+  "gl": "Why's everybody so quiet?",
+  "pos": "verb"
+ },
+ {
+  "en": "devil",
+  "es": [
+   "diablo"
+  ],
+  "ex": "¿Pero qué diablos significa eso?",
+  "gl": "What in the world does that mean?",
+  "pos": "noun"
+ },
+ {
+  "en": "rest, remainder",
+  "es": [
+   "resto"
+  ],
+  "ex": "Prefiero llegar antes que el resto.",
+  "gl": "I'd like to arrive before the rest.",
+  "pos": "noun"
+ },
+ {
+  "en": "following",
+  "es": [
+   "siguiente"
+  ],
+  "ex": "La situación cambió el año siguiente.",
+  "gl": "The situation changed the following year.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to look after, take care of ] or +de ]",
+  "es": [
+   "cuidar"
+  ],
+  "ex": "Alguien tiene que cuidar del paciente.",
+  "gl": "Somebody must care for the patient.",
+  "pos": "verb"
+ },
+ {
+  "en": "doctor",
+  "es": [
+   "médico"
+  ],
+  "ex": "Los médicos son los peores pacientes.",
+  "gl": "Doctors are the worst patients.",
+  "pos": "noun"
+ },
+ {
+  "en": "letter",
+  "es": [
+   "carta"
+  ],
+  "ex": "Él es bueno para las cartas.",
+  "gl": "He's good at cards.",
+  "pos": "noun"
+ },
+ {
+  "en": "to prepare",
+  "es": [
+   "preparar"
+  ],
+  "ex": "Él mismo se preparó la cena.",
+  "gl": "He prepared supper by himself.",
+  "pos": "verb"
+ },
+ {
+  "en": "sir, master",
+  "es": [
+   "don"
+  ],
+  "ex": "Sólo soy un don nadie.",
+  "gl": "I am just a nobody.",
+  "pos": "noun"
+ },
+ {
+  "en": "correct, right",
+  "es": [
+   "correcto"
+  ],
+  "ex": "Al parecer estás en lo correcto.",
+  "gl": "Apparently you're right.",
+  "pos": "adjective"
+ },
+ {
+  "en": "programme, program",
+  "es": [
+   "programa"
+  ],
+  "ex": "Copia este programa en tu ordenador.",
+  "gl": "Copy this program on your computer.",
+  "pos": "noun"
+ },
+ {
+  "en": "site, place",
+  "es": [
+   "sitio"
+  ],
+  "ex": "Me quedo dormido en cualquier sitio.",
+  "gl": "I can sleep anywhere.",
+  "pos": "noun"
+ },
+ {
+  "en": "countryside, country",
+  "es": [
+   "campo"
+  ],
+  "ex": "Mi padre vive en el campo.",
+  "gl": "My father lives in the country.",
+  "pos": "noun"
+ },
+ {
+  "en": "to choose",
+  "es": [
+   "elegir",
+   "escoger"
+  ],
+  "ex": "Elige uno.",
+  "gl": "Choose one.",
+  "pos": "verb"
+ },
+ {
+  "en": "exactly",
+  "es": [
+   "exactamente"
+  ],
+  "ex": "Es exactamente lo que pensé yo.",
+  "gl": "That's exactly what I thought.",
+  "pos": "adverb"
+ },
+ {
+  "en": "united",
+  "es": [
+   "unido"
+  ],
+  "ex": "Estamos todos unidos en la amistad.",
+  "gl": "We're all united in friendship.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to disappear, to go missing",
+  "es": [
+   "desaparecer"
+  ],
+  "ex": "Su belleza desaparecerá con el tiempo.",
+  "gl": "Her beauty will fade in time.",
+  "pos": "verb"
+ },
+ {
+  "en": "gorgeous, beautiful",
+  "es": [
+   "hermoso"
+  ],
+  "ex": "Él vio a una hermosa joven.",
+  "gl": "He saw a pretty girl.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to lie",
+  "es": [
+   "mentir"
+  ],
+  "ex": "Él me mintió en mi cara.",
+  "gl": "He lied to my face.",
+  "pos": "verb"
+ },
+ {
+  "en": "to break",
+  "es": [
+   "romper"
+  ],
+  "ex": "Rompí el vaso.",
+  "gl": "I broke the glass.",
+  "pos": "verb"
+ },
+ {
+  "en": "to invite",
+  "es": [
+   "invitar"
+  ],
+  "ex": "Me pregunto a quién debo invitar.",
+  "gl": "I wonder who to invite.",
+  "pos": "verb"
+ },
+ {
+  "en": "pretty, cute",
+  "es": [
+   "bonito"
+  ],
+  "ex": "Los caracteres chinos son muy bonitos.",
+  "gl": "Chinese characters are very beautiful.",
+  "pos": "adjective"
+ },
+ {
+  "en": "comparative of \"malo\": worse",
+  "es": [
+   "peor"
+  ],
+  "ex": "La paga es de lo peor.",
+  "gl": "The pay is terrible.",
+  "pos": "adjective"
+ },
+ {
+  "en": "to obtain",
+  "es": [
+   "obtener"
+  ],
+  "ex": "Él obtuvo un préstamo del banco.",
+  "gl": "He got a loan from the bank.",
+  "pos": "verb"
+ },
+ {
+  "en": "to bother, to disturb",
+  "es": [
+   "molestar"
+  ],
+  "ex": "No te molestes en hacer eso.",
+  "gl": "Don't bother doing that.",
+  "pos": "verb"
+ },
+ {
+  "en": "far, far away",
+  "es": [
+   "lejos"
+  ],
+  "ex": "Él está lejos de ser perfecto.",
+  "gl": "He is far from perfect.",
+  "pos": "adverb"
+ },
+ {
+  "en": "necessary, requisite",
+  "es": [
+   "necesario"
+  ],
+  "ex": "A veces el sacrificio es necesario.",
+  "gl": "Sacrifice is sometimes necessary.",
+  "pos": "adjective"
+ },
+ {
+  "en": "bed",
+  "es": [
+   "cama"
+  ],
+  "ex": "Voy a la cama.",
+  "gl": "I'm going to bed.",
+  "pos": "noun"
+ },
+ {
+  "en": "to use, to make use of",
+  "es": [
+   "utilizar"
+  ],
+  "ex": "La gasolina es utilizada como combustible.",
+  "gl": "Gasoline is used for fuel.",
+  "pos": "verb"
+ },
+ {
+  "en": "various, several",
+  "es": [
+   "varios"
+  ],
+  "ex": "No he comido en varios días.",
+  "gl": "I haven't eaten for days.",
+  "pos": "determiner"
+ },
+ {
+  "en": "grandfather",
+  "es": [
+   "abuelo"
+  ],
+  "ex": "Mary es la abuela de Tom.",
+  "gl": "Mary is Tom's grandmother.",
+  "pos": "noun"
+ },
+ {
+  "en": "to stop, halt",
+  "es": [
+   "parar"
+  ],
+  "ex": "¿Por qué no se paró Tom?",
+  "gl": "Why didn't Tom stop?",
+  "pos": "verb"
+ },
+ {
+  "en": "voyage",
+  "es": [
+   "viaje"
+  ],
+  "ex": "Él hizo un viaje de negocios.",
+  "gl": "He traveled on business.",
+  "pos": "noun"
+ },
+ {
+  "en": "demon, devil",
+  "es": [
+   "demonio"
+  ],
+  "ex": "¿Pero qué demonios está pasando aquí?",
+  "gl": "What's going on anyway?",
+  "pos": "noun"
+ },
+ {
+  "en": "perfect",
+  "es": [
+   "perfecto"
+  ],
+  "ex": "El francés de Tom es perfecto.",
+  "gl": "Tom's French is perfect.",
+  "pos": "adjective"
+ },
+ {
+  "en": "rare",
+  "es": [
+   "raro"
+  ],
+  "ex": "¿No crees que esto es raro?",
+  "gl": "Don't you think it's strange?",
+  "pos": "adjective"
+ },
+ {
+  "en": "to drop intentionally",
+  "es": [
+   "tirar"
+  ],
+  "ex": "¡No me tires de la pierna!",
+  "gl": "Don't pull my leg!",
+  "pos": "verb"
+ },
+ {
+  "en": "to wake",
+  "es": [
+   "despertar"
+  ],
+  "ex": "Por favor despiértame a las seis.",
+  "gl": "Please wake me at six.",
+  "pos": "verb"
+ },
+ {
+  "en": "to result, to turn out",
+  "es": [
+   "resultar"
+  ],
+  "ex": "Alrededor de treinta pobladores resultaron heridos.",
+  "gl": "About thirty villagers were injured.",
+  "pos": "verb"
  }
 ]

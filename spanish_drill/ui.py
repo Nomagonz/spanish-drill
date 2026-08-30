@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
                              QSpinBox, QVBoxLayout, QWidget)
 
 from .audio import input_devices
+from .deck import categories, load_deck
 from .config import MAIN_MODEL, SILENT_FLOOR
 from .listener import Listener
 from .progress import Progress
@@ -133,6 +134,7 @@ class Window(QWidget):
         root.addWidget(self._slip())
         root.addStretch(1)
         root.addLayout(self._microphone_row())
+        root.addLayout(self._category_row())
         root.addLayout(self._settings_row())
 
         self.tally = _label("", f"color:{MUTE};font:10px {MONO};letter-spacing:1px;")
@@ -240,6 +242,23 @@ class Window(QWidget):
         row.addWidget(self.mic, 1)
         return row
 
+    def _category_row(self):
+        row = QHBoxLayout()
+        row.addWidget(_label("drill", f"color:{MUTE};font:10px {MONO};"))
+        self.category = QComboBox()
+        deck = load_deck()
+        self.category.addItem(f"everything ({len(deck)})", "all")
+        for pos in categories(deck):
+            n = sum(1 for c in deck if c.pos == pos)
+            self.category.addItem(f"{pos}s only ({n})", pos)
+        chosen = self.progress.category or "all"
+        if self.category.findData(chosen) >= 0:
+            self.category.setCurrentIndex(self.category.findData(chosen))
+        self.category.setStyleSheet(
+            f"background:{PANEL};color:{SCREEN};border:1px solid {RULE};padding:3px;")
+        row.addWidget(self.category, 1)
+        return row
+
     def _settings_row(self):
         row = QHBoxLayout()
         self.dialect = QComboBox()
@@ -323,6 +342,7 @@ class Window(QWidget):
         self.progress.window = float(self.window_seconds.value())
         self.progress.hints = self.hints.isChecked()
         self.progress.verify_live = self.double_check.isChecked()
+        self.progress.category = self.category.currentData() or "all"
         self.progress.model = self.model_name
         self.progress.save()
 

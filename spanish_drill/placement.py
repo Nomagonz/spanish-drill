@@ -65,7 +65,8 @@ class PlacementSession(DrillSession):
         if self.progress.queue_override is not None:
             return list(self.progress.queue_override)
         pending = [i for i in range(len(self.deck))
-                   if i not in self.progress.cards]
+                   if i not in self.progress.cards
+                   and self.progress.in_category(i, self.deck)]
         self.rng.shuffle(pending)
         return pending[: self.limit] if self.limit else pending
 

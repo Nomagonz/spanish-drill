@@ -12,6 +12,7 @@ class Card:
     answers: tuple          # accepted Spanish answers, best first
     example: str            # a sentence using it
     gloss: str              # that sentence in English
+    pos: str = "other"      # verb, noun, adjective, ... for filtering
 
     @property
     def spoken_prompt(self):
@@ -31,11 +32,19 @@ class Card:
         return " ".join("".join(out).split())
 
 
+def categories(deck=None):
+    """Every part of speech present, most common first."""
+    from collections import Counter
+    counts = Counter(c.pos for c in (deck or load_deck()))
+    return [pos for pos, _ in counts.most_common()]
+
+
 @lru_cache(maxsize=1)
 def load_deck(path=None):
     with open(path or DECK_PATH, encoding="utf-8") as f:
         raw = json.load(f)
     return tuple(
-        Card(prompt=c["en"], answers=tuple(c["es"]), example=c["ex"], gloss=c["gl"])
+        Card(prompt=c["en"], answers=tuple(c["es"]), example=c["ex"],
+             gloss=c["gl"], pos=c.get("pos", "other"))
         for c in raw
     )

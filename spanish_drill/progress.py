@@ -28,6 +28,7 @@ class Progress:
     window: float = 6.0
     hints: bool = True
     verify_live: bool = True
+    category: str = "all"       # restrict the drill to one part of speech
 
     # daily counters
     day: int = 0
@@ -42,7 +43,7 @@ class Progress:
     queue_override: list = None
 
     _SETTINGS = ("dialect", "input_device", "model", "new_per", "window",
-                 "hints", "verify_live")
+                 "hints", "verify_live", "category")
     _COUNTERS = ("day", "new_done", "missed_today", "kept", "overturned")
 
     # -- persistence ------------------------------------------------------
@@ -85,8 +86,15 @@ class Progress:
         now = today if today is not None else scheduler.today()
         return [i for i, c in self.cards.items() if c.due <= now]
 
+    def in_category(self, index, deck=None):
+        if self.category in ("all", "", None):
+            return True
+        return (deck or load_deck())[index].pos == self.category
+
     def unseen_indexes(self):
-        return [i for i in range(len(load_deck())) if i not in self.cards]
+        deck = load_deck()
+        return [i for i in range(len(deck))
+                if i not in self.cards and self.in_category(i, deck)]
 
     def new_remaining(self):
         return max(0, self.new_per - self.new_done)
@@ -104,7 +112,8 @@ class Progress:
         if self.queue_override is not None:
             return list(self.queue_override)
         rng = rng or random
-        due = self.due_indexes(today)
+        deck = load_deck()
+        due = [i for i in self.due_indexes(today) if self.in_category(i, deck)]
         rng.shuffle(due)
         fresh = self.unseen_indexes()[: self.new_remaining()]
         queue = list(due)
