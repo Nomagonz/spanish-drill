@@ -168,6 +168,13 @@ class Window(QWidget):
         self.go.clicked.connect(self.toggle)
         root.addWidget(self.go)
 
+        prow = QHBoxLayout()
+        self.retest = QCheckBox("re-test words already sorted")
+        self.retest.setStyleSheet(f"color:{MUTE};font:10px {MONO};")
+        prow.addWidget(self.retest)
+        prow.addStretch(1)
+        root.addLayout(prow)
+
         self.placement = QPushButton("PLACEMENT TEST")
         self.placement.setStyleSheet(
             f"background:transparent;color:{MUTE};font:600 11px {MONO};"
@@ -384,8 +391,11 @@ class Window(QWidget):
         self.go.setText("STOP")
         self.slip.setVisible(False)
         self._hide_progress()
-        maker = PlacementSession if placement else DrillSession
-        session = maker(self.progress, self.listener)
+        if placement:
+            session = PlacementSession(self.progress, self.listener,
+                                       retest=self.retest.isChecked())
+        else:
+            session = DrillSession(self.progress, self.listener)
         self.worker = SessionWorker(session)
         self.thread = QThread()
         self.worker.moveToThread(self.thread)
@@ -460,7 +470,10 @@ class Window(QWidget):
         self.bar.setMaximum(total)
         self.bar.setValue(done)
         self.bar.setVisible(True)
-        self.progress_note.setText(f"{done} / {total}")
+        session = getattr(self.worker, "session", None)
+        skipped = getattr(session, "skipped", 0)
+        extra = f"  ({skipped} skipped)" if skipped else ""
+        self.progress_note.setText(f"{done} / {total}{extra}")
 
     def _hide_progress(self):
         self.bar.setVisible(False)

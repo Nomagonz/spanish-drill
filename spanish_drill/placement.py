@@ -47,10 +47,13 @@ class PlacementSession(DrillSession):
     inherited unchanged. Only what happens to the card afterwards differs.
     """
 
-    def __init__(self, *args, passes_needed=PASSES_TO_PASS, limit=None, **kw):
+    def __init__(self, *args, passes_needed=PASSES_TO_PASS, limit=None,
+                 retest=False, **kw):
         super().__init__(*args, **kw)
         self.passes_needed = passes_needed
         self.limit = limit                  # cards to try, None for the deck
+        self.retest = retest                # include words already classified
+        self.skipped = 0                    # already classified, so not offered
         self.correct_so_far = defaultdict(int)
         self.known = []
         self.to_learn = []
@@ -68,15 +71,21 @@ class PlacementSession(DrillSession):
         if self.progress.queue_override is not None:
             queue = list(self.progress.queue_override)
         else:
-            pending = [i for i in range(len(self.deck))
-                       if i not in self.progress.cards
-                       and self.progress.in_category(i, self.deck)]
+            in_scope = [i for i in range(len(self.deck))
+                        if self.progress.in_category(i, self.deck)]
+            pending = [i for i in in_scope
+                       if self.retest or i not in self.progress.cards]
+            self.skipped = len(in_scope) - len(pending)
             self.rng.shuffle(pending)
             queue = pending[: self.limit] if self.limit else pending
         # Announce the length before the first card, so the bar starts full
         # width rather than growing as it goes.
         self.total = len(queue)
         self._emit("on_progress", 0, self.total)
+        if self.skipped:
+            # A bare "2 / 45" hides that most of the category was left out.
+            self._emit("on_status",
+                       f"{self.total} to sort · {self.skipped} already classified")
         return queue
 
     # -- what happens afterwards -----------------------------------------

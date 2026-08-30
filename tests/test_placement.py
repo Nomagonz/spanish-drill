@@ -233,3 +233,58 @@ class TestProgressReporting:
     def test_the_total_matches_what_was_classified(self, progress):
         session, _ = self._run_with_progress(progress, [0, 1, 2, 3])
         assert session.total == session.classified == 4
+
+
+class TestScopeIsHonest:
+    """Placement skips words it has already classified. That has to be visible.
+
+    A bare "2 / 48" over a 149-verb category tells you nothing about the 104
+    that were left out, and looks like a bug.
+    """
+
+    def test_already_classified_words_are_counted_as_skipped(self, tmp_path):
+        progress = Progress(path=tmp_path / "p.json", verify_live=False,
+                            category="verb")
+        verbs = [i for i, c in enumerate(DECK) if c.pos == "verb"]
+        for i in verbs[:10]:
+            mark_known(progress, i, 2)
+        session = PlacementSession(progress, Answers(set()), verifier=None)
+        session.listener.bind(session)
+        queue = session.next_queue()
+        assert session.skipped == 10
+        assert len(queue) == len(verbs) - 10
+
+    def test_retest_includes_them_again(self, tmp_path):
+        progress = Progress(path=tmp_path / "p.json", verify_live=False,
+                            category="verb")
+        verbs = [i for i, c in enumerate(DECK) if c.pos == "verb"]
+        for i in verbs[:10]:
+            mark_known(progress, i, 2)
+        session = PlacementSession(progress, Answers(set()), verifier=None,
+                                   retest=True)
+        session.listener.bind(session)
+        queue = session.next_queue()
+        assert session.skipped == 0
+        assert len(queue) == len(verbs)
+
+    def test_the_skip_count_is_reported(self, tmp_path):
+        progress = Progress(path=tmp_path / "p.json", verify_live=False,
+                            category="verb")
+        for i in [i for i, c in enumerate(DECK) if c.pos == "verb"][:5]:
+            mark_known(progress, i, 2)
+        session = PlacementSession(progress, Answers(set()), verifier=None)
+        session.listener.bind(session)
+        said = []
+        session.on_status = said.append
+        session.next_queue()
+        assert any("already classified" in s for s in said)
+
+    def test_nothing_is_reported_when_nothing_is_skipped(self, tmp_path):
+        progress = Progress(path=tmp_path / "p.json", verify_live=False,
+                            category="verb")
+        session = PlacementSession(progress, Answers(set()), verifier=None)
+        session.listener.bind(session)
+        said = []
+        session.on_status = said.append
+        session.next_queue()
+        assert not any("already classified" in s for s in said)
