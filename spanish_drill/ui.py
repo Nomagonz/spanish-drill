@@ -64,9 +64,10 @@ class SessionWorker(QObject):
     verified = pyqtSignal(int, int)
     finished = pyqtSignal()
 
-    def __init__(self, session):
+    def __init__(self, session, silent_floor=SILENT_FLOOR):
         super().__init__()
         self.session = session
+        self.silent_floor = silent_floor
         session.on_prompt = self.prompt.emit
         session.on_status = self.status.emit
         session.on_heard = self.heard.emit
@@ -76,7 +77,22 @@ class SessionWorker(QObject):
         session.on_finished = self.finished.emit
 
     def run(self):
-        self.session.run()
+        # Calibration reads the microphone for about a second. On the main
+        # thread that froze the window on every press, which is what made the
+        # button feel broken.
+        if self.session.stop_requested:
+            self.finished.emit()
+            return
+        try:
+            self.status.emit("Measuring room noise — stay quiet")
+            floor = self.session.listener.calibrate()
+        except Exception as exc:
+            self.status.emit(f"Microphone failed: {str(exc)[:50]}")
+            self.finished.emit()
+            return
+        if floor <= self.silent_floor:
+            self.status.emit("Warning: mic reads near silence")
+        self.session.run()      # returns at once if a stop arrived meanwhile
 
     def stop(self):
         self.session.stop()
@@ -284,8 +300,6 @@ class Window(QWidget):
         if self.listener is None:
             self.status_label.setText("Models still loading…")
             return
-        if not self._calibrate():
-            return
         self._start_session()
 
     def _apply_settings(self):
@@ -300,25 +314,6 @@ class Window(QWidget):
         self.progress.verify_live = self.double_check.isChecked()
         self.progress.model = self.model_name
         self.progress.save()
-
-    def _calibrate(self):
-        self._starting = True
-        self.go.setEnabled(False)
-        self.go.setText("CALIBRATING…")
-        self.status_label.setText("Measuring room noise — stay quiet")
-        QApplication.processEvents()
-        try:
-            floor = self.listener.calibrate()
-        except Exception as exc:
-            self.prompt_label.setText("Microphone failed")
-            self.status_label.setText(str(exc)[:70])
-            return False
-        finally:
-            self._starting = False
-            self.go.setEnabled(True)
-        if floor <= SILENT_FLOOR:
-            self.status_label.setText("Warning: mic reads near silence")
-        return True
 
     def _start_session(self):
         self.go.setText("STOP")

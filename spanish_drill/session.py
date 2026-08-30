@@ -79,9 +79,14 @@ class DrillSession:
         self.rng = rng or random
         self.queue = []
         self.running = False
+        self._stop_requested = False
 
     # -- control ----------------------------------------------------------
     def stop(self):
+        # Sticky, because stop can arrive before run() has started: the worker
+        # calibrates first, and a stop during that used to be forgotten when
+        # run() then set running back to True and drilled anyway.
+        self._stop_requested = True
         self.running = False
         from .speech import stop_speaking
         stop_speaking()             # do not sit through the rest of a sentence
@@ -92,8 +97,15 @@ class DrillSession:
             callback(*args)
 
     # -- the loop ---------------------------------------------------------
+    @property
+    def stop_requested(self):
+        return self._stop_requested
+
     def run(self):
         """Runs until the queue empties or stop() is called."""
+        if self._stop_requested:
+            self._emit("on_finished")
+            return
         self.running = True
         try:
             self._loop()

@@ -42,9 +42,12 @@ class AnswerRecord:
 class AnswerLog:
     """Append-only JSONL beside the audio it describes."""
 
-    def __init__(self, directory=ANSWERS_DIR, path=ANSWER_LOG):
-        self.dir = Path(directory)
-        self.path = Path(path)
+    def __init__(self, directory=None, path=None):
+        # Resolved when constructed, not when this function was defined, so the
+        # destination can actually be redirected. Binding the module constants
+        # as default arguments meant tests wrote into the real answers/ folder.
+        self.dir = Path(directory or ANSWERS_DIR)
+        self.path = Path(path or ANSWER_LOG)
 
     def save_audio(self, card_index, audio):
         """Write the clip first: a live re-check needs a file to send."""
