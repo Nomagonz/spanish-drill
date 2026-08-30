@@ -12,3 +12,6 @@ __pycache__/
 
 # Recorded answer audio from sessions
 misses/
+
+# local backups of progress and past sessions
+backups/
