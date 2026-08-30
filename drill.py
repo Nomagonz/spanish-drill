@@ -51,6 +51,9 @@ class State:
     cards: dict = field(default_factory=dict)   # index -> {b, d, r, l}
     dialect: str = "es-MX"
     input_device: str = ""          # by NAME; indices shift as devices connect
+    verify_live: bool = True        # second-opinion every miss as it happens
+    kept: int = 0                   # misses the second opinion agreed with
+    overturned: int = 0             # misses it reversed
     new_per: int = 20
     window: float = 6.0
     hints: bool = True
@@ -159,6 +162,27 @@ def save_wav(path, audio):
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(pcm.tobytes())
+
+
+def save_answer_audio(cid, audio):
+    """Write the clip first: the live re-check needs a file to send."""
+    os.makedirs(MISS_DIR, exist_ok=True)
+    stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{cid:03d}"
+    if audio is None or len(audio) <= SR * 0.1:
+        return stamp, None
+    path = os.path.join(MISS_DIR, stamp + ".wav")
+    try:
+        save_wav(path, audio)
+        return stamp, path
+    except Exception:
+        return stamp, None
+
+
+def log_answer(rec):
+    os.makedirs(MISS_DIR, exist_ok=True)
+    with open(MISS_LOG, "a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    return rec
 
 
 def record_answer(cid, card, heard, q, silent, elapsed, before, audio, live_ok):
@@ -653,6 +677,7 @@ class Drill(QObject):
     heard = pyqtSignal(str)
     result = pyqtSignal(dict)
     counts = pyqtSignal(int, int, int, int, int)
+    verify = pyqtSignal(int, int)          # kept, overturned
     finished = pyqtSignal()
 
     def __init__(self, state, listener):
@@ -805,13 +830,46 @@ class Drill(QObject):
 
             ok = verdict is not None
             close = bool(verdict and verdict["close"])
+
+            # Keep the clip first, then use it for the second opinion.
+            stamp, wav = save_answer_audio(
+                cid, getattr(self.listener, "last_audio", None))
+
+            api_text, overturned, checked = None, False, False
+            if not ok and wav and self.S.verify_live:
+                self.status.emit("Double-checking…")
+                api_text = transcribe_openai(wav)
+                checked = api_text is not None
+                if api_text and not is_steer_echo(api_text):
+                    v2 = check(api_text, card)
+                    if v2:
+                        # It really was right; the local model misheard it.
+                        ok, close, silent, overturned = True, bool(v2["close"]), False, True
+                if checked:
+                    if overturned:
+                        self.S.overturned += 1
+                    else:
+                        self.S.kept += 1
+                    self.verify.emit(self.S.kept, self.S.overturned)
+
             q = quality(ok, close, silent, elapsed, self.S.window)
             before = dict(migrate(self.S.cards.get(cid, new_card())))
             c = self.grade(cid, q)
             try:
-                record_answer(cid, card, said if not silent else "", q, silent,
-                              elapsed, before,
-                              getattr(self.listener, "last_audio", None), ok)
+                log_answer({
+                    "id": stamp, "cid": cid, "en": card["en"],
+                    "expected": card["es"], "heard": said if not silent else "",
+                    "quality": q, "live_ok": bool(ok), "silent": bool(silent),
+                    "elapsed": round(elapsed, 2),
+                    "audio": os.path.basename(wav) if wav else None,
+                    "before": before, "at": time.time(),
+                    # the live second opinion, so the log explains every call
+                    "api_text": api_text,
+                    "api_checked": checked,
+                    "overturned": overturned,
+                    "verdict": "overturned-live" if overturned else
+                               ("kept-live" if checked else None),
+                })
             except Exception:
                 pass            # never let bookkeeping kill a drill session
             self.result.emit({
@@ -819,6 +877,7 @@ class Drill(QObject):
                 "box": c, "close": close, "quality": q,
                 "silent": silent, "next": next_interval(c),
                 "leech": is_leech(c), "ease": c["ef"], "lapses": c["lapses"],
+                "overturned": overturned, "api_text": api_text,
             })
             self.emit_counts()
 
@@ -967,15 +1026,22 @@ class Window(QWidget):
         self.win = QSpinBox(); self.win.setRange(3, 20)
         self.win.setValue(int(self.S.window))
         self.hints = QCheckBox("say it back"); self.hints.setChecked(self.S.hints)
+        self.dbl = QCheckBox("double-check misses"); self.dbl.setChecked(self.S.verify_live)
         for lbl, w in (("accent", self.dialect), ("new/day", self.newper),
                        ("wait s", self.win)):
             t = QLabel(lbl); t.setStyleSheet(f"color:{MUTE};font:10px 'Menlo';")
             srow.addWidget(t); srow.addWidget(w)
         self.hints.setStyleSheet(f"color:{MUTE};font:10px 'Menlo';")
-        srow.addWidget(self.hints)
+        self.dbl.setStyleSheet(f"color:{MUTE};font:10px 'Menlo';")
+        srow.addWidget(self.hints); srow.addWidget(self.dbl)
         for w in (self.dialect, self.newper, self.win):
             w.setStyleSheet(f"background:{CH2};color:{SCREEN};border:1px solid {RULE};padding:3px;")
         root.addLayout(srow)
+
+        self.tally = QLabel("")
+        self.tally.setStyleSheet(f"color:{MUTE};font:10px 'Menlo';letter-spacing:1px;")
+        root.addWidget(self.tally)
+        self.refresh_tally()
 
         self.go = QPushButton("GO")
         self.go.setStyleSheet(
@@ -1024,6 +1090,7 @@ class Window(QWidget):
         self.S.new_per = self.newper.value()
         self.S.window = float(self.win.value())
         self.S.hints = self.hints.isChecked()
+        self.S.verify_live = self.dbl.isChecked()
         self.S.save()
 
         self._starting = True
@@ -1062,8 +1129,19 @@ class Window(QWidget):
         self.drill.heard.connect(lambda s: self.heard_lbl.setText(s))
         self.drill.result.connect(self.on_result)
         self.drill.counts.connect(self.on_counts)
+        self.drill.verify.connect(self.on_verify)
         self.drill.finished.connect(self.on_finished)
         self.thread.start()
+
+    def refresh_tally(self):
+        k, o = self.S.kept, self.S.overturned
+        tot = k + o
+        pct = f"  ({100*o/tot:.0f}% of misses were the local model's fault)" if tot else ""
+        self.tally.setText(f"DOUBLE-CHECK:  {o} OVERTURNED  ·  {k} KEPT{pct}")
+
+    def on_verify(self, kept, overturned):
+        self.S.kept, self.S.overturned = kept, overturned
+        self.refresh_tally()
 
     def on_prompt(self, en, label):
         self.prompt_lbl.setText(en)
@@ -1081,6 +1159,8 @@ class Window(QWidget):
              ("No answer — counted as a miss" if r["silent"] else "Missed"))
         if r["ok"] and r["close"]:
             v = "Correct — check the spelling"
+        if r.get("overturned"):
+            v = "Correct — local model misheard you"
         self.slip.setStyleSheet(
             f"background:{CH2};border-radius:2px;border-left:3px solid {col};")
         self.verdict_lbl.setStyleSheet(f"color:{col};font:10px 'Menlo';letter-spacing:2px;")
@@ -1091,6 +1171,8 @@ class Window(QWidget):
         self.gl_lbl.setText(r["card"]["gl"])
         said = f"  ·  you said: {r['said']}" if r["said"] else ""
         detail = f"  ·  ease {r['ease']:.2f}"
+        if r.get("api_text"):
+            detail += f"  ·  re-check heard {r['api_text']!r}"
         if r["lapses"]:
             detail += f"  ·  missed {r['lapses']}x"
         if r["leech"]:
@@ -1100,6 +1182,8 @@ class Window(QWidget):
 
     def on_finished(self):
         self.go.setText("GO")
+        self.S.save()
+        self.refresh_tally()
         if self.thread:
             self.thread.quit(); self.thread.wait()
         self.refresh_counts()
