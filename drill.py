@@ -288,6 +288,10 @@ def is_steer_echo(text):
     if not n:
         return False
     words = n.split()
+    # A single example word counts: none of them appear anywhere in the deck,
+    # so one on its own can never be a real answer, only the prompt talking.
+    if len(words) == 1 and words[0] in _STEER_WORDS:
+        return True
     if len(set(words) & _STEER_WORDS) >= 3:
         return True
     steer_words = set(norm(STEER).split())
@@ -305,19 +309,37 @@ def _assert_steer_is_clean():
         raise AssertionError(f"steer leaks deck answers: {clash}")
 
 
-def transcribe_openai(path, model="gpt-4o-transcribe"):
+def transcribe_openai(path, model="gpt-4o-transcribe", prompt=STEER):
     """One clip through OpenAI. Returns text, or None if the call fails."""
     from openai import OpenAI
     try:
         client = OpenAI()               # reads OPENAI_API_KEY from the environment
+        kw = {"prompt": prompt} if prompt else {}
         with open(path, "rb") as f:
             r = client.audio.transcriptions.create(
                 model=model, file=f, language="es",
-                prompt=STEER, response_format="json")
+                response_format="json", **kw)
         return (r.text or "").strip()
     except Exception as e:
         print(f"    [api error: {type(e).__name__}: {str(e)[:70]}]")
         return None
+
+
+def second_opinion(path, model="gpt-4o-transcribe"):
+    """
+    Ask once with the steer, and if the steer comes back at us instead of a
+    transcript, ask again without it. The prompt is what caused the echo, so
+    dropping it is the retry that can actually succeed.
+
+    Returns (text, echoed) where text is None when nothing usable came back.
+    """
+    txt = transcribe_openai(path, model, prompt=STEER)
+    if txt and not is_steer_echo(txt):
+        return txt, False
+    retry = transcribe_openai(path, model, prompt=None)
+    if retry and not is_steer_echo(retry):
+        return retry, False
+    return None, True
 
 
 def review(verify_model="gpt-4o-transcribe", play=False):
@@ -352,7 +374,7 @@ def review(verify_model="gpt-4o-transcribe", play=False):
             unverifiable.append(r)
             continue
         if use_api:
-            second = transcribe_openai(path, verify_model)
+            second, _echoed = second_opinion(path, verify_model)
             if second is None:
                 r["verdict"] = None      # leave it pending, not wrongly judged
                 unverifiable.append(r)
@@ -841,17 +863,20 @@ class Drill(QObject):
             stamp, wav = save_answer_audio(
                 cid, getattr(self.listener, "last_audio", None))
 
-            api_text, overturned, checked = None, False, False
+            api_text, overturned, checked, echoed = None, False, False, False
             if not ok and wav and self.S.verify_live:
                 self.status.emit("Double-checking…")
-                api_text = transcribe_openai(wav)
+                api_text, echoed = second_opinion(wav)
                 checked = api_text is not None
-                if api_text and not is_steer_echo(api_text):
+                if api_text:
                     v2 = check(api_text, card)
                     if v2:
                         # It really was right; the local model misheard it.
                         ok, close, silent, overturned = True, bool(v2["close"]), False, True
                 if checked:
+                    # Only count a verdict we actually got. An echoed prompt is
+                    # not evidence either way and must not be scored as a miss
+                    # the second opinion agreed with.
                     if overturned:
                         self.S.overturned += 1
                     else:
@@ -872,6 +897,7 @@ class Drill(QObject):
                     # the live second opinion, so the log explains every call
                     "api_text": api_text,
                     "api_checked": checked,
+                    "api_echoed": echoed,
                     "overturned": overturned,
                     "verdict": "overturned-live" if overturned else
                                ("kept-live" if checked else None),
