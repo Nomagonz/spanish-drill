@@ -50,6 +50,7 @@ VOICES = {"es-MX": "Paulina", "es-ES": "Mónica"}
 class State:
     cards: dict = field(default_factory=dict)   # index -> {b, d, r, l}
     dialect: str = "es-MX"
+    input_device: str = ""          # by NAME; indices shift as devices connect
     new_per: int = 20
     window: float = 6.0
     hints: bool = True
@@ -411,6 +412,31 @@ def command_in(said):
     return None
 
 
+# ---------------------------------------------------------------- input device
+def input_devices():
+    """[(index, name)] for everything that can record."""
+    try:
+        return [(i, d["name"]) for i, d in enumerate(sd.query_devices())
+                if d["max_input_channels"] > 0]
+    except Exception:
+        return []
+
+
+def resolve_device(name):
+    """
+    Name -> index, or None for the system default.
+
+    Matching by name matters: unplugging a device renumbers the rest, so a
+    stored index silently starts pointing at the wrong microphone.
+    """
+    if not name:
+        return None
+    for i, n in input_devices():
+        if n == name:
+            return i
+    return None
+
+
 # ------------------------------------------------------------------- speech out
 def say(text, voice=None, rate=None):
     """macOS `say`. Blocks until the phrase finishes, which is what we want."""
@@ -437,9 +463,10 @@ class Listener:
     is enough for single words and keeps the whole thing dependency free.
     """
 
-    def __init__(self, model_name="medium"):
+    def __init__(self, model_name="medium", device_name=""):
         from faster_whisper import WhisperModel
         self.model = WhisperModel(model_name, device="cpu", compute_type="int8")
+        self.device = resolve_device(device_name)
         self.floor = 0.004
         self.level = 0.0
         self.last_audio = None
@@ -449,7 +476,8 @@ class Listener:
                            if blocks else None)
 
     def calibrate(self, seconds=0.7):
-        buf = sd.rec(int(seconds * SR), samplerate=SR, channels=1, dtype="float32")
+        buf = sd.rec(int(seconds * SR), samplerate=SR, channels=1,
+                     dtype="float32", device=self.device)
         sd.wait()
         rms = float(np.sqrt(np.mean(buf ** 2)))
         self.floor = max(0.0025, rms * 2.5)
@@ -473,7 +501,9 @@ class Listener:
         frames, everything = [], []
         speaking, silence_run, started = False, 0.0, time.time()
         hop = 0.05
-        with sd.InputStream(callback=cb, blocksize=int(SR * hop), dtype="float32"):
+        with sd.InputStream(callback=cb, blocksize=int(SR * hop),
+                            dtype="float32", device=self.device,
+                            samplerate=SR, channels=1):
             while True:
                 if should_stop and should_stop():
                     self._keep(everything)
@@ -802,6 +832,22 @@ class Window(QWidget):
         root.addStretch(1)
 
         # settings
+        # Microphone picker on its own row: the names are long, and which mic is
+        # used matters more to accuracy than anything else here.
+        mrow = QHBoxLayout()
+        mlab = QLabel("mic"); mlab.setStyleSheet(f"color:{MUTE};font:10px 'Menlo';")
+        self.mic = QComboBox()
+        self.mic.addItem("System default", "")
+        for _, name in input_devices():
+            self.mic.addItem(name, name)
+        want = self.S.input_device
+        if want and self.mic.findData(want) >= 0:
+            self.mic.setCurrentIndex(self.mic.findData(want))
+        self.mic.setStyleSheet(
+            f"background:{CH2};color:{SCREEN};border:1px solid {RULE};padding:3px;")
+        mrow.addWidget(mlab); mrow.addWidget(self.mic, 1)
+        root.addLayout(mrow)
+
         srow = QHBoxLayout()
         self.dialect = QComboBox(); self.dialect.addItems(["es-MX", "es-ES"])
         self.dialect.setCurrentText(self.S.dialect)
@@ -857,6 +903,10 @@ class Window(QWidget):
             self.drill.stop()
             self.go.setText("GO")
             return
+        chosen = self.mic.currentData() or ""
+        if chosen != self.S.input_device and self.listener is not None:
+            self.listener.device = resolve_device(chosen)   # switch without reloading
+        self.S.input_device = chosen
         self.S.dialect = self.dialect.currentText()
         self.S.new_per = self.newper.value()
         self.S.window = float(self.win.value())
@@ -873,11 +923,13 @@ class Window(QWidget):
                 self.prompt_lbl.setText("Loading the speech model.\n"
                                         "First run downloads it, which takes a minute.")
                 QApplication.processEvents()
-                self.listener = Listener(self.model_name)
+                self.listener = Listener(self.model_name, self.S.input_device)
             self.go.setText("CALIBRATING…")
             self.status_lbl.setText("Measuring room noise — stay quiet")
             QApplication.processEvents()
             self.listener.calibrate()      # every session, not just the first
+            if self.listener.floor <= 0.0026:
+                self.status_lbl.setText("Warning: mic reads near silence")
         except Exception as e:
             self.prompt_lbl.setText("Mic or model failed")
             self.status_lbl.setText(str(e)[:60])
