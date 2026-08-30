@@ -256,12 +256,22 @@ def is_steer_echo(text):
     """
     These models echo the prompt back when the audio has no usable speech.
     That is not a transcript and must never be graded as one.
+
+    The echo is not always the example words: it is often just the steer's
+    opening sentence, so the whole prompt has to be matched, not the examples.
     """
     n = norm(text)
     if not n:
         return False
-    words = set(n.split())
-    return len(words & _STEER_WORDS) >= 3
+    words = n.split()
+    if len(set(words) & _STEER_WORDS) >= 3:
+        return True
+    steer_words = set(norm(STEER).split())
+    # A run of words that all come from the prompt is the prompt talking.
+    if len(words) >= 3 and all(w in steer_words for w in words):
+        return True
+    # Or a verbatim chunk of it.
+    return len(n) >= 12 and n in norm(STEER)
 
 
 def _assert_steer_is_clean():
@@ -544,6 +554,19 @@ class Listener:
         self.level = 0.0
         self.last_audio = None
 
+    def _transcribe(self, audio):
+        # The steer tells it to expect isolated Spanish words, which is what
+        # stops "llevar" being decoded as the far more common "y el bar".
+        segs, _ = self.model.transcribe(audio, language="es", beam_size=5,
+                                        temperature=0, vad_filter=False,
+                                        initial_prompt=STEER)
+        txt = " ".join(s.text for s in segs).strip()
+        # On unusable audio these models echo the prompt back. That is not a
+        # transcript, and grading it as one turns silence into a wrong answer.
+        if not txt or is_steer_echo(txt):
+            return None
+        return txt
+
     def _keep(self, blocks):
         self.last_audio = (np.concatenate(blocks).flatten()
                            if blocks else None)
@@ -555,7 +578,7 @@ class Listener:
         rms = float(np.sqrt(np.mean(buf ** 2)))
         self.floor = max(0.0025, rms * 2.5)
 
-    def listen(self, max_seconds, should_stop=None):
+    def listen(self, max_seconds, should_stop=None, accept=None):
         """
         Returns the transcript, or None if you never said anything.
 
@@ -574,6 +597,7 @@ class Listener:
         everything = []
         heard_speech, first_idx, started = False, None, time.time()
         hop = 0.05
+        pause_run, last_try = 0.0, 0.0
         with sd.InputStream(callback=cb, blocksize=int(SR * hop),
                             dtype="float32", device=self.device,
                             samplerate=SR, channels=1):
@@ -592,8 +616,26 @@ class Listener:
                 everything.append(block)
                 rms = float(np.sqrt(np.mean(block ** 2)))
                 self.level = rms
-                if rms > self.floor and not heard_speech:
-                    heard_speech, first_idx = True, max(0, len(everything) - 4)
+                if rms > self.floor:
+                    if not heard_speech:
+                        heard_speech, first_idx = True, max(0, len(everything) - 4)
+                    pause_run = 0.0
+                elif heard_speech:
+                    pause_run += hop
+
+                # As soon as a pause suggests you finished a try, check whether
+                # what you said already contains the answer. If it does there is
+                # nothing to wait for. If it does not, keep listening, so extra
+                # repeats still land inside the same window.
+                if (accept is not None and heard_speech and pause_run >= 0.35
+                        and time.time() - last_try > 0.7):
+                    last_try = time.time()
+                    partial = np.concatenate(everything[first_idx:]).flatten()
+                    if len(partial) >= SR * 0.25:
+                        txt = self._transcribe(partial)
+                        if txt and accept(txt):
+                            self._keep(everything)
+                            return txt
 
         self._keep(everything)
         if not heard_speech or not everything:
@@ -601,12 +643,7 @@ class Listener:
         audio = np.concatenate(everything[first_idx:]).flatten()
         if len(audio) < SR * 0.25:
             return None
-        # beam_size=5 measurably beats greedy on single words: greedy turned
-        # "querer" into "Quieres". A biasing initial_prompt was tried and made
-        # it worse, so there deliberately isn't one.
-        segs, _ = self.model.transcribe(audio, language="es", beam_size=5,
-                                        temperature=0, vad_filter=False)
-        return " ".join(s.text for s in segs).strip() or None
+        return self._transcribe(audio)
 
 
 # ------------------------------------------------------------------ drill loop
@@ -615,7 +652,7 @@ class Drill(QObject):
     status = pyqtSignal(str)
     heard = pyqtSignal(str)
     result = pyqtSignal(dict)
-    counts = pyqtSignal(int, int, int, int)
+    counts = pyqtSignal(int, int, int, int, int)
     finished = pyqtSignal()
 
     def __init__(self, state, listener):
@@ -637,8 +674,12 @@ class Drill(QObject):
     def new_left(self):
         return max(0, self.S.new_per - self.S.new_done)
 
-    def learned(self):
-        """Mature, in the Anki sense: the interval has stretched past 3 weeks."""
+    def learning(self):
+        """Answered right and scheduled for a future day. Moves immediately."""
+        return sum(1 for c in self.S.cards.values() if c["ivl"] >= 1)
+
+    def mature(self):
+        """Anki's sense of stuck: the interval has stretched past three weeks."""
         return sum(1 for c in self.S.cards.values() if c["ivl"] >= MATURE_AT)
 
     def build_queue(self):
@@ -674,7 +715,7 @@ class Drill(QObject):
 
     def emit_counts(self):
         self.counts.emit(self.new_left(), len(self.queue),
-                         self.S.miss_today, self.learned())
+                         self.S.miss_today, self.learning(), self.mature())
 
     # -- the loop ----------------------------------------------------------
     def run(self):
@@ -727,8 +768,10 @@ class Drill(QObject):
             while self.running:
                 self.status.emit("Listening")
                 t_ask = time.time()
-                said = self.listener.listen(self.S.window,
-                                            should_stop=lambda: not self.running)
+                said = self.listener.listen(
+                    self.S.window,
+                    should_stop=lambda: not self.running,
+                    accept=lambda t: check(t, card) is not None)
                 elapsed = time.time() - t_ask
                 if not self.running:
                     return
@@ -835,11 +878,13 @@ class Window(QWidget):
         # counters
         row = QHBoxLayout(); row.setSpacing(0)
         self.cnt = {}
+        self.sublabels = {}
         for key, label, col in (("new", "NEW LEFT", SCREEN), ("due", "IN QUEUE", SIG),
-                                ("miss", "MISSED TODAY", MISS), ("known", "LEARNED", SCREEN)):
+                                ("miss", "MISSED TODAY", MISS), ("known", "LEARNING", HIT)):
             box = QVBoxLayout()
             n = QLabel("0"); n.setStyleSheet(f"color:{col};font:700 22px 'Helvetica Neue';")
             t = QLabel(label); t.setStyleSheet(f"color:{MUTE};font:9px 'Menlo';letter-spacing:1px;")
+            self.sublabels[key] = t
             box.addWidget(n); box.addWidget(t)
             w = QWidget(); w.setLayout(box)
             w.setStyleSheet(f"border-right:1px solid {RULE};")
@@ -956,7 +1001,9 @@ class Window(QWidget):
         self.cnt["due"].setText(str(due))
         self.cnt["miss"].setText(str(self.S.miss_today))
         self.cnt["known"].setText(
-            str(sum(1 for c in cards.values() if c["ivl"] >= MATURE_AT)))
+            str(sum(1 for c in cards.values() if c["ivl"] >= 1)))
+        self.sublabels["known"].setText(
+            f"LEARNING · {sum(1 for c in cards.values() if c['ivl'] >= MATURE_AT)} MATURE")
 
     def toggle(self):
         # processEvents() below pumps the event queue while the model loads, so
@@ -1023,9 +1070,10 @@ class Window(QWidget):
         self.state_lbl.setText(label.upper())
         self.slip.setVisible(False)
 
-    def on_counts(self, new, due, miss, known):
+    def on_counts(self, new, due, miss, learning, mature):
         self.cnt["new"].setText(str(new)); self.cnt["due"].setText(str(due))
-        self.cnt["miss"].setText(str(miss)); self.cnt["known"].setText(str(known))
+        self.cnt["miss"].setText(str(miss)); self.cnt["known"].setText(str(learning))
+        self.sublabels["known"].setText(f"LEARNING · {mature} MATURE")
 
     def on_result(self, r):
         col = HIT if r["ok"] else MISS
