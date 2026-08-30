@@ -39,7 +39,7 @@ class SlowListener:
         self.calibrated = True
         return self.floor
 
-    def listen(self, window, should_stop=None, accept=None):
+    def listen(self, window, should_stop=None, accept=None, fast=False):
         return None
 
     def set_device(self, name):

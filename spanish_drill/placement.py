@@ -47,6 +47,11 @@ class PlacementSession(DrillSession):
     inherited unchanged. Only what happens to the card afterwards differs.
     """
 
+    # Sorting, not teaching: the quick model decides, and the second opinion
+    # catches what it gets wrong. The main model costs about six seconds a
+    # card here and only changes misses, which are re-checked anyway.
+    fast_recognition = True
+
     def __init__(self, *args, passes_needed=PASSES_TO_PASS, limit=None,
                  retest=False, **kw):
         super().__init__(*args, **kw)

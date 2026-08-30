@@ -70,6 +70,9 @@ class DrillSession:
     on_verify = None        # (kept, overturned)
     on_finished = None      # ()
 
+    # Modes that value speed over the main model's edge on misses set this.
+    fast_recognition = False
+
     def __init__(self, progress, listener, verifier=_api_verifier,
                  answer_log=None, deck=None, rng=None):
         self.progress = progress
@@ -163,7 +166,8 @@ class DrillSession:
             said = self.listener.listen(
                 self.progress.window,
                 should_stop=lambda: not self.running,
-                accept=lambda t: check(t, card) is not None)
+                accept=lambda t: check(t, card) is not None,
+                fast=self.fast_recognition)
             elapsed = time.time() - started
             if not self.running:
                 return None, elapsed, "stop"

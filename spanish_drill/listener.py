@@ -33,8 +33,15 @@ class Listener:
         """Release the microphone. The stream is held open all session."""
         self.recorder.close()
 
-    def listen(self, window, should_stop=None, accept=None):
-        """Returns the transcript, or None if nothing usable was said."""
+    def listen(self, window, should_stop=None, accept=None, fast=False):
+        """Returns the transcript, or None if nothing usable was said.
+
+        `fast` keeps the quick scout model for the final answer too. The main
+        model takes about six seconds on a two-second clip, which is most of a
+        card, and it only decides misses: anything it accepts the scout has
+        already accepted, and anything it rejects goes to the second opinion,
+        which is both quicker and better.
+        """
         self.last_audio = None
 
         def on_pause(partial):
@@ -50,8 +57,8 @@ class Listener:
 
         if speech is None or not heard:
             return None
-        if early:
-            # The scout already matched; re-running the main model would only
-            # add latency to an answer that is settled.
+        if early or fast:
+            # The scout already matched, or the caller wants speed over the
+            # main model's extra accuracy on the misses.
             return self.transcriber.transcribe(speech, scout=True)
         return self.transcriber.transcribe(speech)

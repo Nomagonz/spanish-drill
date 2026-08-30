@@ -29,7 +29,7 @@ class ScriptedListener:
         self.calls = 0
         self.last_audio = np.zeros(16000, dtype=np.float32) if audio else None
 
-    def listen(self, window, should_stop=None, accept=None):
+    def listen(self, window, should_stop=None, accept=None, fast=False):
         i, self.calls = self.calls, self.calls + 1
         return self.script[i] if i < len(self.script) else None
 

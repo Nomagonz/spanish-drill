@@ -26,7 +26,7 @@ class Answers:
         self.session = session
         return self
 
-    def listen(self, window, should_stop=None, accept=None):
+    def listen(self, window, should_stop=None, accept=None, fast=False):
         index = self.session.current
         self.asked.append(index)
         if index in self.correct_for:
@@ -160,7 +160,7 @@ class TestItTerminates:
 
         class Listener:
             last_audio = None
-            def listen(self, window, should_stop=None, accept=None):
+            def listen(self, window, should_stop=None, accept=None, fast=False):
                 card = DECK[session.current]
                 return card.answers[0] if rng.random() < accuracy else "zzz"
             def calibrate(self):
@@ -183,7 +183,7 @@ class TestItTerminates:
 
         class Listener:
             last_audio = None
-            def listen(self, window, should_stop=None, accept=None):
+            def listen(self, window, should_stop=None, accept=None, fast=False):
                 asked.append(session.current)
                 return DECK[session.current].answers[0]
             def calibrate(self):
@@ -288,3 +288,35 @@ class TestScopeIsHonest:
         session.on_status = said.append
         session.next_queue()
         assert not any("already classified" in s for s in said)
+
+
+class TestItIsActuallyFast:
+    """A sorting run must not pay for the main model.
+
+    Measured on a two-second clip: the main model takes about six seconds, the
+    scout about one. The main model only ever changes misses, and a miss is
+    re-checked by the second opinion, which is quicker and more accurate.
+    """
+
+    def test_placement_asks_for_the_fast_path(self, progress):
+        session = PlacementSession(progress, Answers(set()), verifier=None)
+        assert session.fast_recognition is True
+
+    def test_the_normal_drill_does_not(self, progress):
+        from spanish_drill.session import DrillSession
+        assert DrillSession(progress, Answers(set()), verifier=None).fast_recognition is False
+
+    def test_the_flag_reaches_the_listener(self, progress):
+        seen = []
+
+        class Watcher(Answers):
+            def listen(self, window, should_stop=None, accept=None, fast=False):
+                seen.append(fast)
+                return super().listen(window, should_stop, accept, fast)
+
+        listener = Watcher(set())
+        session = PlacementSession(progress, listener, verifier=None)
+        listener.bind(session)
+        progress.queue_override = [0]
+        session.run()
+        assert seen and all(seen), "placement must ask for the scout model"
