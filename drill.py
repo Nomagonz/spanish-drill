@@ -570,20 +570,26 @@ class Listener:
     is enough for single words and keeps the whole thing dependency free.
     """
 
-    def __init__(self, model_name="medium", device_name=""):
+    def __init__(self, model_name="medium", device_name="", scout_name="small"):
         from faster_whisper import WhisperModel
         self.model = WhisperModel(model_name, device="cpu", compute_type="int8")
+        # A second, much faster model just for "have they said it yet?".
+        # medium needs ~3.7s to transcribe a one-second snippet, which cannot
+        # finish inside a five-second answer window, so using it to check early
+        # meant the window always ran out first. small answers in ~0.9s.
+        self.scout = (self.model if scout_name == model_name
+                      else WhisperModel(scout_name, device="cpu", compute_type="int8"))
         self.device = resolve_device(device_name)
         self.floor = 0.004
         self.level = 0.0
         self.last_audio = None
 
-    def _transcribe(self, audio):
+    def _transcribe(self, audio, model=None):
         # The steer tells it to expect isolated Spanish words, which is what
         # stops "llevar" being decoded as the far more common "y el bar".
-        segs, _ = self.model.transcribe(audio, language="es", beam_size=5,
-                                        temperature=0, vad_filter=False,
-                                        initial_prompt=STEER)
+        segs, _ = (model or self.model).transcribe(
+            audio, language="es", beam_size=5, temperature=0,
+            vad_filter=False, initial_prompt=STEER)
         txt = " ".join(s.text for s in segs).strip()
         # On unusable audio these models echo the prompt back. That is not a
         # transcript, and grading it as one turns silence into a wrong answer.
@@ -651,12 +657,12 @@ class Listener:
                 # what you said already contains the answer. If it does there is
                 # nothing to wait for. If it does not, keep listening, so extra
                 # repeats still land inside the same window.
-                if (accept is not None and heard_speech and pause_run >= 0.35
-                        and time.time() - last_try > 0.7):
+                if (accept is not None and heard_speech and pause_run >= 0.25
+                        and time.time() - last_try > 0.4):
                     last_try = time.time()
                     partial = np.concatenate(everything[first_idx:]).flatten()
                     if len(partial) >= SR * 0.25:
-                        txt = self._transcribe(partial)
+                        txt = self._transcribe(partial, self.scout)
                         if txt and accept(txt):
                             self._keep(everything)
                             return txt
@@ -1104,6 +1110,8 @@ class Window(QWidget):
                                         "First run downloads it, which takes a minute.")
                 QApplication.processEvents()
                 self.listener = Listener(self.model_name, self.S.input_device)
+                self.status_lbl.setText("Loading the fast check model…")
+                QApplication.processEvents()
             self.go.setText("CALIBRATING…")
             self.status_lbl.setText("Measuring room noise — stay quiet")
             QApplication.processEvents()
