@@ -646,6 +646,17 @@ class Listener:
         def cb(indata, frames, t, status):
             q.put(indata.copy())
 
+        def drain():
+            # Transcribing mid-window blocks this loop for a second or more.
+            # The callback keeps filling the queue throughout, so whatever
+            # arrived while we were busy has to be pulled in, or the saved clip
+            # is missing exactly the part recorded during the check.
+            while True:
+                try:
+                    everything.append(q.get_nowait())
+                except queue.Empty:
+                    return
+
         everything = []
         heard_speech, first_idx, started = False, None, time.time()
         hop = 0.05
@@ -659,6 +670,7 @@ class Listener:
             # themselves several times.
             while time.time() - started < max_seconds:
                 if should_stop and should_stop():
+                    drain()
                     self._keep(everything)
                     return None
                 try:
@@ -685,10 +697,12 @@ class Listener:
                     partial = np.concatenate(everything[first_idx:]).flatten()
                     if len(partial) >= SR * 0.25:
                         txt = self._transcribe(partial, self.scout)
+                        drain()                 # audio recorded during the check
                         if txt and accept(txt):
                             self._keep(everything)
                             return txt
 
+        drain()                             # anything still queued at the end
         self._keep(everything)
         if not heard_speech or not everything:
             return None                     # genuinely nothing said
@@ -942,6 +956,37 @@ INK = "#141A17"; SOFT = "#5A665F"; SIG = "#E19B33"; MISS = "#C24B36"
 HIT = "#6E9A6B"; MUTE = "#8FA096"
 
 
+def model_is_cached(name):
+    """True when the weights are already on disk, so nothing will be fetched."""
+    import glob
+    hub = os.path.expanduser("~/.cache/huggingface/hub")
+    hits = glob.glob(os.path.join(hub, f"models--*faster-whisper-{name}"))
+    return any(glob.glob(os.path.join(h, "snapshots", "*", "model.bin")) for h in hits)
+
+
+class ModelLoader(QObject):
+    """
+    Loads the models off the main thread at start-up.
+
+    They are cached on disk and never re-downloaded, but reading medium into
+    memory still costs about two seconds, and doing that on the first GO made
+    it look like something was being fetched every run.
+    """
+    done = pyqtSignal(object, str)
+
+    def __init__(self, model_name, device_name, scout_name="small"):
+        super().__init__()
+        self.model_name, self.device_name = model_name, device_name
+        self.scout_name = scout_name
+
+    def run(self):
+        try:
+            L = Listener(self.model_name, self.device_name, self.scout_name)
+            self.done.emit(L, "")
+        except Exception as e:
+            self.done.emit(None, f"{type(e).__name__}: {e}")
+
+
 class Window(QWidget):
     def __init__(self, model_name):
         super().__init__()
@@ -954,6 +999,7 @@ class Window(QWidget):
         self.resize(560, 720)
         self.setStyleSheet(f"background:{CH};color:{SCREEN};")
         self.build()
+        self.start_preload()
 
     # -- widgets -----------------------------------------------------------
     def build(self):
@@ -1129,15 +1175,8 @@ class Window(QWidget):
         self.go.setEnabled(False)
         try:
             if self.listener is None:
-                # First run also downloads the model, which is slow and silent.
-                self.go.setText("LOADING…")
-                self.status_lbl.setText(f"Loading Whisper ({self.model_name})")
-                self.prompt_lbl.setText("Loading the speech model.\n"
-                                        "First run downloads it, which takes a minute.")
-                QApplication.processEvents()
-                self.listener = Listener(self.model_name, self.S.input_device)
-                self.status_lbl.setText("Loading the fast check model…")
-                QApplication.processEvents()
+                self.status_lbl.setText("Models still loading…")
+                return
             self.go.setText("CALIBRATING…")
             self.status_lbl.setText("Measuring room noise — stay quiet")
             QApplication.processEvents()
@@ -1166,6 +1205,33 @@ class Window(QWidget):
         self.drill.verify.connect(self.on_verify)
         self.drill.finished.connect(self.on_finished)
         self.thread.start()
+
+    def start_preload(self):
+        cached = model_is_cached(self.model_name) and model_is_cached("small")
+        self.go.setEnabled(False)
+        self.go.setText("LOADING MODELS…")
+        self.status_lbl.setText("Loading from disk" if cached else "Downloading models")
+        if not cached:
+            self.prompt_lbl.setText("Fetching the speech models.\n"
+                                    "This happens once; after that they load from disk.")
+        self._loader = ModelLoader(self.model_name, self.S.input_device)
+        self._lthread = QThread()
+        self._loader.moveToThread(self._lthread)
+        self._lthread.started.connect(self._loader.run)
+        self._loader.done.connect(self.on_models_ready)
+        self._lthread.start()
+
+    def on_models_ready(self, listener, err):
+        self._lthread.quit(); self._lthread.wait()
+        if listener is None:
+            self.prompt_lbl.setText("Model failed to load")
+            self.status_lbl.setText(err[:60])
+            return
+        self.listener = listener
+        self.go.setEnabled(True)
+        self.go.setText("GO")
+        self.status_lbl.setText("Ready")
+        self.prompt_lbl.setText("Press Go.")
 
     def refresh_tally(self):
         k, o = self.S.kept, self.S.overturned
