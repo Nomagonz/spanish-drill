@@ -1162,6 +1162,11 @@ class Window(QWidget):
         self.sublabels["known"].setText(f"LEARNING · {mature} MATURE")
 
     def on_result(self, r):
+        # When the second opinion overturns a miss, the local transcript on
+        # screen is the WRONG one. Leaving it up makes a correct answer look
+        # like a bad grade, so show what was actually accepted.
+        if r.get("overturned") and r.get("api_text"):
+            self.heard_lbl.setText(f"{r['api_text']}   (local heard “{r['said']}”)")
         col = HIT if r["ok"] else MISS
         v = ("Correct" if r["ok"] else
              ("No answer — counted as a miss" if r["silent"] else "Missed"))
