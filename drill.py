@@ -567,8 +567,12 @@ def resolve_device(name):
 
 
 # ------------------------------------------------------------------- speech out
+_speaking = None        # the running `say`, so a stop can cut it short
+
+
 def say(text, voice=None, rate=None):
     """macOS `say`. Blocks until the phrase finishes, which is what we want."""
+    global _speaking
     if not text:
         return
     cmd = ["say"]
@@ -577,10 +581,23 @@ def say(text, voice=None, rate=None):
     if rate:
         cmd += ["-r", str(rate)]
     try:
-        subprocess.run(cmd + [text], check=False,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        _speaking = subprocess.Popen(cmd + [text], stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+        _speaking.wait()
     except FileNotFoundError:
         pass
+    finally:
+        _speaking = None
+
+
+def shut_up():
+    """Cut off whatever is being spoken, so Stop feels immediate."""
+    p = _speaking
+    if p is not None:
+        try:
+            p.terminate()
+        except Exception:
+            pass
 
 
 # -------------------------------------------------------------------- listening
@@ -729,6 +746,7 @@ class Drill(QObject):
 
     def stop(self):
         self.running = False
+        shut_up()               # do not sit through the rest of the sentence
 
     # -- scheduling, ported from the web version ---------------------------
     def due(self):
@@ -1156,9 +1174,18 @@ class Window(QWidget):
         # qFatal abort, not an exception.
         if self._starting:
             return
+        # Belt and braces: the button is disabled while loading or stopping,
+        # but do not depend on the widget alone to enforce that.
+        if not self.go.isEnabled():
+            return
         if self.thread and self.thread.isRunning():
+            # The worker can be mid-speech or mid-transcription and takes a
+            # moment to notice. Say so and refuse further clicks until it is
+            # actually finished, rather than showing GO and ignoring presses.
             self.drill.stop()
-            self.go.setText("GO")
+            self.go.setText("STOPPING…")
+            self.go.setEnabled(False)
+            self.status_lbl.setText("Stopping")
             return
         chosen = self.mic.currentData() or ""
         if chosen != self.S.input_device and self.listener is not None:
@@ -1287,6 +1314,7 @@ class Window(QWidget):
 
     def on_finished(self):
         self.go.setText("GO")
+        self.go.setEnabled(True)
         self.S.save()
         self.refresh_tally()
         if self.thread:
