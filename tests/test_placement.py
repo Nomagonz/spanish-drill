@@ -194,3 +194,42 @@ class TestItTerminates:
         session.run()
         from collections import Counter
         assert max(Counter(asked).values()) == 2
+
+
+class TestProgressReporting:
+    """The run has a known length, so it can show how far along it is."""
+
+    def _run_with_progress(self, progress, only, correct_for=frozenset()):
+        listener = Answers(set(correct_for))
+        session = PlacementSession(progress, listener, verifier=None)
+        listener.bind(session)
+        session.listener = listener
+        progress.queue_override = list(only)
+        seen = []
+        session.on_progress = lambda done, total: seen.append((done, total))
+        session.run()
+        return session, seen
+
+    def test_the_total_is_announced_before_the_first_card(self, progress):
+        _, seen = self._run_with_progress(progress, [0, 1, 2])
+        assert seen[0] == (0, 3)
+
+    def test_it_advances_once_per_classified_word(self, progress):
+        _, seen = self._run_with_progress(progress, [0, 1, 2])
+        assert [d for d, _ in seen] == [0, 1, 2, 3]
+
+    def test_a_word_awaiting_its_second_pass_does_not_advance_it(self, progress):
+        """Getting it right once is not a classification yet, so the bar holds."""
+        i = index_of("ser")
+        _, seen = self._run_with_progress(progress, [i], correct_for={i})
+        steps = [d for d, _ in seen]
+        assert steps[1] == 0, "advanced before the word was confirmed"
+        assert steps[-1] == 1 and steps == sorted(steps)
+
+    def test_it_ends_at_the_total(self, progress):
+        session, seen = self._run_with_progress(progress, [0, 1, 2])
+        assert seen[-1] == (session.total, session.total)
+
+    def test_the_total_matches_what_was_classified(self, progress):
+        session, _ = self._run_with_progress(progress, [0, 1, 2, 3])
+        assert session.total == session.classified == 4

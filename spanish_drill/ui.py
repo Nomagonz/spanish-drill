@@ -5,8 +5,8 @@ logic. Anything that decides what an answer means belongs in session.py.
 """
 from PyQt6.QtCore import QObject, Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFrame,
-                             QHBoxLayout, QLabel, QPushButton, QSizePolicy,
-                             QSpinBox, QVBoxLayout, QWidget)
+                             QHBoxLayout, QLabel, QProgressBar, QPushButton,
+                             QSizePolicy, QSpinBox, QVBoxLayout, QWidget)
 
 from .audio import input_devices
 from .deck import categories, load_deck
@@ -63,6 +63,7 @@ class SessionWorker(QObject):
     heard = pyqtSignal(str)
     result = pyqtSignal(object)
     counts = pyqtSignal()
+    progress = pyqtSignal(int, int)
     verified = pyqtSignal(int, int)
     finished = pyqtSignal()
 
@@ -75,6 +76,7 @@ class SessionWorker(QObject):
         session.on_heard = self.heard.emit
         session.on_result = self.result.emit
         session.on_counts = self.counts.emit
+        session.on_progress = self.progress.emit
         session.on_verify = self.verified.emit
         session.on_finished = self.finished.emit
 
@@ -127,8 +129,27 @@ class Window(QWidget):
         root.setContentsMargins(18, 16, 18, 18)
         root.setSpacing(12)
 
-        root.addWidget(_label("DRILL · ES",
-                              f"color:{SCREEN};font:800 15px {DISPLAY};letter-spacing:2px;"))
+        header = QHBoxLayout()
+        header.addWidget(_label(
+            "DRILL · ES",
+            f"color:{SCREEN};font:800 15px {DISPLAY};letter-spacing:2px;"))
+        header.addStretch(1)
+        self.progress_note = _label("", f"color:{MUTE};font:10px {MONO};"
+                                        "letter-spacing:1px;")
+        header.addWidget(self.progress_note)
+        root.addLayout(header)
+
+        # Only shown while a run has a known end: the placement test knows how
+        # many words it set out to classify, an open-ended drill does not.
+        self.bar = QProgressBar()
+        self.bar.setTextVisible(False)
+        self.bar.setFixedHeight(6)
+        self.bar.setVisible(False)
+        self.bar.setStyleSheet(
+            f"QProgressBar{{background:{PANEL};border:none;border-radius:3px;}}"
+            f"QProgressBar::chunk{{background:{SIGNAL};border-radius:3px;}}")
+        root.addWidget(self.bar)
+
         root.addWidget(self._counters())
         root.addWidget(self._screen())
         root.addWidget(self._slip())
@@ -362,6 +383,7 @@ class Window(QWidget):
     def _start_session(self, placement=False):
         self.go.setText("STOP")
         self.slip.setVisible(False)
+        self._hide_progress()
         maker = PlacementSession if placement else DrillSession
         session = maker(self.progress, self.listener)
         self.worker = SessionWorker(session)
@@ -373,6 +395,7 @@ class Window(QWidget):
         self.worker.heard.connect(self.heard_label.setText)
         self.worker.result.connect(self._on_result)
         self.worker.counts.connect(self._refresh_counters)
+        self.worker.progress.connect(self._on_progress)
         self.worker.verified.connect(self._on_verified)
         self.worker.finished.connect(self._on_finished)
         self.thread.start()
@@ -430,6 +453,19 @@ class Window(QWidget):
         self.detail_label.setText("  ·  ".join(detail))
         self.slip.setVisible(True)
 
+    def _on_progress(self, done, total):
+        if not total:
+            self._hide_progress()
+            return
+        self.bar.setMaximum(total)
+        self.bar.setValue(done)
+        self.bar.setVisible(True)
+        self.progress_note.setText(f"{done} / {total}")
+
+    def _hide_progress(self):
+        self.bar.setVisible(False)
+        self.progress_note.setText("")
+
     def _on_verified(self, kept, overturned):
         self._refresh_tally()
 
@@ -440,6 +476,7 @@ class Window(QWidget):
             if s["tested"]:
                 self.prompt_label.setText(
                     f"{len(s['known'])} known · {len(s['to_learn'])} to learn")
+                self.progress_note.setText(f"{s['tested']} / {session.total} done")
         self.go.setText("GO")
         self.go.setEnabled(True)
         self.placement.setEnabled(True)

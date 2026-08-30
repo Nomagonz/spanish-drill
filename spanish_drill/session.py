@@ -66,6 +66,7 @@ class DrillSession:
     on_heard = None         # (str)
     on_result = None        # (Result)
     on_counts = None        # ()
+    on_progress = None      # (done, total) for modes that have an end in sight
     on_verify = None        # (kept, overturned)
     on_finished = None      # ()
 

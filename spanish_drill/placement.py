@@ -54,6 +54,7 @@ class PlacementSession(DrillSession):
         self.correct_so_far = defaultdict(int)
         self.known = []
         self.to_learn = []
+        self.total = 0          # how many words this run set out to classify
 
     # -- what to ask ------------------------------------------------------
     def next_queue(self):
@@ -65,12 +66,18 @@ class PlacementSession(DrillSession):
         if self.known or self.to_learn:
             return []                       # one pass; requeues happen inline
         if self.progress.queue_override is not None:
-            return list(self.progress.queue_override)
-        pending = [i for i in range(len(self.deck))
-                   if i not in self.progress.cards
-                   and self.progress.in_category(i, self.deck)]
-        self.rng.shuffle(pending)
-        return pending[: self.limit] if self.limit else pending
+            queue = list(self.progress.queue_override)
+        else:
+            pending = [i for i in range(len(self.deck))
+                       if i not in self.progress.cards
+                       and self.progress.in_category(i, self.deck)]
+            self.rng.shuffle(pending)
+            queue = pending[: self.limit] if self.limit else pending
+        # Announce the length before the first card, so the bar starts full
+        # width rather than growing as it goes.
+        self.total = len(queue)
+        self._emit("on_progress", 0, self.total)
+        return queue
 
     # -- what happens afterwards -----------------------------------------
     def _apply(self, index, q):
@@ -92,6 +99,7 @@ class PlacementSession(DrillSession):
             self.to_learn.append(index)
             self.progress.missed_today += 1
         self.progress.save()
+        self._emit("on_progress", len(self.known) + len(self.to_learn), self.total)
         return state
 
     def _speak_verdict(self, card, correct):
@@ -109,6 +117,10 @@ class PlacementSession(DrillSession):
             self._emit("on_status", "To learn")
             cues.wrong()
             say_spanish(card.answers[0], self.progress.dialect)
+
+    @property
+    def classified(self):
+        return len(self.known) + len(self.to_learn)
 
     def summary(self):
         return {"known": list(self.known), "to_learn": list(self.to_learn),
