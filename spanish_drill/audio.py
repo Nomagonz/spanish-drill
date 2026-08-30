@@ -2,15 +2,15 @@
 
 Capture only. What the audio means is somebody else's problem.
 """
-import queue
 import time
 import wave
+from collections import deque
 
 import numpy as np
 import sounddevice as sd
 
-from .config import (BLOCK_SECONDS, CALIBRATION_SECONDS, MIN_SPEECH_SECONDS,
-                     SAMPLE_RATE)
+from .config import (BLOCK_SECONDS, CALIBRATION_SECONDS, MAX_BUFFERED_SECONDS,
+                     MIN_SPEECH_SECONDS, SAMPLE_RATE)
 
 
 def input_devices():
@@ -66,7 +66,11 @@ class Recorder:
         self.floor = 0.004
         self.level = 0.0
         self._stream = None
-        self._inbox = queue.Queue()
+        self.overflows = 0
+        # Bounded: the stream stays open between cards, so without a cap this
+        # grows for as long as the app is idle. Oldest audio is dropped first,
+        # and by then it is stale anyway.
+        self._buffer = deque(maxlen=int(MAX_BUFFERED_SECONDS / BLOCK_SECONDS))
 
     # -- the stream -------------------------------------------------------
     def open(self):
@@ -91,20 +95,39 @@ class Recorder:
         if stream is not None:
             try:
                 stream.stop()
+                # Let the audio thread finish its pending callback before the
+                # stream is torn down; stopping and closing back to back is the
+                # documented way to race CoreAudio's teardown.
+                time.sleep(2 * BLOCK_SECONDS)
                 stream.close()
             except Exception:
                 pass            # a failure to close must not take the app down
 
     def _on_audio(self, indata, frames, time_info, status):
-        self._inbox.put(indata.copy())
+        """PortAudio's callback. Runs on a high-priority audio thread.
+
+        It must not block or wait on anything. A deque bounded by maxlen drops
+        its oldest entry in O(1) without taking a lock, so a slow consumer can
+        never stall the audio thread. Stalling it is not merely a dropout: the
+        callback holds a CoreAudio mutex, and blocking while holding it is one
+        of the ways this deadlocks.
+        """
+        if status:
+            self.overflows += 1
+        self._buffer.append(indata.copy())
+
+    def _take(self):
+        """Everything captured since the last call."""
+        out = []
+        while True:
+            try:
+                out.append(self._buffer.popleft())
+            except IndexError:
+                return out
 
     def _flush(self):
         """Drop whatever arrived while we were talking or thinking."""
-        while True:
-            try:
-                self._inbox.get_nowait()
-            except queue.Empty:
-                return
+        self._buffer.clear()
 
     def set_device(self, device_name):
         """Switching input is the one time the stream has to be replaced."""
@@ -124,10 +147,8 @@ class Recorder:
         self._flush()
         blocks, deadline = [], time.time() + seconds
         while time.time() < deadline:
-            try:
-                blocks.append(self._inbox.get(timeout=0.3))
-            except queue.Empty:
-                break
+            blocks.extend(self._take())
+            time.sleep(0.01)
         buf = self._join(blocks)
         rms = float(np.sqrt(np.mean(buf ** 2))) if buf is not None else 0.0
         self.floor = max(0.0025, rms * 2.5)
@@ -152,34 +173,30 @@ class Recorder:
 
         def drain():
             # A pause callback can block this loop for a second or more while a
-            # model runs. The audio callback keeps filling the queue throughout,
-            # so whatever arrived meanwhile has to be pulled in, or the saved
-            # clip is missing exactly the part recorded during the check.
-            while True:
-                try:
-                    blocks.append(self._inbox.get_nowait())
-                except queue.Empty:
-                    return
+            # model runs. The audio callback keeps filling the buffer
+            # throughout, so whatever arrived meanwhile has to be pulled in, or
+            # the saved clip is missing exactly the part recorded during it.
+            blocks.extend(self._take())
 
         started = time.time()
         while time.time() - started < seconds:
             if should_stop and should_stop():
                 drain()
                 return None, self._join(blocks), heard_speech, False
-            try:
-                block = self._inbox.get(timeout=0.3)
-            except queue.Empty:
+            fresh = self._take()
+            if not fresh:
+                time.sleep(0.01)
                 continue
-            blocks.append(block)
-
-            self.level = float(np.sqrt(np.mean(block ** 2)))
-            if self.level > self.floor:
-                if not heard_speech:
-                    heard_speech = True
-                    first_block = max(0, len(blocks) - 4)   # a little lead-in
-                pause_run = 0.0
-            elif heard_speech:
-                pause_run += BLOCK_SECONDS
+            for block in fresh:
+                blocks.append(block)
+                self.level = float(np.sqrt(np.mean(block ** 2)))
+                if self.level > self.floor:
+                    if not heard_speech:
+                        heard_speech = True
+                        first_block = max(0, len(blocks) - 4)   # lead-in
+                    pause_run = 0.0
+                elif heard_speech:
+                    pause_run += BLOCK_SECONDS
 
             if (on_pause is not None and heard_speech
                     and pause_run >= self._pause_threshold

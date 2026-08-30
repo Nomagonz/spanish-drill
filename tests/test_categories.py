@@ -80,3 +80,35 @@ class TestDeckIntegrity:
     def test_frequency_order_is_preserved(self):
         """The most common words should still come first."""
         assert [c.answers[0] for c in DECK[:3]] == ["de", "que", "ser"]
+
+
+class TestSpokenPrompt:
+    """The parenthetical carries the disambiguation and must be read aloud.
+
+    "to know (a fact)" and "to know (a person or place)" are saber and
+    conocer. Strip the brackets and both prompts sound identical, and the
+    answer becomes a coin flip.
+    """
+
+    def test_the_parenthetical_is_kept(self):
+        card = next(c for c in DECK if c.answers[0] == "saber")
+        assert "fact" in card.spoken_prompt
+
+    def test_brackets_become_a_pause(self):
+        card = next(c for c in DECK if c.answers[0] == "saber")
+        assert "(" not in card.spoken_prompt and ")" not in card.spoken_prompt
+        assert "," in card.spoken_prompt
+
+    def test_the_two_to_knows_are_distinguishable_aloud(self):
+        saber = next(c for c in DECK if c.answers[0] == "saber")
+        conocer = next(c for c in DECK if c.answers[0] == "conocer")
+        assert saber.spoken_prompt != conocer.spoken_prompt
+
+    def test_a_prompt_without_brackets_is_untouched(self):
+        card = next(c for c in DECK if c.answers[0] == "hablar")
+        assert card.spoken_prompt == card.prompt
+
+    def test_no_prompt_speaks_as_empty_or_ragged(self):
+        for c in DECK:
+            spoken = c.spoken_prompt
+            assert spoken and not spoken.startswith(",") and "  " not in spoken

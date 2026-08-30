@@ -240,6 +240,32 @@ class TestStreamLifetime:
         assert len(window) / SAMPLE_RATE < 0.55
 
 
+class TestBufferBounds:
+    """The stream stays open between cards, so the buffer must be capped."""
+
+    def test_idle_capture_does_not_grow_without_bound(self, loud):
+        from spanish_drill.config import BLOCK_SECONDS, MAX_BUFFERED_SECONDS
+        r = Recorder()
+        r.open()
+        time.sleep(0.6)
+        cap = int(MAX_BUFFERED_SECONDS / BLOCK_SECONDS)
+        assert len(r._buffer) <= cap
+        assert r._buffer.maxlen == cap, "an unbounded buffer leaks while idle"
+
+    def test_the_oldest_audio_is_dropped_first(self, loud):
+        r = Recorder()
+        r._buffer = type(r._buffer)(maxlen=3)
+        r.open()
+        time.sleep(0.5)
+        assert len(r._buffer) == 3
+
+    def test_overflows_are_counted_not_ignored(self, loud):
+        r = Recorder()
+        r.open()
+        r._on_audio(np.zeros((BLOCK, 1), dtype=np.float32), BLOCK, None, "overflow")
+        assert r.overflows == 1
+
+
 class TestDeviceResolution:
     def test_unknown_name_falls_back_to_the_default(self):
         assert resolve_device("no such microphone") is None

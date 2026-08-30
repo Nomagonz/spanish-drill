@@ -19,6 +19,7 @@ MIN_SPEECH_SECONDS = 0.25       # shorter than this cannot be a word
 PAUSE_BEFORE_CHECK = 0.25       # silence that suggests you finished a try
 MIN_SECONDS_BETWEEN_CHECKS = 0.4
 CALIBRATION_SECONDS = 0.7
+MAX_BUFFERED_SECONDS = 30       # cap on captured audio held between cards
 SILENT_FLOOR = 0.0026           # a floor at or below this means a dead input
 
 # Models. Accuracy over speed on purpose: measured on 30 spoken cards, "small"

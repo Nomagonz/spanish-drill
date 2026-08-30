@@ -16,20 +16,16 @@ class Card:
 
     @property
     def spoken_prompt(self):
-        """The cue without its disambiguating parenthetical.
+        """The cue as it should be read aloud, parenthetical included.
 
-        "to be (identity, permanent)" is there to tell you which "to be" is
-        meant; reading it aloud makes for a clumsy prompt.
+        The parenthetical is the whole point on cards like "to know (a fact)"
+        and "to know (a person or place)": drop it and both prompts sound
+        identical, and there is no way to tell which answer is wanted. The
+        brackets become a comma so the voice pauses instead of reading them.
         """
-        out, depth = [], 0
-        for ch in self.prompt:
-            if ch == "(":
-                depth += 1
-            elif ch == ")":
-                depth = max(0, depth - 1)
-            elif depth == 0:
-                out.append(ch)
-        return " ".join("".join(out).split())
+        spoken = self.prompt.replace("(", ", ").replace(")", "")
+        spoken = spoken.replace(" ,", ",").replace(",,", ",")
+        return " ".join(spoken.split()).strip(" ,")
 
 
 def categories(deck=None):
