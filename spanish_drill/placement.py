@@ -16,8 +16,10 @@ lands three weeks out. If that turns out to be too generous, lower
 """
 from collections import defaultdict
 
+from . import cues
 from .scheduler import EASE_START, MATURE_AT, Card, today
 from .session import DrillSession, Outcome
+from .speech import say_spanish
 
 PASSES_TO_PASS = 2      # correct answers needed to count a word as known
 
@@ -93,13 +95,20 @@ class PlacementSession(DrillSession):
         return state
 
     def _speak_verdict(self, card, correct):
-        """Rapid fire: no spoken answer, no example sentence, no pause.
+        """Fast feedback, but feedback.
 
-        The normal drill reads the answer and a sentence after a miss, which is
-        how you learn a word. Here you are only being sorted, and that takes
-        several seconds per card that buys nothing.
+        A tone instead of the drill's spoken answer and example sentence: you
+        still hear immediately how you did, without several seconds of teaching
+        per card while you are only being sorted. A miss also gets the word
+        itself, so you learn what you failed to produce.
         """
-        self._emit("on_status", "Correct" if correct else "To learn")
+        if correct:
+            self._emit("on_status", "Correct")
+            cues.correct()
+        else:
+            self._emit("on_status", "To learn")
+            cues.wrong()
+            say_spanish(card.answers[0], self.progress.dialect)
 
     def summary(self):
         return {"known": list(self.known), "to_learn": list(self.to_learn),

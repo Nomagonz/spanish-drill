@@ -17,9 +17,12 @@ from spanish_drill import session as session_module
 
 @pytest.fixture(autouse=True)
 def silent(monkeypatch):
-    """No test should make the machine talk."""
+    """No test should make the machine talk or beep."""
+    from spanish_drill import cues, placement
     monkeypatch.setattr(session_module, "say_english", lambda *a, **k: None)
     monkeypatch.setattr(session_module, "say_spanish", lambda *a, **k: None)
+    monkeypatch.setattr(placement, "say_spanish", lambda *a, **k: None)
+    monkeypatch.setattr(cues, "play", lambda *a, **k: None)
 
 
 @pytest.fixture(autouse=True)

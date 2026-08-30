@@ -115,12 +115,33 @@ class TestSorting:
         assert i not in session.listener.asked
 
 
-class TestRapidFire:
-    def test_it_does_not_read_the_answer_aloud(self, progress, monkeypatch):
-        """The normal drill speaks the answer and an example after a miss.
-        That is how you learn a word, and it is several seconds each."""
+class TestFeedback:
+    """Fast, but never silent: answering into a void is worse than slow."""
+
+    def test_a_correct_answer_is_confirmed(self, progress, monkeypatch):
+        played = []
+        monkeypatch.setattr("spanish_drill.cues.correct",
+                            lambda: played.append("correct"))
+        i = index_of("ser")
+        run(progress, correct_for={i}, only=[i])
+        assert played, "you must be told when you got it right"
+
+    def test_a_miss_sounds_different_and_says_the_word(self, progress, monkeypatch):
+        played, spoken = [], []
+        monkeypatch.setattr("spanish_drill.cues.wrong",
+                            lambda: played.append("wrong"))
+        monkeypatch.setattr("spanish_drill.placement.say_spanish",
+                            lambda *a, **k: spoken.append(a[0]))
+        i = index_of("ser")
+        run(progress, correct_for=set(), only=[i])
+        assert played == ["wrong"]
+        assert spoken == ["ser"], "a miss should tell you the answer"
+
+    def test_it_never_reads_the_example_sentence(self, progress, monkeypatch):
+        """That is the teaching step, and it is seconds per card."""
         spoken = []
-        monkeypatch.setattr("spanish_drill.session.say_spanish",
-                            lambda *a, **k: spoken.append(a))
-        run(progress, correct_for=set(), only=[0, 1, 2])
-        assert spoken == []
+        monkeypatch.setattr("spanish_drill.placement.say_spanish",
+                            lambda *a, **k: spoken.append(a[0]))
+        i = index_of("ser")
+        run(progress, correct_for=set(), only=[i])
+        assert all(DECK[i].example not in s for s in spoken)
