@@ -9,3 +9,6 @@ spanish-voice-drill.html
 progress.json
 progress.json.tmp
 __pycache__/
+
+# Recorded answer audio from sessions
+misses/

@@ -28,6 +28,8 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QPushButton,
 HERE = os.path.dirname(os.path.abspath(__file__))
 DECK = json.load(open(os.path.join(HERE, "deck.json"), encoding="utf-8"))
 STATE_PATH = os.path.join(HERE, "progress.json")
+MISS_DIR = os.path.join(HERE, "misses")
+MISS_LOG = os.path.join(MISS_DIR, "misses.jsonl")
 
 SR = 16000                      # Whisper wants 16 kHz mono
 DAY = 86400
@@ -115,6 +117,11 @@ def quality(ok, close, silent, elapsed, window):
     return 5 if elapsed <= window * 0.45 else 4
 
 
+def ease_delta(q):
+    """SM-2's ease adjustment for a grade. Pulled out so it can be undone."""
+    return 0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)
+
+
 def schedule(c, q):
     """Textbook SM-2, with a failure sending the card back to relearning."""
     if q >= 3:
@@ -131,13 +138,201 @@ def schedule(c, q):
         c["lapses"] += 1
     # The ease itself moves, so a word that keeps biting you grows slower
     # forever after, and an easy one accelerates.
-    c["ef"] = max(EASE_MIN, c["ef"] + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)))
+    c["ef"] = max(EASE_MIN, c["ef"] + ease_delta(q))
     c["due"] = today() + c["ivl"]
     return c
 
 
 def is_leech(c):
     return c["lapses"] >= LEECH_AT
+
+
+# ------------------------------------------------------- recording the misses
+def save_wav(path, audio):
+    """float32 mono -> 16-bit PCM, so anything can open it."""
+    import wave
+    pcm = np.clip(audio, -1.0, 1.0)
+    pcm = (pcm * 32767).astype(np.int16)
+    with wave.open(path, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes(pcm.tobytes())
+
+
+def record_answer(cid, card, heard, q, silent, elapsed, before, audio, live_ok):
+    """
+    Keep everything needed to re-judge this later: the audio that produced the
+    verdict, and the card's exact state BEFORE grading, so a bad call can be
+    reversed rather than approximated.
+
+    Every answer is kept, not just the misses. Grading you correct on a word you
+    fluffed is just as wrong as the reverse, and only shows up by re-checking
+    the ones it accepted too.
+    """
+    os.makedirs(MISS_DIR, exist_ok=True)
+    stamp = time.strftime("%Y%m%d-%H%M%S") + f"-{cid:03d}"
+    wav = None
+    if audio is not None and len(audio) > SR * 0.1:
+        wav = os.path.join(MISS_DIR, stamp + ".wav")
+        try:
+            save_wav(wav, audio)
+        except Exception:
+            wav = None
+    rec = {"id": stamp, "cid": cid, "en": card["en"], "expected": card["es"],
+           "heard": heard or "", "quality": q, "live_ok": bool(live_ok),
+           "silent": bool(silent),
+           "elapsed": round(elapsed, 2), "audio": os.path.basename(wav) if wav else None,
+           "before": before, "verdict": None, "at": time.time()}
+    with open(MISS_LOG, "a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    return rec
+
+
+def load_misses():
+    if not os.path.exists(MISS_LOG):
+        return []
+    out = []
+    for line in open(MISS_LOG, encoding="utf-8"):
+        line = line.strip()
+        if line:
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                pass
+    return out
+
+
+def repair_false_miss(S, rec, new_q):
+    """
+    Undo a miss the recogniser invented, without trampling anything that
+    happened afterwards.
+
+    The ease penalty is reversed by arithmetic rather than by restoring the old
+    card, because the word is requeued after a miss and may well have been
+    answered correctly later in the same session. That later rep is real and
+    must survive.
+    """
+    cid = rec["cid"]
+    c = migrate(S.cards.get(cid, new_card()))
+    old_q = rec["quality"]
+
+    # swap the penalty for what the grade should have been
+    c["ef"] = max(EASE_MIN, c["ef"] - ease_delta(old_q) + ease_delta(new_q))
+    c["lapses"] = max(0, c["lapses"] - 1)
+
+    # Only touch the interval if the card is still sitting in the state the bad
+    # miss put it in. If reps > 0 it has since been answered correctly and that
+    # scheduling is already right.
+    if c["reps"] == 0 and c["ivl"] == 0:
+        restored = dict(rec["before"])
+        restored["ef"] = c["ef"]
+        restored["lapses"] = c["lapses"]
+        schedule(restored, new_q)
+        c = restored
+        touched_interval = True
+    else:
+        touched_interval = False
+
+    S.cards[cid] = c
+    S.miss_today = max(0, S.miss_today - 1)
+    return c, touched_interval
+
+
+def review(verify_model="large-v3", play=False):
+    """Re-judge every recorded miss with a stronger model and repair the schedule."""
+    recs = load_misses()
+    pending = [r for r in recs if r.get("verdict") is None]
+    if not pending:
+        print(f"{len(recs)} miss(es) on file, none awaiting review.")
+        return
+    print(f"{len(pending)} miss(es) to re-check with '{verify_model}'.")
+    print("First use of this model downloads it.\n")
+
+    from faster_whisper import WhisperModel
+    import wave
+    m = WhisperModel(verify_model, device="cpu", compute_type="int8")
+    S = State.load()
+    false_misses, confirmed, unverifiable, accepted = [], [], [], []
+
+    for r in pending:
+        card = DECK[r["cid"]]
+        if not r.get("audio"):
+            r["verdict"] = "no-audio"
+            unverifiable.append(r)
+            continue
+        path = os.path.join(MISS_DIR, r["audio"])
+        if not os.path.exists(path):
+            r["verdict"] = "no-audio"
+            unverifiable.append(r)
+            continue
+        with wave.open(path) as w:
+            a = (np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16)
+                 .astype(np.float32) / 32768.0)
+        # Deliberately harder decoding than the live pass: this runs once,
+        # offline, with no one waiting on it.
+        segs, _ = m.transcribe(a, language="es", beam_size=10, best_of=5,
+                               temperature=[0.0, 0.2, 0.4], vad_filter=True)
+        second = " ".join(x.text for x in segs).strip()
+        r["second_opinion"] = second
+        v = check(second, card)
+        was_miss = r["quality"] < 3
+        if v and was_miss:
+            # graded wrong live, right on review: the recogniser's fault
+            new_q = quality(True, bool(v["close"]), False, r["elapsed"], S.window)
+            r["verdict"] = "false-miss"
+            r["corrected_quality"] = new_q
+            _, touched = repair_false_miss(S, r, new_q)
+            r["interval_restored"] = touched
+            false_misses.append(r)
+        elif was_miss:
+            r["verdict"] = "confirmed"
+            confirmed.append(r)
+        else:
+            # graded correct live; nothing to repair
+            r["verdict"] = "accepted"
+            accepted.append(r)
+        if play and os.path.exists(path):
+            subprocess.run(["afplay", path], check=False)
+
+    S.save()
+    rewrite_misses(recs)
+
+    print(f"{'-'*72}")
+    if accepted:
+        print(f"MARKED CORRECT live ({len(accepted)}):")
+        for r in accepted:
+            print(f"  {r['en'][:30]:<32} expected {r['expected'][0]!r:<18} "
+                  f"heard {r['heard']!r}")
+        print()
+    if false_misses:
+        print(f"OVERTURNED — you were right, the recogniser was wrong ({len(false_misses)}):")
+        for r in false_misses:
+            note = "" if r.get("interval_restored") else "  [ease only; already re-answered]"
+            print(f"  {r['en'][:30]:<32} expected {r['expected'][0]!r}")
+            print(f"     live heard {r['heard']!r:<24} -> recheck {r['second_opinion']!r}{note}")
+    if confirmed:
+        print(f"\nCONFIRMED misses ({len(confirmed)}):")
+        for r in confirmed:
+            print(f"  {r['en'][:30]:<32} expected {r['expected'][0]!r:<18} "
+                  f"heard {r['second_opinion']!r}")
+    if unverifiable:
+        print(f"\nNo audio kept, left alone ({len(unverifiable)}).")
+    print(f"{'-'*72}")
+    graded_wrong = len(false_misses)
+    print(f"Local model got {len(pending) - graded_wrong} of {len(pending)} right.")
+    if graded_wrong:
+        print(f"{graded_wrong} were the recogniser's fault, and those cards have "
+              f"been repaired.")
+
+
+def rewrite_misses(recs):
+    os.makedirs(MISS_DIR, exist_ok=True)
+    tmp = MISS_LOG + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        for r in recs:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    os.replace(tmp, MISS_LOG)
 
 
 # -------------------------------------------------------------------- grading
@@ -247,6 +442,11 @@ class Listener:
         self.model = WhisperModel(model_name, device="cpu", compute_type="int8")
         self.floor = 0.004
         self.level = 0.0
+        self.last_audio = None
+
+    def _keep(self, blocks):
+        self.last_audio = (np.concatenate(blocks).flatten()
+                           if blocks else None)
 
     def calibrate(self, seconds=0.7):
         buf = sd.rec(int(seconds * SR), samplerate=SR, channels=1, dtype="float32")
@@ -255,25 +455,37 @@ class Listener:
         self.floor = max(0.0025, rms * 2.5)
 
     def listen(self, max_seconds, should_stop=None):
-        """Returns the transcript, or None if you never said anything."""
+        """
+        Returns the transcript, or None if you never said anything.
+
+        The FULL window is always kept on self.last_audio, including when this
+        decides you were silent. A miss blamed on silence may really be speech
+        that fell under the noise floor, and that is only provable if the audio
+        that produced the verdict was kept.
+        """
         q = queue.Queue()
         sd.default.samplerate, sd.default.channels = SR, 1
+        self.last_audio = None
 
         def cb(indata, frames, t, status):
             q.put(indata.copy())
 
-        frames, speaking, silence_run, started = [], False, 0.0, time.time()
+        frames, everything = [], []
+        speaking, silence_run, started = False, 0.0, time.time()
         hop = 0.05
         with sd.InputStream(callback=cb, blocksize=int(SR * hop), dtype="float32"):
             while True:
                 if should_stop and should_stop():
+                    self._keep(everything)
                     return None
                 if time.time() - started > max_seconds and not speaking:
+                    self._keep(everything)
                     return None
                 try:
                     block = q.get(timeout=0.3)
                 except queue.Empty:
                     continue
+                everything.append(block)
                 rms = float(np.sqrt(np.mean(block ** 2)))
                 self.level = rms
                 if rms > self.floor:
@@ -287,6 +499,7 @@ class Listener:
                 if speaking and time.time() - started > max_seconds + 6:
                     break                            # hard cap on a rambler
 
+        self._keep(everything)
         if not frames:
             return None
         audio = np.concatenate(frames).flatten()
@@ -454,7 +667,14 @@ class Drill(QObject):
             ok = verdict is not None
             close = bool(verdict and verdict["close"])
             q = quality(ok, close, silent, elapsed, self.S.window)
+            before = dict(migrate(self.S.cards.get(cid, new_card())))
             c = self.grade(cid, q)
+            try:
+                record_answer(cid, card, said if not silent else "", q, silent,
+                              elapsed, before,
+                              getattr(self.listener, "last_audio", None), ok)
+            except Exception:
+                pass            # never let bookkeeping kill a drill session
             self.result.emit({
                 "ok": ok, "said": "" if silent else (said or ""), "card": card,
                 "box": c, "close": close, "quality": q,
@@ -729,6 +949,12 @@ def main():
     model = "medium"
     if "--model" in sys.argv:
         model = sys.argv[sys.argv.index("--model") + 1]
+    if "--review" in sys.argv:
+        vm = "large-v3"
+        if "--verify-model" in sys.argv:
+            vm = sys.argv[sys.argv.index("--verify-model") + 1]
+        review(vm, play="--play" in sys.argv)
+        return
     app = QApplication(sys.argv)
     w = Window(model)
     w.show()
