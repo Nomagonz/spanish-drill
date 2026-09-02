@@ -17,17 +17,23 @@
  * mean whichever landed second silently threw the other's cards away.
  */
 
+// The drill page is served from somewhere else, and a browser will not call
+// this without being told that is allowed. Held in one place because the
+// preflight has to answer with the same set the real reply carries.
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Authorization, Content-Type",
+  "Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
+  "Access-Control-Max-Age": "86400",
+};
+
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
     headers: {
       "Content-Type": "application/json",
-      // The drill page is served from somewhere else, and a browser will not
-      // call this without being told that is allowed.
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-      "Access-Control-Allow-Methods": "GET, PUT, OPTIONS",
       "Cache-Control": "no-store",
+      ...CORS,
     },
   });
 
@@ -63,7 +69,14 @@ export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
 
-    if (request.method === "OPTIONS") return json({}, 204);
+    // Answered with no body at all. A 204 is defined as carrying none, and
+    // building a Response with one throws, so every preflight came back a
+    // worker exception and the page could not make a single keyed request.
+    // Nothing about that is visible from the drill's side: a browser reports
+    // only that the fetch failed, never what the preflight said.
+    if (request.method === "OPTIONS") {
+      return new Response(null, {status: 204, headers: CORS});
+    }
 
     if (!authorised(request, env)) {
       return json({ error: "unauthorised" }, 401);
