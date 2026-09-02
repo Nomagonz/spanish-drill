@@ -7,7 +7,7 @@ Interruptible on purpose: a Stop that waits out the rest of a sentence reads as
 a frozen button.
 """
 from . import voice
-from .config import ENGLISH_RATE, VOICES
+from .config import ENGLISH_RATE, SPANISH_RATE, VOICES
 
 
 def say(text, voice_name=None, rate=ENGLISH_RATE):
@@ -21,7 +21,7 @@ def stop_speaking():
 
 
 def spanish_voice(dialect):
-    return VOICES.get(dialect, VOICES["es-MX"])
+    return VOICES.get(dialect, VOICES["es-ES"])
 
 
 def say_english(text):
@@ -29,4 +29,4 @@ def say_english(text):
 
 
 def say_spanish(text, dialect):
-    say(text, voice_name=spanish_voice(dialect))
+    say(text, voice_name=spanish_voice(dialect), rate=SPANISH_RATE)

@@ -21,7 +21,19 @@ _LEITNER_LADDER = (0, 1, 3, 7, 16, 35, 90, 180)     # the original scheduler
 
 
 def today():
-    return int(time.time() // DAY_SECONDS)
+    """Days since the epoch, counted in local time.
+
+    A drill is a daily habit, so the day has to turn over at local midnight.
+    Dividing time.time() by a day turns it over at UTC midnight instead, which
+    in the Americas is early evening: the new-word allowance came back at 7pm
+    and cards scheduled for tomorrow fell due before dinner.
+
+    The scale is unchanged, so stored due dates keep their meaning. The two
+    only ever disagree between local 7pm and midnight, where the old one had
+    already jumped to the next day.
+    """
+    now = time.time()
+    return int((now + time.localtime(now).tm_gmtoff) // DAY_SECONDS)
 
 
 @dataclass
@@ -131,4 +143,5 @@ def describe_state(card):
         return f"Leech · missed {card.lapses}x"
     if card.reps == 0:
         return "Relearning"
-    return f"Review · {card.interval}d · ease {card.ease:.2f}"
+    step = "day 21+" if is_mature(card) else f"day {card.interval}"
+    return f"Review {card.reps} · {step} · ease {card.ease:.2f}"

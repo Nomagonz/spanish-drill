@@ -123,3 +123,77 @@ class TestQuality:
         fast = quality(ok=True, close=False, silent=False, elapsed=1.0, window=6)
         slow = quality(ok=True, close=False, silent=False, elapsed=5.0, window=6)
         assert fast == 5 and slow == 4
+
+
+class TestSilentH:
+    """Spanish `h` is never pronounced, so a recogniser rightly drops it.
+
+    Marking that wrong told you off for saying the word correctly, and on a
+    short answer the edit-distance pass cannot rescue it: the tolerance for a
+    four-letter word is zero on purpose. These are real transcripts from a
+    real session.
+    """
+
+    def card(self, card_id):
+        from spanish_drill.deck import load_deck
+        return next(c for c in load_deck() if c.id == card_id)
+
+    @pytest.mark.parametrize("said", ["E.", "Eh", "¡Eh!", "e"])
+    def test_a_bare_vowel_is_the_answer_for_he(self, said):
+        assert check(said, self.card("haber:pres-yo"))
+
+    @pytest.mark.parametrize("said", ["Ago. Ago.", "ago", "hago"])
+    def test_ago_is_hago(self, said):
+        assert check(said, self.card("hacer:pres-yo"))
+
+    def test_it_is_a_full_match_not_a_close_one(self):
+        """Nothing was fumbled: the letter was never spoken in the first place."""
+        match = check("ago", self.card("hacer:pres-yo"))
+        assert match and not match.close
+
+    def test_a_genuinely_different_word_is_still_wrong(self):
+        assert check("Agua, agua, agua.", self.card("hacer:pres-yo")) is None
+        assert check("Algo.", self.card("hacer:pres-yo")) is None
+
+    @pytest.mark.parametrize("said,card_id", [
+        ("boy", "ir:pres-yo"),              # b and v are one phoneme in Spanish
+        ("Boy, boy, boy.", "ir:pres-yo"),
+        ("voy", "ir:pres-yo"),
+        ("bas", "ir:pres-tu"),
+    ])
+    def test_b_and_v_are_the_same_sound(self, said, card_id):
+        """Not a dialect: no Spanish speaker anywhere separates them, so a
+        recogniser writing either letter heard the same thing."""
+        assert check(said, self.card(card_id))
+
+    def test_p_and_b_stay_separate(self):
+        """A voicing contrast Spanish really does make. `paz` is not `vas`."""
+        assert check("Pas, pas, pas.", self.card("ir:pres-tu")) is None
+
+    def test_yeismo(self):
+        from spanish_drill.text import normalize, sounds_as
+        assert sounds_as(normalize("llamar")) == sounds_as(normalize("yamar"))
+
+    def test_the_ch_digraph_is_not_touched(self):
+        """`h` is silent alone, not inside `ch`. `coche` must not become `coce`."""
+        from spanish_drill.text import sounds_as, normalize
+        assert sounds_as(normalize("coche")) == "coche"
+        assert sounds_as(normalize("chico")) == "chico"
+
+    def test_the_deck_is_never_merged_by_any_of_it(self):
+        """The test every sound rule has to keep passing.
+
+        A rule may fix a spelling. It may never merge two words the deck
+        actually distinguishes. Measured across all 1579 answers, silent h
+        plus b/v plus ll/y together merge exactly one pair.
+        """
+        import collections
+        from spanish_drill.deck import load_deck
+        from spanish_drill.text import normalize, sounds_as
+        groups = collections.defaultdict(set)
+        for c in load_deck():
+            for a in c.answers:
+                if (n := normalize(a)):
+                    groups[sounds_as(n)].add(n)
+        clashing = {k: v for k, v in groups.items() if len(v) > 1}
+        assert clashing == {"o": {"o", "oh"}}, clashing

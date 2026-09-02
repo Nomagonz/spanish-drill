@@ -14,6 +14,8 @@ pytest.importorskip("PyQt6")
 from PyQt6.QtWidgets import QApplication
 
 from spanish_drill import ui as ui_module
+from spanish_drill.config import CONJUGATION_LOG
+from spanish_drill.paradigm import ConjugationSession
 from spanish_drill.progress import Progress
 from spanish_drill.session import DrillSession
 from spanish_drill.ui import SessionWorker, Window
@@ -39,7 +41,8 @@ class SlowListener:
         self.calibrated = True
         return self.floor
 
-    def listen(self, window, should_stop=None, accept=None, fast=False):
+    def listen(self, window, should_stop=None, accept=None, fast=False,
+               steer=None, second_pass=False):
         return None
 
     def set_device(self, name):
@@ -65,6 +68,44 @@ def window(app, tmp_path, monkeypatch):
         w.thread.quit()
         assert w.thread.wait(5000), "worker thread did not shut down"
     w.close()
+
+
+class TestTheCueMarksWhoItIsAbout:
+    """Rendered, not just formatted. The cue is a styled QLabel, and a
+    stylesheet `color` can swallow an inline one, so a test that only reads
+    back the markup would pass on a screen that is still entirely black.
+    """
+
+    def _red_pixels(self, window):
+        from PyQt6.QtWidgets import QApplication
+        window.resize(900, 700)
+        window.show()
+        QApplication.processEvents()
+        image = window.prompt_label.grab().toImage()
+        return sum(image.pixelColor(x, y).name() == ui_module.MISS.lower()
+                   for x in range(image.width())
+                   for y in range(image.height()))
+
+    def _card(self, prompt):
+        from spanish_drill.deck import load_deck
+        return next(c for c in load_deck() if c.prompt == prompt)
+
+    def test_the_subject_is_red_in_the_word_drill(self, window):
+        window._on_prompt(self._card("I think"), "review 2")
+        assert "I" in window.prompt_label.text()
+        assert self._red_pixels(window) > 50, "the subject is not painted red"
+
+    def test_plain_vocabulary_is_left_alone(self, window):
+        window._on_prompt(self._card("to think"), "new")
+        assert self._red_pixels(window) == 0
+
+    def test_the_conjugations_drill_marks_nothing(self, window):
+        """Every card there has a subject, so marking it says nothing."""
+        class Worker:
+            session = object.__new__(ConjugationSession)
+        window.worker = Worker()
+        window._on_prompt(self._card("I think"), "review 2")
+        assert self._red_pixels(window) == 0
 
 
 class TestButtonStates:
@@ -106,6 +147,68 @@ class TestButtonStates:
         window.toggle()
         assert window.thread is None, (
             "toggle must not depend on the widget alone to stop re-entry")
+
+
+class TestTheConjugationMode:
+    """It is a separate sitting, and the window has to treat it as one."""
+
+    def test_it_drills_its_own_tracker_not_the_vocabulary_one(self, window):
+        window.toggle_conjugations()
+        session = window.worker.session
+        assert isinstance(session, ConjugationSession)
+        assert session.progress is not window.progress, (
+            "a conjugation run that holds the main Progress would move "
+            "vocabulary review dates, which is the one thing it must not do")
+
+    def test_its_answers_go_to_their_own_log(self, window):
+        window.toggle_conjugations()
+        assert window.worker.session.log.path == CONJUGATION_LOG, (
+            "sharing the log lets --review repair a conjugation answer "
+            "into the vocabulary schedule")
+
+    def test_it_borrows_the_window_settings(self, window):
+        """One set of dials, not two.
+
+        Set on the controls rather than on Progress, because starting a run
+        applies the controls first: dialect decides whether vosotros is in
+        the chain at all, so a second copy that could disagree would be a
+        second way to be wrong.
+        """
+        window.dialect.setCurrentText("es-MX")
+        window.window_seconds.setValue(7)
+        window.toggle_conjugations()
+        p = window.worker.session.progress
+        assert (p.dialect, p.window) == ("es-MX", 7.0)
+
+    def test_a_category_filter_does_not_follow_it_in(self, window):
+        """Scope here is the verb batch. A noun filter would empty the queue."""
+        window.progress.category = "noun"
+        window.toggle_conjugations()
+        assert window.worker.session.progress.category == "all"
+
+    def test_it_takes_over_the_other_buttons_while_it_runs(self, window):
+        window.toggle_conjugations()
+        assert window.conjugations.text() == "STOP"
+        assert not window.go.isEnabled()
+        assert not window.placement.isEnabled()
+        assert not window.sentences.isEnabled()
+
+    def test_stopping_it_names_the_button_that_started_it(self, window):
+        window.toggle_conjugations()
+        window._request_stop()
+        assert window.conjugations.text() == "STOPPING…"
+        assert window.go.text() == Window.WORDS, (
+            "the words button never started this run, so it must not become "
+            "its stop control"
+        )
+
+    def test_the_panel_counts_the_schedule_being_moved(self, window):
+        """Otherwise the counters describe a deck nobody is drilling."""
+        window.toggle_conjugations()
+        assert window._active_progress() is window.worker.session.progress
+
+    def test_and_goes_back_to_the_vocabulary_one_when_idle(self, window):
+        assert window._active_progress() is window.progress
 
 
 class TestShutdown:
@@ -173,3 +276,184 @@ class TestWorkerCalibration:
         worker.status.connect(seen.append)
         worker.run()
         assert any("near silence" in s for s in seen)
+
+
+class TestWhichSettingsTakeEffectMidSession:
+    """Turning a dial mid-drill used to do nothing at all.
+
+    Every control wrote into progress only from _apply_settings, which runs on
+    GO, so a change made during a session sat in the widget until the next one.
+    The plumbing behind two of them was already live and only the write was
+    missing: the drill re-reads the answer window before listening to each
+    card, and rebuilds the queue whenever it drains.
+    """
+
+    def test_the_answer_window_reaches_the_running_drill(self, window):
+        window.window_seconds.setValue(11)
+        assert window.progress.window == 11.0, (
+            "the drill reads progress.window on every card, and the spinner "
+            "was not writing to it until the next session started")
+
+    def test_it_keeps_reaching_it_after_a_session_has_begun(self, window):
+        window._apply_settings()
+        window.window_seconds.setValue(7)
+        assert window.progress.window == 7.0
+
+    def test_the_new_word_allowance_reaches_it_too(self, window):
+        window._apply_settings()
+        window.new_per.setValue(35)
+        assert window.progress.new_per == 35
+
+    def test_the_queue_refills_rather_than_ending_the_session(self):
+        """This is what makes new/day and the category live at all: an empty
+        queue is refilled in the loop, not treated as the end."""
+        import inspect
+        from spanish_drill.session import DrillSession
+        body = inspect.getsource(DrillSession._loop)
+        assert "self.queue = self.next_queue()" in body
+        assert body.index("while") < body.index("self.queue = self.next_queue()"), (
+            "the queue is built once before the loop, so nothing can be live")
+
+    def test_a_bigger_allowance_introduces_more_on_the_next_refill(self, tmp_path):
+        from spanish_drill.progress import Progress
+        small = Progress(path=tmp_path / "a.json", new_per=1)
+        large = Progress(path=tmp_path / "b.json", new_per=40)
+        assert len(large.build_queue()) > len(small.build_queue())
+
+
+class TestTheDashboardShowsTodaysWork:
+    """The panel used to open with what was left, never with what was done.
+
+    A session could go well and the top of the window would show a smaller
+    "new left" and nothing else. Words learned and repetitions made are the
+    two things a day's work consists of, so both are counted and shown.
+    """
+
+    def test_it_shows_words_learned_and_how_many_remain(self, window):
+        window.progress.new_done, window.progress.new_per = 8, 20
+        window._refresh_counters()
+        assert window.counters["learned"].text() == "8"
+        assert "12/20 LEFT" in window.counter_labels["learned"].text()
+
+    def test_lowering_the_allowance_below_the_day_reads_as_itself(self, window):
+        """Learn forty with new/day at forty, then set the dial to ten: none
+        are left, and the panel has to say so next to the ten rather than
+        showing a bare zero that looks like a broken count."""
+        window.progress.new_done, window.progress.new_per = 40, 10
+        window._refresh_counters()
+        assert window.counters["learned"].text() == "40"
+        assert "0/10 LEFT" in window.counter_labels["learned"].text()
+
+    def test_it_shows_repetitions_made_today(self, window):
+        window.progress.reviews_done = 23
+        window._refresh_counters()
+        assert window.counters["reviews"].text() == "23"
+
+    def test_the_two_are_counted_separately(self, tmp_path):
+        """Meeting a word for the first time is not a repetition of it."""
+        from spanish_drill.progress import Progress
+        from spanish_drill.scheduler import Card
+        from spanish_drill.session import DrillSession
+        progress = Progress(path=tmp_path / "p.json")
+        progress.cards[1] = Card(ease=2.5, interval=6, reps=2, lapses=0, due=0)
+        session = DrillSession.__new__(DrillSession)
+        session.progress, session.queue, session.rng = progress, [], __import__("random").Random(0)
+        session.rungs, session.weights = {}, {}
+        session._apply(0, 5)        # never seen before
+        session._apply(1, 5)        # already known
+        assert (progress.new_done, progress.reviews_done) == (1, 1)
+
+    def test_the_ladder_names_the_step_each_card_is_on(self, window):
+        from spanish_drill.scheduler import Card
+        window.progress.cards = {
+            0: Card(ease=2.5, interval=1, reps=1, lapses=0, due=0),
+            1: Card(ease=2.5, interval=6, reps=2, lapses=0, due=0),
+            2: Card(ease=2.5, interval=30, reps=5, lapses=0, due=0),
+        }
+        text = window._ladder_text()
+        assert "1d 1" in text and "6d 1" in text and "21d+ 1" in text
+
+    def test_the_ladder_reads_soonest_first(self, window):
+        from spanish_drill.scheduler import Card
+        window.progress.cards = {
+            0: Card(ease=2.5, interval=40, reps=6, lapses=0, due=0),
+            1: Card(ease=2.5, interval=1, reps=1, lapses=0, due=0),
+            2: Card(ease=2.5, interval=0, reps=0, lapses=3, due=0),
+        }
+        text = window._ladder_text()
+        assert text.index("RELEARNING") < text.index("1d") < text.index("21d+")
+
+    def test_a_card_in_progress_names_which_repetition_it_is_on(self):
+        """"Review · 6d" said how long the gap was but not how far along the
+        word is. Both matter: the sixth day of a second repetition and of a
+        fifth are different situations."""
+        from spanish_drill.scheduler import Card, describe_state
+        assert describe_state(Card(ease=2.5, interval=6, reps=2, lapses=0,
+                                   due=0)) == "Review 2 · day 6 · ease 2.50"
+        assert "day 21+" in describe_state(
+            Card(ease=2.5, interval=30, reps=5, lapses=0, due=0))
+
+
+class TestInQueueMatchesWhatTheDrillWillAsk:
+    """The counter used to call due_indexes directly, which does not apply the
+    category filter and does not know about new words.
+
+    With "verbs only" chosen it counted every due card in the deck, and it
+    never included the new words the session was about to introduce. It
+    promised a number the drill had no intention of asking.
+    """
+
+    def make(self, tmp_path, **kwargs):
+        from spanish_drill.progress import Progress
+        from spanish_drill.scheduler import Card
+        from spanish_drill.deck import load_deck
+        progress = Progress(path=tmp_path / "p.json", **kwargs)
+        deck = load_deck()
+        verbs = [i for i, c in enumerate(deck) if c.pos == "verb"][:6]
+        nouns = [i for i, c in enumerate(deck) if c.pos == "noun"][:9]
+        for i in verbs + nouns:                     # all due today
+            progress.cards[i] = Card(ease=2.5, interval=1, reps=1, lapses=0, due=0)
+        return progress
+
+    def test_it_counts_what_build_queue_will_return(self, tmp_path):
+        progress = self.make(tmp_path, new_per=4)
+        due, fresh = progress.queue_parts()
+        assert len(due) + len(fresh) == len(progress.build_queue())
+
+    def test_it_respects_the_category_filter(self, tmp_path):
+        progress = self.make(tmp_path, new_per=0, category="verb")
+        due, _ = progress.queue_parts()
+        assert len(due) == 6, "nouns leaked into a verbs-only queue"
+
+    def test_it_includes_the_new_words_that_are_about_to_be_asked(self, tmp_path):
+        progress = self.make(tmp_path, new_per=4)
+        due, fresh = progress.queue_parts()
+        assert len(fresh) == 4
+        assert len(due) + len(fresh) > len(due)
+
+    def test_an_exhausted_allowance_adds_nothing(self, tmp_path):
+        progress = self.make(tmp_path, new_per=10, new_done=40)
+        _, fresh = progress.queue_parts()
+        assert fresh == []
+
+    def test_the_panel_says_how_many_of_the_queue_are_new(self, window, tmp_path):
+        window.progress = self.make(tmp_path, new_per=4)
+        window._refresh_counters()
+        assert window.counters["due"].text() == str(15 + 4)
+        assert "4 NEW" in window.counter_labels["due"].text()
+
+
+class TestThePanelNoticesANewDay:
+    def test_reading_the_counters_rolls_the_day(self, window):
+        from spanish_drill import scheduler
+        window.progress.day = scheduler.today() - 1
+        window.progress.new_done = 20
+        window.progress.new_per = 20
+        window._refresh_counters()
+        assert window.counters["learned"].text() == "0"
+        assert "20/20 LEFT" in window.counter_labels["learned"].text()
+
+    def test_it_checks_on_its_own_while_idle(self, window):
+        """Nothing else touches the panel overnight, so it needs a heartbeat."""
+        assert window._day_timer.isActive()
+        assert window._day_timer.interval() <= 60_000

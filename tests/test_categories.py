@@ -6,6 +6,11 @@ from spanish_drill.progress import Progress
 
 DECK = load_deck()
 
+# The deck holds two kinds of card. Vocabulary carries an example sentence and
+# a unique answer; a conjugated form carries neither, on purpose. These checks
+# describe the vocabulary, so that is what they are measured against.
+VOCABULARY = tuple(c for c in DECK if not c.lemma)
+
 
 class TestDeckMetadata:
     def test_every_card_has_a_category(self):
@@ -59,18 +64,20 @@ class TestDeckIntegrity:
     """The deck was rebuilt from an external source; check it is well formed."""
 
     def test_it_is_the_expected_size(self):
-        assert len(DECK) == 500
+        assert len(VOCABULARY) == 500
 
     def test_no_card_is_missing_a_field(self):
-        for c in DECK:
+        for c in VOCABULARY:
             assert c.prompt and c.answers and c.example and c.gloss
 
     def test_no_duplicate_answers(self):
-        first = [c.answers[0] for c in DECK]
+        """Vocabulary only. Conjugations repeat by design: `hablamos` is both
+        "we speak" and "we spoke", and `fui` belongs to both ser and ir."""
+        first = [c.answers[0] for c in VOCABULARY]
         assert len(first) == len(set(first))
 
     def test_examples_are_not_shared_between_cards(self):
-        examples = [c.example for c in DECK]
+        examples = [c.example for c in VOCABULARY]
         assert len(examples) == len(set(examples))
 
     def test_prompts_are_short_enough_to_speak(self):
@@ -145,3 +152,32 @@ class TestPromptsAreClean:
                if "  " in c.prompt or c.prompt != c.prompt.strip()
                or c.prompt[:1] in ",;:" or c.prompt[-1:] in ",;:"]
         assert not bad, f"ragged prompts: {bad}"
+
+
+class TestSpainIsTheDefault:
+    """Castilian, not Latin American: the c/z "th" and vosotros are what you
+    hear in Spain, and drilling a Mexican accent teaches the wrong sounds."""
+
+    def test_a_fresh_install_starts_in_spain(self):
+        from spanish_drill.progress import Progress
+        assert Progress().dialect == "es-ES"
+
+    def test_the_spanish_voice_is_the_peninsular_one(self):
+        from spanish_drill.speech import spanish_voice
+        assert spanish_voice("es-ES") == "Mónica"
+        assert spanish_voice("es-MX") == "Paulina"
+
+    def test_an_unknown_dialect_falls_back_to_spain(self):
+        """A stored setting from an older save, or a typo, must not quietly
+        land on the accent the default was moved away from."""
+        from spanish_drill.speech import spanish_voice
+        from spanish_drill import voice
+        from spanish_drill.deck import load_deck
+        assert spanish_voice("es-XX") == "Mónica"
+        voices = {v for _, v, _ in voice.phrases_for(load_deck(), "es-XX", [0]) if v}
+        assert voices == {"Mónica"}
+
+    def test_mexico_is_still_available(self):
+        """Switching the default is not the same as removing the choice."""
+        from spanish_drill.config import VOICES
+        assert set(VOICES) == {"es-MX", "es-ES"}

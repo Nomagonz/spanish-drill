@@ -26,7 +26,8 @@ class Answers:
         self.session = session
         return self
 
-    def listen(self, window, should_stop=None, accept=None, fast=False):
+    def listen(self, window, should_stop=None, accept=None, fast=False,
+               steer=None, second_pass=False):
         index = self.session.current
         self.asked.append(index)
         if index in self.correct_for:
@@ -160,7 +161,8 @@ class TestItTerminates:
 
         class Listener:
             last_audio = None
-            def listen(self, window, should_stop=None, accept=None, fast=False):
+            def listen(self, window, should_stop=None, accept=None, fast=False,
+               steer=None, second_pass=False):
                 card = DECK[session.current]
                 return card.answers[0] if rng.random() < accuracy else "zzz"
             def calibrate(self):
@@ -183,7 +185,8 @@ class TestItTerminates:
 
         class Listener:
             last_audio = None
-            def listen(self, window, should_stop=None, accept=None, fast=False):
+            def listen(self, window, should_stop=None, accept=None, fast=False,
+               steer=None, second_pass=False):
                 asked.append(session.current)
                 return DECK[session.current].answers[0]
             def calibrate(self):
@@ -310,7 +313,8 @@ class TestItIsActuallyFast:
         seen = []
 
         class Watcher(Answers):
-            def listen(self, window, should_stop=None, accept=None, fast=False):
+            def listen(self, window, should_stop=None, accept=None, fast=False,
+               steer=None, second_pass=False):
                 seen.append(fast)
                 return super().listen(window, should_stop, accept, fast)
 
@@ -320,3 +324,90 @@ class TestItIsActuallyFast:
         progress.queue_override = [0]
         session.run()
         assert seen and all(seen), "placement must ask for the scout model"
+
+
+class TestPlacementCanBeTyped:
+    """Sorting silently, for the same reason the drill can be.
+
+    Placement was voice-only, so the one mode built for a place you cannot
+    talk in could not be used to sort a new part of speech.
+    """
+
+    def test_it_grades_typed_answers(self, tmp_path):
+        from spanish_drill.typed import TypedListener
+        deck = load_deck()
+        index = next(i for i, c in enumerate(deck) if c.pos == "noun")
+        progress = Progress(path=tmp_path / "p.json", verify_live=False)
+        progress.queue_override = [index]
+        listener = TypedListener()
+        session = PlacementSession(progress, listener, verifier=None,
+                                   typed=True, passes_needed=1)
+
+        def on_status(text):
+            if text == "Type it":
+                listener.submit(deck[session.current].answers[0])
+
+        session.on_status = on_status
+        session.on_result = lambda r: session.stop()
+        session.run()
+        assert session.known == [index], "a typed answer was not accepted"
+
+    def test_it_makes_no_sound(self, tmp_path, monkeypatch):
+        """The whole point of the mode."""
+        from spanish_drill import cues, placement as placement_module
+        from spanish_drill.typed import TypedListener
+        noise = []
+        monkeypatch.setattr(cues, "play", lambda *a, **k: noise.append("tone"))
+        monkeypatch.setattr(placement_module, "say_spanish",
+                            lambda *a, **k: noise.append("speech"))
+        deck = load_deck()
+        index = next(i for i, c in enumerate(deck) if c.pos == "noun")
+        progress = Progress(path=tmp_path / "p.json", verify_live=False)
+        progress.queue_override = [index]
+        listener = TypedListener()
+        session = PlacementSession(progress, listener, verifier=None,
+                                   typed=True)
+
+        def on_status(text):
+            if text == "Type it":
+                listener.submit("definitelywrong")
+
+        session.on_status = on_status
+        session.on_result = lambda r: session.stop()
+        session.run()
+        assert session.to_learn == [index]
+        assert noise == [], f"typed placement made a sound: {noise}"
+
+    def test_the_spoken_run_still_beeps(self, tmp_path, monkeypatch):
+        """Silencing the typed path must not silence the one it came from."""
+        from spanish_drill import cues
+        deck = load_deck()
+        index = next(i for i, c in enumerate(deck) if c.pos == "noun")
+        heard = []
+        monkeypatch.setattr(cues, "play", lambda *a, **k: heard.append("tone"))
+        progress = Progress(path=tmp_path / "p.json", verify_live=False)
+        progress.queue_override = [index]
+        class Speaking:
+            last_audio = None
+
+            def listen(self, window, should_stop=None, accept=None, fast=False,
+               steer=None, second_pass=False):
+                return deck[index].answers[0]
+
+            def calibrate(self):
+                pass
+
+        session = PlacementSession(progress, Speaking(), verifier=None,
+                                   passes_needed=1)
+        session.on_result = lambda r: session.stop()
+        session.run()
+        assert heard, "the spoken placement run lost its feedback tone"
+
+    def test_a_category_filter_limits_what_is_sorted(self, tmp_path):
+        """Which is what makes a nouns-only run possible at all."""
+        deck = load_deck()
+        progress = Progress(path=tmp_path / "p.json", category="noun")
+        session = PlacementSession(progress, None, verifier=None)
+        queue = session.next_queue()
+        assert queue, "nothing was offered"
+        assert {deck[i].pos for i in queue} == {"noun"}

@@ -16,6 +16,12 @@ def build_parser():
     p.add_argument("--verify-model", default=VERIFY_MODEL,
                    help="model used by --review (default: %(default)s). "
                         "Names starting with 'gpt-' call the OpenAI API.")
+    p.add_argument("--conjugations", action="store_true",
+                   help="with --review, re-check the conjugation drill's own "
+                        "log against its own schedule. Without it, --review "
+                        "would repair those answers into the vocabulary "
+                        "tracker, which is the one thing that mode never "
+                        "writes to.")
     p.add_argument("--placement", action="store_true",
                    help="rapid placement test: right twice is known, wrong once "
                         "goes to the learning pile")
@@ -24,6 +30,11 @@ def build_parser():
                         "Use --categories to see what is available.")
     p.add_argument("--categories", action="store_true",
                    help="list the parts of speech in the deck")
+    p.add_argument("--serve", action="store_true",
+                   help="drill from a phone: serves a typed drill over HTTP. "
+                        "Everything stays on this machine.")
+    p.add_argument("--port", type=int, default=8765,
+                   help="port for --serve (default: %(default)s)")
     p.add_argument("--devices", action="store_true",
                    help="list the microphones this machine can record from")
     return p
@@ -53,9 +64,21 @@ def main(argv=None):
             print(f"  [{index}] {name}")
         return 0
 
+    if args.serve:
+        from .serve import serve
+        return serve(port=args.port)
+
     if args.review:
         from .review import review
-        review(args.verify_model)
+        if args.conjugations:
+            from .answers import AnswerLog
+            from .config import CONJUGATION_LOG
+            from .paradigm import ConjugationProgress
+            from .progress import Progress
+            review(args.verify_model, log=AnswerLog(path=CONJUGATION_LOG),
+                   progress=ConjugationProgress.open(Progress.load()))
+        else:
+            review(args.verify_model)
         return 0
 
     from PyQt6.QtWidgets import QApplication

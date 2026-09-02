@@ -1,1233 +1,574 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!doctype html><html lang="en"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Spanish Drill</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400;12..96,75..100,700;12..96,75..100,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1E2B26">
+<title>Drill ES</title>
 <style>
+/* The same palette and scale as the window and the phone. Three faces of one
+   application should not each have their own idea of what green is. */
 :root{
-  --chassis:#1E2B26;
-  --chassis-hi:#2B3B34;
-  --rule:#3C4F47;
-  --screen:#ECE5D3;
-  --screen-dim:#DCD4BF;
-  --ink:#141A17;
-  --ink-soft:#5A665F;
-  --signal:#E19B33;
-  --miss:#C24B36;
-  --hit:#6E9A6B;
-  --mute:#8FA096;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-  --disp:"Bricolage Grotesque","Helvetica Neue",sans-serif;
+  --ink:#ECE5D3; --mute:#8FA096; --dim:#5A665F;
+  --bg:#1E2B26; --panel:#2B3B34; --rule:#3C4F47; --raised:#33463E;
+  --signal:#E19B33; --hit:#6E9A6B; --miss:#C24B36;
+  --mono:ui-monospace,Menlo,monospace;
+  --r:6px; --tap:46px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+*{box-sizing:border-box}
+html,body{margin:0}
 body{
-  background:var(--chassis);
-  color:var(--screen);
-  font-family:var(--mono);
-  font-size:14px;
-  -webkit-font-smoothing:antialiased;
-  display:flex;justify-content:center;
-  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  background:var(--bg); color:var(--ink);
+  font:16px -apple-system,'Helvetica Neue',sans-serif;
+  -webkit-text-size-adjust:100%;
+  padding:0 14px calc(20px + env(safe-area-inset-bottom));
+  max-width:640px; margin:0 auto;
 }
-.unit{width:100%;max-width:560px;display:flex;flex-direction:column;min-height:100dvh}
+header{position:sticky; top:0; z-index:5; background:var(--bg);
+  padding:calc(12px + env(safe-area-inset-top)) 0 8px}
+.brand{display:flex; align-items:baseline; gap:8px;
+  font:10px var(--mono); letter-spacing:2px; color:var(--mute)}
+.brand .name{color:var(--ink); font-weight:700}
+.brand .tail{margin-left:auto; display:flex; align-items:baseline; gap:10px; min-width:0}
+#mode{color:var(--signal); font-weight:700}
+#count{white-space:nowrap}
+#status{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-width:50vw; text-align:right}
+#track{height:3px; background:var(--panel); border-radius:2px; margin-top:8px;
+  overflow:hidden; display:none}
+#fill{height:100%; width:0; background:var(--signal); transition:width .25s ease}
 
-/* ---- header ---- */
-.bar{
-  display:flex;align-items:baseline;gap:10px;
-  padding:16px 18px 12px;border-bottom:1px solid var(--rule);
-}
-.mark{font-family:var(--disp);font-weight:800;font-size:15px;letter-spacing:.14em;text-transform:uppercase}
-.mark em{font-style:normal;color:var(--signal)}
-.bar .spacer{flex:1}
-.iconbtn{
-  background:none;border:1px solid var(--rule);color:var(--mute);
-  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-  padding:5px 9px;border-radius:2px;cursor:pointer;
-}
-.iconbtn:hover{color:var(--screen);border-color:var(--mute)}
-.iconbtn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.tabs{display:grid; grid-template-columns:repeat(3,1fr); gap:4px;
+  background:var(--panel); border:1px solid var(--rule);
+  border-radius:var(--r); padding:4px; margin-top:10px}
+.tab{appearance:none; -webkit-appearance:none; border:none; background:none;
+  color:var(--mute); font:700 10px var(--mono); letter-spacing:1.5px;
+  padding:10px 4px; border-radius:4px; min-height:38px; cursor:pointer}
+.tab[aria-selected="true"]{background:var(--raised); color:var(--ink)}
+.page{display:none; padding-top:12px}
+.page.on{display:block}
 
-/* ---- counters ---- */
-.counts{
-  display:flex;gap:0;border-bottom:1px solid var(--rule);
-}
-.count{flex:1;padding:11px 18px;border-right:1px solid var(--rule)}
-.count:last-child{border-right:0}
-.count b{display:block;font-family:var(--disp);font-size:22px;font-weight:700;line-height:1;letter-spacing:-.02em}
-.count span{display:block;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-top:5px}
-.count.due b{color:var(--signal)}
-.count.miss b{color:var(--miss)}
+.card{background:var(--ink); color:#141A17; border-radius:var(--r);
+  padding:24px 20px; min-height:140px; display:flex; flex-direction:column;
+  justify-content:center}
+.label{font:9px var(--mono); letter-spacing:2px; color:var(--dim);
+  margin-bottom:10px; min-height:11px}
+.cue{font-size:26px; font-weight:700; line-height:1.25}
+.note{font-size:13px; color:var(--dim); margin-top:10px}
+.subject{color:var(--miss)}
 
-/* ---- screen ---- */
-.stage{flex:1;padding:18px;display:flex;flex-direction:column;gap:14px}
-.screen{
-  background:var(--screen);color:var(--ink);border-radius:3px;
-  padding:26px 20px 18px;position:relative;
-  box-shadow:inset 0 2px 0 rgba(0,0,0,.10), 0 1px 0 rgba(255,255,255,.05);
-  display:flex;flex-direction:column;min-height:224px;
-}
-.tag{
-  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);
-  display:flex;justify-content:space-between;
-}
-.prompt{
-  font-family:var(--disp);font-weight:700;
-  font-size:clamp(28px,8.2vw,42px);line-height:1.05;letter-spacing:-.025em;
-  margin:14px 0 auto;
-}
-.prompt.small{font-size:clamp(21px,5.6vw,29px)}
+input,select{width:100%; padding:13px; border-radius:var(--r);
+  border:1px solid var(--rule); background:var(--panel); color:var(--ink);
+  font:600 17px var(--mono); -webkit-appearance:none; min-height:var(--tap)}
+select{font-size:14px; padding-right:34px}
+input:focus,select:focus{outline:none; border-color:var(--signal)}
+#box{margin-top:10px}
+#box:disabled{opacity:.45}
+.sel{position:relative}
+.sel::after{content:""; position:absolute; right:15px; top:50%; margin-top:-5px;
+  width:7px; height:7px; pointer-events:none; transform:rotate(45deg);
+  border-right:2px solid var(--mute); border-bottom:2px solid var(--mute)}
 
-/* signature: segmented meter */
-.meter{display:flex;gap:3px;height:20px;margin-top:18px}
-.seg{flex:1;background:var(--screen-dim);border-radius:1px;transition:background .07s linear}
-.seg.on{background:var(--ink)}
-.seg.on.warm{background:var(--signal)}
-@media (prefers-reduced-motion:reduce){.seg{transition:none}}
-.meterlabel{
-  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);
-  margin-top:8px;min-height:14px;display:flex;justify-content:space-between;gap:10px;
-}
-.heard{color:var(--ink);font-weight:500;text-transform:none;letter-spacing:0;text-align:right;flex:1}
+.slip{background:var(--panel); border-radius:var(--r); padding:14px;
+  margin-top:10px; border-left:3px solid var(--hit); display:none}
+.slip.bad{border-left-color:var(--miss)}
+.verdict{font:10px var(--mono); letter-spacing:2px; color:var(--hit)}
+.slip.bad .verdict{color:var(--miss)}
+.answer{font-size:20px; font-weight:700; margin:6px 0}
+.ex{font-size:13px; margin-top:4px} .gl{font-size:12px; color:var(--mute)}
+.detail{font:10.5px var(--mono); color:var(--mute); margin-top:8px; line-height:1.6}
 
-/* ---- result slip ---- */
-.slip{
-  background:var(--chassis-hi);border-left:3px solid var(--mute);
-  padding:13px 15px;border-radius:2px;
-}
-.slip.ok{border-left-color:var(--hit)}
-.slip.no{border-left-color:var(--miss)}
-.slip .verdict{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
-.slip.ok .verdict{color:var(--hit)}
-.slip.no .verdict{color:var(--miss)}
-.slip .answer{font-family:var(--disp);font-size:25px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
-.slip .alt{color:var(--mute);font-size:12px;margin-top:4px}
-.slip .ex{margin-top:11px;font-size:13.5px;line-height:1.5}
-.slip .gl{color:var(--mute);font-size:12px;line-height:1.45;margin-top:2px}
-.slip .sched{
-  margin-top:11px;padding-top:9px;border-top:1px solid var(--rule);
-  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);
-  display:flex;justify-content:space-between;gap:8px;
-}
-.slip .speak{background:none;border:0;color:var(--signal);font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;padding:0}
+.controls{margin-top:14px}
+.legend{font:9px var(--mono); letter-spacing:2px; color:var(--mute);
+  margin:0 0 8px 2px}
+.modes{display:grid; gap:8px}
+.mode{display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  padding:13px 14px; min-height:var(--tap); background:var(--panel);
+  border:1px solid var(--rule); border-radius:var(--r); color:var(--ink);
+  cursor:pointer}
+.mode:active{background:var(--raised)}
+.mode.lead{border-color:var(--signal)}
+.mode .what{flex:1; min-width:0}
+.mode .name{display:block; font:700 12px var(--mono); letter-spacing:1.5px}
+.mode.lead .name{color:var(--signal)}
+.mode .desc{display:block; margin-top:4px; line-height:1.4;
+  font:12px -apple-system,'Helvetica Neue',sans-serif; color:var(--mute)}
+.mode .many{font:700 15px var(--mono); color:var(--signal); white-space:nowrap}
+.mode .many small{display:block; font:8px var(--mono); color:var(--mute);
+  letter-spacing:1px; font-weight:400; text-align:right; margin-top:2px}
+.running{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:16px}
+button{padding:14px; border-radius:var(--r); background:var(--panel);
+  color:var(--ink); border:1px solid var(--rule); font:700 11px var(--mono);
+  letter-spacing:1.5px; min-height:var(--tap); cursor:pointer}
+button.stop{border-color:var(--miss); color:var(--miss)}
+button.primary{background:var(--signal); color:#20160A; border:none}
 
-/* ---- controls ---- */
-.controls{padding:0 18px 20px;display:flex;flex-direction:column;gap:9px}
-.btn{
-  font-family:var(--mono);font-size:12.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
-  padding:16px 14px;border-radius:3px;border:1px solid var(--rule);
-  background:var(--chassis-hi);color:var(--screen);cursor:pointer;
-  transition:transform .06s ease, background .12s ease;
-}
-.btn:active{transform:translateY(1px)}
-.btn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-.btn.primary{background:var(--signal);color:#20160A;border-color:var(--signal);font-weight:600}
-.btn.primary.live{background:var(--chassis-hi);border-color:var(--miss);color:var(--miss)}
-.btn.go{padding:22px 14px;font-size:14px}
-.screen.live{box-shadow:inset 0 2px 0 rgba(0,0,0,.10), 0 0 0 2px var(--signal)}
-.btn.ghost{background:transparent}
-.btn[disabled]{opacity:.4;cursor:not-allowed}
-.row{display:flex;gap:9px}
-.row .btn{flex:1}
-@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+.figures{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+.figure{background:var(--panel); border:1px solid var(--rule);
+  border-radius:var(--r); padding:13px 14px}
+.figure.wide{grid-column:1 / -1}
+.figure b{display:block; font-size:27px; font-weight:700; line-height:1.1}
+.figure span{display:block; font:9px var(--mono); letter-spacing:1px;
+  color:var(--mute); margin-top:5px}
+.block{background:var(--panel); border:1px solid var(--rule);
+  border-radius:var(--r); padding:14px; margin-top:10px}
+.block h2{font:9px var(--mono); letter-spacing:2px; color:var(--mute);
+  margin:0 0 8px; font-weight:400}
+.block .body{font:12px var(--mono); color:var(--mute); line-height:1.9}
+.rung{display:inline-block; margin-right:18px; white-space:nowrap}
+.rung b{color:var(--ink); margin-left:6px}
 
-input[type=text]{
-  width:100%;font-family:var(--disp);font-size:20px;font-weight:500;
-  padding:14px 15px;border-radius:3px;border:1px solid var(--rule);
-  background:var(--chassis-hi);color:var(--screen);
-}
-input[type=text]:focus{outline:2px solid var(--signal);outline-offset:0;border-color:var(--signal)}
-input[type=text]::placeholder{color:var(--mute);font-family:var(--mono);font-size:14px}
+.field{margin-bottom:14px}
+.field label{display:block; font:9px var(--mono); letter-spacing:1.5px;
+  color:var(--mute); margin-bottom:6px}
+.field .hint{font-size:11px; color:var(--dim); margin-top:5px; line-height:1.4}
+.link{background:none; border:none; color:var(--signal); font:inherit;
+  font-size:12px; padding:0; text-decoration:underline; cursor:pointer;
+  min-height:0}
 
-.hint{font-size:10.5px;color:var(--mute);letter-spacing:.05em;text-align:center;line-height:1.6}
-.alert{
-  border:1px solid var(--miss);border-left-width:3px;border-radius:2px;
-  padding:12px 13px;font-size:12px;line-height:1.6;color:var(--screen);background:rgba(194,75,54,.10);
-}
-.alert b{color:var(--miss);font-weight:600}
+.wire{display:flex; align-items:center; gap:8px; font:9px var(--mono);
+  letter-spacing:1px; color:var(--mute); margin-top:10px}
+.dot{width:7px; height:7px; border-radius:50%; background:var(--mute);
+  flex:0 0 auto}
+.dot.on{background:var(--hit)} .dot.off{background:var(--miss)}
+</style></head><body>
 
-/* ---- panels ---- */
-.panel{
-  position:fixed;inset:0;background:rgba(12,18,15,.93);
-  display:flex;align-items:flex-end;justify-content:center;z-index:20;
-}
-.panel[hidden]{display:none}
-.sheet{
-  background:var(--chassis);border-top:1px solid var(--rule);
-  width:100%;max-width:560px;padding:20px 18px calc(24px + env(safe-area-inset-bottom));
-  max-height:88dvh;overflow:auto;border-radius:6px 6px 0 0;
-}
-.sheet h2{font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:-.01em;margin-bottom:16px}
-.field{margin-bottom:18px}
-.field > label{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:8px}
-.seg-group{display:flex;gap:6px;flex-wrap:wrap}
-.seg-group button{
-  flex:1;min-width:64px;font-family:var(--mono);font-size:12px;padding:11px 8px;cursor:pointer;
-  background:var(--chassis-hi);border:1px solid var(--rule);color:var(--mute);border-radius:2px;
-}
-.seg-group button[aria-pressed=true]{background:var(--signal);color:#20160A;border-color:var(--signal);font-weight:600}
-.seg-group button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-.note{font-size:11.5px;color:var(--mute);line-height:1.6;margin-top:-8px;margin-bottom:16px}
-.danger{color:var(--miss);border-color:var(--miss)!important}
-
-table.log{width:100%;border-collapse:collapse;font-size:12.5px}
-table.log td{padding:7px 0;border-bottom:1px solid var(--rule);vertical-align:top}
-table.log td.w{font-family:var(--disp);font-size:15px;font-weight:600}
-table.log td.n{text-align:right;color:var(--miss);white-space:nowrap;font-size:11px}
-.empty{color:var(--mute);font-size:12.5px;line-height:1.6}
-.done{text-align:center;padding:34px 10px}
-.done h2{font-family:var(--disp);font-size:26px;font-weight:700;margin-bottom:10px;letter-spacing:-.02em}
-.done p{color:var(--mute);font-size:13px;line-height:1.7;margin-bottom:18px}
-</style>
-</head>
-<body>
-<div class="unit">
-  <div class="bar">
-    <div class="mark">Drill<em>·</em>ES</div>
-    <div class="spacer"></div>
-    <button class="iconbtn" id="btnLog">Misses</button>
-    <button class="iconbtn" id="btnSet">Setup</button>
+<header>
+  <div class="brand">
+    <span class="name">DRILL &middot; ES</span><span id="mode"></span>
+    <span class="tail"><span id="count"></span><span id="status">starting</span></span>
   </div>
+  <div id="track"><div id="fill"></div></div>
+</header>
 
-  <div class="counts">
-    <div class="count"><b id="cNew">0</b><span>New left</span></div>
-    <div class="count due"><b id="cDue">0</b><span>In queue</span></div>
-    <div class="count miss"><b id="cMiss">0</b><span>Missed today</span></div>
-    <div class="count"><b id="cKnown">0</b><span>Learned</span></div>
-  </div>
-
-  <div class="stage" id="stage"></div>
-  <div class="controls" id="controls"></div>
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="tab_drill" aria-selected="true">DRILL</button>
+  <button class="tab" role="tab" id="tab_progress" aria-selected="false">PROGRESS</button>
+  <button class="tab" role="tab" id="tab_settings" aria-selected="false">SETTINGS</button>
 </div>
 
-<div class="panel" id="setPanel" hidden>
-  <div class="sheet">
-    <h2>Setup</h2>
-    <div class="field">
-      <label for="dialectGroup">Accent it listens for</label>
-      <div class="seg-group" id="dialectGroup">
-        <button data-v="es-MX">Latin Am.</button>
-        <button data-v="es-ES">Spain</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>New words per session</label>
-      <div class="seg-group" id="newGroup">
-        <button data-v="10">10</button><button data-v="20">20</button>
-        <button data-v="30">30</button><button data-v="50">50</button>
-      </div>
-    </div>
-    <p class="note">20 a day reaches 2,000 words in about 100 days. Above 30, the review load compounds past what most people sustain — that's where people quit, not at the start.</p>
-    <div class="field">
-      <label>How long it waits for you</label>
-      <div class="seg-group" id="winGroup">
-        <button data-v="4">4 sec</button><button data-v="6">6 sec</button>
-        <button data-v="9">9 sec</button><button data-v="12">12 sec</button>
-      </div>
-    </div>
-    <p class="note">Stay silent twice in a row and it counts the word as a miss, reads you the answer, and moves on. Nothing stalls.</p>
-    <div class="field">
-      <label>Say the word back when you get it right</label>
-      <div class="seg-group" id="hintGroup">
-        <button data-v="1">On</button><button data-v="0">Off</button>
-      </div>
-    </div>
-    <p class="note">On is slower but confirms your pronunciation against a native voice. Off is a faster grind.</p>
-    <div class="row" style="gap:9px">
-      <button class="btn ghost" id="btnClose">Done</button>
-      <button class="btn ghost danger" id="btnReset">Erase progress</button>
-    </div>
+<section class="page on" id="page_drill">
+  <div class="card">
+    <div class="label" id="label"></div>
+    <div class="cue" id="cue">Loading the deck…</div>
+    <div class="note" id="note"></div>
   </div>
-</div>
 
-<div class="panel" id="logPanel" hidden>
-  <div class="sheet">
-    <h2>Your miss list</h2>
-    <div id="logBody"></div>
-    <button class="btn ghost" id="btnCloseLog" style="margin-top:18px;width:100%">Close</button>
+  <input id="box" placeholder="type the Spanish, then Enter" autocomplete="off"
+   autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"
+   disabled>
+
+  <div class="slip" id="slip">
+    <div class="verdict" id="verdict"></div>
+    <div class="answer" id="answer"></div>
+    <div class="ex" id="ex"></div>
+    <div class="gl" id="gl"></div>
+    <div class="detail" id="detail"></div>
   </div>
-</div>
 
+  <div class="controls">
+    <div class="running" id="running" style="display:none">
+      <button class="stop" id="stop">STOP</button>
+    </div>
+    <p class="legend" id="legend">CHOOSE A DRILL</p>
+    <div class="modes" id="modes">
+      <button class="mode lead" id="go">
+        <span class="what"><span class="name">WORDS</span>
+          <span class="desc">The ordinary vocabulary drill. English in, Spanish out.</span></span>
+        <span class="many" id="n_words">0<small>DUE</small></span>
+      </button>
+    </div>
+    <p class="legend" id="elsewhere" style="margin-top:14px">
+      Sentences, conjugations and placement run in the desktop app, which also
+      does the spoken drill.</p>
+  </div>
+</section>
+
+<section class="page" id="page_progress">
+  <div class="figures">
+    <div class="figure"><b id="c_learned">0</b><span id="l_learned">LEARNED</span></div>
+    <div class="figure"><b id="c_reviews">0</b><span>REVIEWED TODAY</span></div>
+    <div class="figure"><b id="c_due" style="color:var(--signal)">0</b><span id="l_due">IN QUEUE</span></div>
+    <div class="figure"><b id="c_missed" style="color:var(--miss)">0</b><span>MISSED TODAY</span></div>
+    <div class="figure wide"><b id="c_learning" style="color:var(--hit)">0</b><span id="l_learning">LEARNING</span></div>
+  </div>
+  <div class="block"><h2>LADDER</h2><div class="body" id="ladder"></div></div>
+  <div class="block"><h2>DOUBLE-CHECK</h2><div class="body" id="tally"></div></div>
+</section>
+
+<section class="page" id="page_settings">
+  <div class="field"><label for="category">WHICH WORDS</label>
+    <div class="sel"><select id="category"></select></div></div>
+  <div class="field"><label for="new_per">NEW WORDS PER DAY</label>
+    <input id="new_per" type="number" inputmode="numeric" min="0" max="100">
+    <div class="hint">How many unseen words the drill will introduce today.</div></div>
+  <div class="field"><label for="dialect">ACCENT</label>
+    <div class="sel"><select id="dialect">
+      <option value="es-ES">es-ES &mdash; Spain</option>
+      <option value="es-MX">es-MX &mdash; Latin America</option>
+    </select></div></div>
+
+  <div class="block">
+    <h2>SHARED SCHEDULE</h2>
+    <div class="wire"><span class="dot" id="wire_dot"></span>
+      <span id="wire_text">not connected</span></div>
+    <div class="field" style="margin-top:12px">
+      <label for="key">DATABASE KEY</label>
+      <input id="key" type="password" placeholder="paste the key"
+       autocomplete="off" spellcheck="false">
+      <div class="hint">With the key, this page drills the same schedule as the
+        desktop app and the phone: one database, and what you answer here shows
+        up there. Without it, this page keeps its own progress in this browser
+        alone. The key is stored on this device and sent to nowhere but the
+        drill's own database.</div>
+    </div>
+    <button id="connect" class="primary" style="width:100%">CONNECT</button>
+    <button id="forget" class="link" style="margin-top:10px">Forget the key and
+      use this browser only</button>
+  </div>
+</section>
+
+<script src="web/drill.js"></script>
 <script>
-const DECK = [
-{en:"to be (identity, permanent)",es:["ser"],ex:"Ella es maestra.",gl:"She is a teacher."},
-{en:"to be (state, location)",es:["estar"],ex:"Estoy en casa.",gl:"I'm at home."},
-{en:"to have",es:["tener"],ex:"Tengo dos hermanos.",gl:"I have two brothers."},
-{en:"to do, to make",es:["hacer"],ex:"¿Qué haces?",gl:"What are you doing?"},
-{en:"to be able to, can",es:["poder"],ex:"No puedo ir hoy.",gl:"I can't go today."},
-{en:"to say, to tell",es:["decir"],ex:"¿Qué dijiste?",gl:"What did you say?"},
-{en:"to go",es:["ir"],ex:"Vamos al mercado.",gl:"We're going to the market."},
-{en:"to see",es:["ver"],ex:"No veo nada.",gl:"I don't see anything."},
-{en:"to give",es:["dar"],ex:"Dame el libro.",gl:"Give me the book."},
-{en:"to know (a fact)",es:["saber"],ex:"No sé qué hacer.",gl:"I don't know what to do."},
-{en:"to know (a person or place)",es:["conocer"],ex:"Conozco a su hermana.",gl:"I know his sister."},
-{en:"to want",es:["querer"],ex:"Quiero un café.",gl:"I want a coffee."},
-{en:"to arrive",es:["llegar"],ex:"Llegamos tarde.",gl:"We arrived late."},
-{en:"to happen; to pass",es:["pasar"],ex:"¿Qué pasa?",gl:"What's happening?"},
-{en:"should, ought to; to owe",es:["deber"],ex:"Debes descansar.",gl:"You should rest."},
-{en:"to put, to place",es:["poner"],ex:"Pon el libro en la mesa.",gl:"Put the book on the table."},
-{en:"to seem, to look like",es:["parecer"],ex:"Parece fácil.",gl:"It seems easy."},
-{en:"to leave, to go out",es:["salir"],ex:"Salgo a las ocho.",gl:"I leave at eight."},
-{en:"to speak, to talk",es:["hablar"],ex:"No hablo español muy bien.",gl:"I don't speak Spanish very well."},
-{en:"to carry, to take along; to wear",es:["llevar"],ex:"Llevo una chaqueta.",gl:"I'm wearing a jacket."},
-{en:"to follow; to keep going",es:["seguir"],ex:"Sigue derecho.",gl:"Keep going straight."},
-{en:"to find",es:["encontrar"],ex:"No encuentro mis llaves.",gl:"I can't find my keys."},
-{en:"to call",es:["llamar"],ex:"Te llamo mañana.",gl:"I'll call you tomorrow."},
-{en:"to come",es:["venir"],ex:"¿Vienes conmigo?",gl:"Are you coming with me?"},
-{en:"to think",es:["pensar"],ex:"Pienso en ti.",gl:"I think about you."},
-{en:"to leave behind; to let, to allow",es:["dejar"],ex:"Deja las llaves aquí.",gl:"Leave the keys here."},
-{en:"to live",es:["vivir"],ex:"Vivo en Texas.",gl:"I live in Texas."},
-{en:"to feel",es:["sentir"],ex:"Siento frío.",gl:"I feel cold."},
-{en:"to return, to come back",es:["volver","regresar"],ex:"Vuelvo en cinco minutos.",gl:"I'll be back in five minutes."},
-{en:"to take; to drink",es:["tomar"],ex:"Tomo café por la mañana.",gl:"I drink coffee in the morning."},
-{en:"to look at, to watch",es:["mirar"],ex:"Mira esa casa.",gl:"Look at that house."},
-{en:"to tell (a story); to count",es:["contar"],ex:"Cuéntame la historia.",gl:"Tell me the story."},
-{en:"to begin, to start",es:["empezar","comenzar"],ex:"Empezamos a las nueve.",gl:"We start at nine."},
-{en:"to wait; to hope",es:["esperar"],ex:"Espera un momento.",gl:"Wait a moment."},
-{en:"to look for, to search for",es:["buscar"],ex:"Busco mi teléfono.",gl:"I'm looking for my phone."},
-{en:"to work",es:["trabajar"],ex:"Trabajo los sábados.",gl:"I work on Saturdays."},
-{en:"to need",es:["necesitar"],ex:"Necesito ayuda.",gl:"I need help."},
-{en:"to believe, to think",es:["creer"],ex:"Creo que sí.",gl:"I think so."},
-{en:"to understand",es:["entender","comprender"],ex:"No entiendo.",gl:"I don't understand."},
-{en:"to ask for, to order, to request",es:["pedir"],ex:"Pedí una cerveza.",gl:"I ordered a beer."},
-{en:"to ask (a question)",es:["preguntar"],ex:"Me preguntó mi nombre.",gl:"He asked me my name."},
-{en:"to answer, to reply",es:["responder","contestar"],ex:"No respondió el mensaje.",gl:"She didn't answer the message."},
-{en:"to hear",es:["oír"],ex:"No te oigo.",gl:"I can't hear you."},
-{en:"to listen (to)",es:["escuchar"],ex:"Escucho música.",gl:"I listen to music."},
-{en:"to read",es:["leer"],ex:"Leo antes de dormir.",gl:"I read before sleeping."},
-{en:"to write",es:["escribir"],ex:"Escribo cartas.",gl:"I write letters."},
-{en:"to eat",es:["comer"],ex:"Comemos a la una.",gl:"We eat at one."},
-{en:"to drink",es:["beber"],ex:"Bebo agua.",gl:"I drink water."},
-{en:"to sleep",es:["dormir"],ex:"Duermo ocho horas.",gl:"I sleep eight hours."},
-{en:"to walk",es:["caminar","andar"],ex:"Camino al trabajo.",gl:"I walk to work."},
-{en:"to run",es:["correr"],ex:"Corro por el parque.",gl:"I run through the park."},
-{en:"to buy",es:["comprar"],ex:"Compré pan.",gl:"I bought bread."},
-{en:"to sell",es:["vender"],ex:"Venden fruta aquí.",gl:"They sell fruit here."},
-{en:"to pay",es:["pagar"],ex:"Yo pago.",gl:"I'll pay."},
-{en:"to open",es:["abrir"],ex:"Abre la ventana.",gl:"Open the window."},
-{en:"to close",es:["cerrar"],ex:"Cierra la puerta.",gl:"Close the door."},
-{en:"to learn",es:["aprender"],ex:"Aprendo español.",gl:"I'm learning Spanish."},
-{en:"to teach",es:["enseñar"],ex:"Enseña matemáticas.",gl:"She teaches math."},
-{en:"to remember",es:["recordar","acordarse"],ex:"No recuerdo su nombre.",gl:"I don't remember his name."},
-{en:"to forget",es:["olvidar"],ex:"Olvidé las llaves.",gl:"I forgot the keys."},
-{en:"to try, to attempt",es:["intentar"],ex:"Voy a intentarlo.",gl:"I'm going to try it."},
-{en:"to change",es:["cambiar"],ex:"Cambié de idea.",gl:"I changed my mind."},
-{en:"to help",es:["ayudar"],ex:"¿Me ayudas?",gl:"Will you help me?"},
-{en:"to use",es:["usar","utilizar"],ex:"Uso el metro.",gl:"I use the subway."},
-{en:"to win; to earn",es:["ganar"],ex:"Gané el partido.",gl:"I won the match."},
-{en:"to lose; to miss (a train)",es:["perder"],ex:"Perdí el tren.",gl:"I missed the train."},
-{en:"to send",es:["mandar","enviar"],ex:"Te mando el archivo.",gl:"I'll send you the file."},
-{en:"to bring",es:["traer"],ex:"Trae una silla.",gl:"Bring a chair."},
-{en:"to show",es:["mostrar","enseñar"],ex:"Muéstrame la foto.",gl:"Show me the photo."},
-{en:"to fall",es:["caer","caerse"],ex:"Se cayó la taza.",gl:"The cup fell."},
-{en:"to raise, to lift",es:["levantar"],ex:"Levanta la mano.",gl:"Raise your hand."},
-{en:"to break",es:["romper"],ex:"Rompí el vaso.",gl:"I broke the glass."},
-{en:"to fix, to sort out",es:["arreglar"],ex:"Arreglé el coche.",gl:"I fixed the car."},
-{en:"to stay, to remain",es:["quedarse","quedar"],ex:"Me quedo en casa.",gl:"I'm staying home."},
-{en:"to reject, to turn down",es:["rechazar"],ex:"Rechazó la oferta.",gl:"He turned down the offer."},
-{en:"to manage to, to achieve",es:["lograr","conseguir"],ex:"Logré terminar.",gl:"I managed to finish."},
-{en:"to be worth",es:["valer"],ex:"No vale la pena.",gl:"It's not worth it."},
-{en:"to move (something)",es:["mover"],ex:"Mueve la silla.",gl:"Move the chair."},
-{en:"to build",es:["construir"],ex:"Construyen una casa.",gl:"They're building a house."},
-{en:"to grow",es:["crecer"],ex:"Los niños crecen rápido.",gl:"Children grow fast."},
-{en:"to fear, to be afraid of",es:["temer"],ex:"Temo lo peor.",gl:"I fear the worst."},
-{en:"to laugh",es:["reír","reírse"],ex:"Nos reímos mucho.",gl:"We laughed a lot."},
-{en:"to cry",es:["llorar"],ex:"El bebé llora.",gl:"The baby is crying."},
-{en:"to sing",es:["cantar"],ex:"Canta muy bien.",gl:"She sings very well."},
-{en:"to play (a game)",es:["jugar"],ex:"Jugamos al fútbol.",gl:"We play soccer."},
-{en:"to play (an instrument)",es:["tocar"],ex:"Toca la guitarra.",gl:"He plays the guitar."},
-{en:"to travel",es:["viajar"],ex:"Viajo a España.",gl:"I'm traveling to Spain."},
-{en:"to drive",es:["conducir","manejar"],ex:"No sé conducir.",gl:"I don't know how to drive."},
-{en:"to cook",es:["cocinar"],ex:"Cocino los domingos.",gl:"I cook on Sundays."},
-{en:"to wash",es:["lavar"],ex:"Lavo los platos.",gl:"I wash the dishes."},
-{en:"to wear, to put on (clothes)",es:["ponerse"],ex:"Me pongo el abrigo.",gl:"I'm putting on my coat."},
-{en:"to meet, to get together",es:["reunirse"],ex:"Nos reunimos el lunes.",gl:"We're meeting on Monday."},
-{en:"to allow, to permit",es:["permitir"],ex:"No permiten perros.",gl:"They don't allow dogs."},
-{en:"to avoid",es:["evitar"],ex:"Evita el tráfico.",gl:"Avoid the traffic."},
-{en:"to add",es:["añadir","agregar"],ex:"Añade sal.",gl:"Add salt."},
-{en:"to choose",es:["elegir","escoger"],ex:"Elige uno.",gl:"Choose one."},
-{en:"to decide",es:["decidir"],ex:"Decidí quedarme.",gl:"I decided to stay."},
-{en:"to explain",es:["explicar"],ex:"Explícame otra vez.",gl:"Explain it to me again."},
-{en:"to finish, to end",es:["terminar","acabar"],ex:"Terminé el libro.",gl:"I finished the book."},
-{en:"to happen, to occur",es:["ocurrir","suceder"],ex:"Ocurrió ayer.",gl:"It happened yesterday."},
-{en:"man",es:["hombre"],ex:"Ese hombre es mi tío.",gl:"That man is my uncle."},
-{en:"woman",es:["mujer"],ex:"La mujer del sombrero.",gl:"The woman with the hat."},
-{en:"child, boy",es:["niño"],ex:"El niño duerme.",gl:"The boy is sleeping."},
-{en:"girl",es:["niña"],ex:"La niña lee.",gl:"The girl is reading."},
-{en:"friend",es:["amigo","amiga"],ex:"Es mi mejor amigo.",gl:"He's my best friend."},
-{en:"family",es:["familia"],ex:"Mi familia es grande.",gl:"My family is big."},
-{en:"house, home",es:["casa"],ex:"Vamos a mi casa.",gl:"Let's go to my house."},
-{en:"city",es:["ciudad"],ex:"Barcelona es una ciudad bonita.",gl:"Barcelona is a beautiful city."},
-{en:"country (nation)",es:["país"],ex:"¿De qué país eres?",gl:"What country are you from?"},
-{en:"world",es:["mundo"],ex:"Todo el mundo lo sabe.",gl:"Everybody knows it."},
-{en:"day",es:["día"],ex:"Fue un buen día.",gl:"It was a good day."},
-{en:"night",es:["noche"],ex:"Buenas noches.",gl:"Good night."},
-{en:"morning",es:["mañana"],ex:"Por la mañana corro.",gl:"In the morning I run."},
-{en:"afternoon, evening",es:["tarde"],ex:"Nos vemos en la tarde.",gl:"See you in the afternoon."},
-{en:"week",es:["semana"],ex:"La semana pasada llovió.",gl:"It rained last week."},
-{en:"month",es:["mes"],ex:"El mes que viene.",gl:"Next month."},
-{en:"year",es:["año"],ex:"Tengo treinta años.",gl:"I'm thirty years old."},
-{en:"hour; time (o'clock)",es:["hora"],ex:"¿Qué hora es?",gl:"What time is it?"},
-{en:"time (an occasion)",es:["vez"],ex:"Otra vez, por favor.",gl:"Again, please."},
-{en:"time (in general); weather",es:["tiempo"],ex:"No tengo tiempo.",gl:"I don't have time."},
-{en:"life",es:["vida"],ex:"Así es la vida.",gl:"That's life."},
-{en:"death",es:["muerte"],ex:"Le tiene miedo a la muerte.",gl:"He's afraid of death."},
-{en:"work, job",es:["trabajo"],ex:"Me gusta mi trabajo.",gl:"I like my job."},
-{en:"money",es:["dinero"],ex:"No tengo dinero.",gl:"I don't have money."},
-{en:"food, meal",es:["comida"],ex:"La comida está lista.",gl:"The food is ready."},
-{en:"water",es:["agua"],ex:"Un vaso de agua.",gl:"A glass of water."},
-{en:"bread",es:["pan"],ex:"Compré pan fresco.",gl:"I bought fresh bread."},
-{en:"car",es:["coche","carro","auto"],ex:"Mi coche es viejo.",gl:"My car is old."},
-{en:"road, way, path",es:["camino"],ex:"Es un camino largo.",gl:"It's a long road."},
-{en:"street",es:["calle"],ex:"Vive en esta calle.",gl:"He lives on this street."},
-{en:"door",es:["puerta"],ex:"Cierra la puerta.",gl:"Close the door."},
-{en:"window",es:["ventana"],ex:"Abre la ventana.",gl:"Open the window."},
-{en:"table",es:["mesa"],ex:"Ponlo en la mesa.",gl:"Put it on the table."},
-{en:"chair",es:["silla"],ex:"Esta silla está rota.",gl:"This chair is broken."},
-{en:"bed",es:["cama"],ex:"Voy a la cama.",gl:"I'm going to bed."},
-{en:"book",es:["libro"],ex:"Leí ese libro.",gl:"I read that book."},
-{en:"word",es:["palabra"],ex:"No entendí esa palabra.",gl:"I didn't understand that word."},
-{en:"name",es:["nombre"],ex:"¿Cuál es tu nombre?",gl:"What's your name?"},
-{en:"hand",es:["mano"],ex:"Dame la mano.",gl:"Give me your hand."},
-{en:"eye",es:["ojo"],ex:"Tiene los ojos verdes.",gl:"She has green eyes."},
-{en:"head",es:["cabeza"],ex:"Me duele la cabeza.",gl:"My head hurts."},
-{en:"heart",es:["corazón"],ex:"Mi corazón late rápido.",gl:"My heart beats fast."},
-{en:"face",es:["cara","rostro"],ex:"Tiene una cara amable.",gl:"He has a kind face."},
-{en:"foot",es:["pie"],ex:"Voy a pie.",gl:"I'm going on foot."},
-{en:"body",es:["cuerpo"],ex:"Todo el cuerpo me duele.",gl:"My whole body hurts."},
-{en:"voice",es:["voz"],ex:"Habla en voz baja.",gl:"He speaks quietly."},
-{en:"place, spot",es:["lugar","sitio"],ex:"Es un buen lugar.",gl:"It's a good place."},
-{en:"thing",es:["cosa"],ex:"Una cosa más.",gl:"One more thing."},
-{en:"part",es:["parte"],ex:"En alguna parte.",gl:"Somewhere."},
-{en:"way, manner",es:["manera","forma","modo"],ex:"De esa manera funciona.",gl:"That way it works."},
-{en:"reason",es:["razón"],ex:"Tienes razón.",gl:"You're right."},
-{en:"question",es:["pregunta"],ex:"Tengo una pregunta.",gl:"I have a question."},
-{en:"answer",es:["respuesta"],ex:"No hay respuesta.",gl:"There's no answer."},
-{en:"problem",es:["problema"],ex:"No hay problema.",gl:"No problem."},
-{en:"story, history",es:["historia"],ex:"Cuéntame la historia.",gl:"Tell me the story."},
-{en:"truth",es:["verdad"],ex:"Dime la verdad.",gl:"Tell me the truth."},
-{en:"lie",es:["mentira"],ex:"Eso es mentira.",gl:"That's a lie."},
-{en:"love",es:["amor"],ex:"El amor lo cambia todo.",gl:"Love changes everything."},
-{en:"fear",es:["miedo"],ex:"Tengo miedo.",gl:"I'm afraid."},
-{en:"hope",es:["esperanza"],ex:"Hay esperanza.",gl:"There is hope."},
-{en:"store, shop",es:["tienda"],ex:"La tienda cierra a las nueve.",gl:"The store closes at nine."},
-{en:"school",es:["escuela","colegio"],ex:"Los niños van a la escuela.",gl:"The kids go to school."},
-{en:"company, firm",es:["empresa","compañía"],ex:"Trabajo en una empresa pequeña.",gl:"I work at a small company."},
-{en:"government",es:["gobierno"],ex:"El gobierno cambió la ley.",gl:"The government changed the law."},
-{en:"law",es:["ley"],ex:"Es contra la ley.",gl:"It's against the law."},
-{en:"war",es:["guerra"],ex:"La guerra terminó.",gl:"The war ended."},
-{en:"sun",es:["sol"],ex:"Hace sol hoy.",gl:"It's sunny today."},
-{en:"sky; heaven",es:["cielo"],ex:"El cielo está gris.",gl:"The sky is gray."},
-{en:"sea",es:["mar"],ex:"Vivimos cerca del mar.",gl:"We live near the sea."},
-{en:"tree",es:["árbol"],ex:"Hay un árbol grande.",gl:"There's a big tree."},
-{en:"dog",es:["perro"],ex:"Mi perro es viejo.",gl:"My dog is old."},
-{en:"fire",es:["fuego"],ex:"Enciende el fuego.",gl:"Light the fire."},
-{en:"light",es:["luz"],ex:"Apaga la luz.",gl:"Turn off the light."},
-{en:"owner",es:["dueño","dueña"],ex:"¿Quién es el dueño?",gl:"Who's the owner?"},
-{en:"trace, footprint, mark",es:["huella"],ex:"Dejó una huella profunda.",gl:"It left a deep mark."},
-{en:"breath",es:["aliento"],ex:"Me quedé sin aliento.",gl:"I was left breathless."},
-{en:"good",es:["bueno"],ex:"Es un buen plan.",gl:"It's a good plan."},
-{en:"bad",es:["malo"],ex:"Fue una mala idea.",gl:"It was a bad idea."},
-{en:"big, large",es:["grande"],ex:"Es una casa grande.",gl:"It's a big house."},
-{en:"small",es:["pequeño"],ex:"Un problema pequeño.",gl:"A small problem."},
-{en:"new",es:["nuevo"],ex:"Tengo un coche nuevo.",gl:"I have a new car."},
-{en:"old (thing)",es:["viejo","antiguo"],ex:"Es un edificio viejo.",gl:"It's an old building."},
-{en:"young",es:["joven"],ex:"Es muy joven.",gl:"He's very young."},
-{en:"long",es:["largo"],ex:"Fue un día largo.",gl:"It was a long day."},
-{en:"short (length)",es:["corto"],ex:"El camino es corto.",gl:"The road is short."},
-{en:"tall, high",es:["alto"],ex:"Es más alto que yo.",gl:"He's taller than me."},
-{en:"strong",es:["fuerte"],ex:"El café está fuerte.",gl:"The coffee is strong."},
-{en:"weak",es:["débil"],ex:"Me siento débil.",gl:"I feel weak."},
-{en:"fast, quick",es:["rápido"],ex:"Habla muy rápido.",gl:"He speaks very fast."},
-{en:"slow",es:["lento","despacio"],ex:"El servicio es lento.",gl:"The service is slow."},
-{en:"easy",es:["fácil"],ex:"No es fácil.",gl:"It's not easy."},
-{en:"difficult, hard",es:["difícil"],ex:"Es una pregunta difícil.",gl:"It's a hard question."},
-{en:"happy",es:["feliz","contento"],ex:"Estoy feliz por ti.",gl:"I'm happy for you."},
-{en:"sad",es:["triste"],ex:"La película es triste.",gl:"The movie is sad."},
-{en:"angry",es:["enojado","enfadado"],ex:"Está enojado conmigo.",gl:"He's angry with me."},
-{en:"tired",es:["cansado"],ex:"Estoy muy cansado.",gl:"I'm very tired."},
-{en:"sick, ill",es:["enfermo"],ex:"Mi madre está enferma.",gl:"My mother is sick."},
-{en:"hot (temperature)",es:["caliente"],ex:"El agua está caliente.",gl:"The water is hot."},
-{en:"cold",es:["frío"],ex:"Hace frío afuera.",gl:"It's cold outside."},
-{en:"dark",es:["oscuro"],ex:"El cuarto está oscuro.",gl:"The room is dark."},
-{en:"clean",es:["limpio"],ex:"La cocina está limpia.",gl:"The kitchen is clean."},
-{en:"dirty",es:["sucio"],ex:"Tus zapatos están sucios.",gl:"Your shoes are dirty."},
-{en:"full",es:["lleno"],ex:"El vaso está lleno.",gl:"The glass is full."},
-{en:"empty",es:["vacío"],ex:"La calle está vacía.",gl:"The street is empty."},
-{en:"expensive",es:["caro"],ex:"Es demasiado caro.",gl:"It's too expensive."},
-{en:"cheap",es:["barato"],ex:"Encontré uno barato.",gl:"I found a cheap one."},
-{en:"heavy",es:["pesado"],ex:"La caja es pesada.",gl:"The box is heavy."},
-{en:"dangerous",es:["peligroso"],ex:"Es un barrio peligroso.",gl:"It's a dangerous neighborhood."},
-{en:"safe, sure",es:["seguro"],ex:"¿Estás seguro?",gl:"Are you sure?"},
-{en:"ready",es:["listo"],ex:"Ya estoy listo.",gl:"I'm ready now."},
-{en:"busy",es:["ocupado"],ex:"Estoy ocupado ahora.",gl:"I'm busy right now."},
-{en:"free (no cost)",es:["gratis"],ex:"La entrada es gratis.",gl:"Admission is free."},
-{en:"free (at liberty)",es:["libre"],ex:"Estoy libre el viernes.",gl:"I'm free on Friday."},
-{en:"always",es:["siempre"],ex:"Siempre llega tarde.",gl:"He's always late."},
-{en:"never",es:["nunca","jamás"],ex:"Nunca he ido.",gl:"I've never been."},
-{en:"sometimes",es:["a veces"],ex:"A veces cocino.",gl:"Sometimes I cook."},
-{en:"often",es:["a menudo"],ex:"Viene a menudo.",gl:"He comes often."},
-{en:"almost",es:["casi"],ex:"Casi me caigo.",gl:"I almost fell."},
-{en:"already; now",es:["ya"],ex:"Ya terminé.",gl:"I already finished."},
-{en:"still, yet",es:["todavía","aún"],ex:"Todavía no llega.",gl:"He still hasn't arrived."},
-{en:"soon",es:["pronto"],ex:"Vuelvo pronto.",gl:"I'll be back soon."},
-{en:"late",es:["tarde"],ex:"Llegué tarde.",gl:"I arrived late."},
-{en:"early",es:["temprano"],ex:"Me levanto temprano.",gl:"I get up early."},
-{en:"then, so",es:["entonces"],ex:"Entonces, ¿qué hacemos?",gl:"So, what do we do?"},
-{en:"before",es:["antes"],ex:"Llámame antes.",gl:"Call me before."},
-{en:"after, afterwards",es:["después"],ex:"Hablamos después.",gl:"We'll talk afterwards."},
-{en:"while",es:["mientras"],ex:"Leo mientras espero.",gl:"I read while I wait."},
-{en:"toward",es:["hacia"],ex:"Caminó hacia la puerta.",gl:"He walked toward the door."},
-{en:"against",es:["contra"],ex:"Está contra la pared.",gl:"It's against the wall."},
-{en:"without",es:["sin"],ex:"Café sin azúcar.",gl:"Coffee without sugar."},
-{en:"between, among",es:["entre"],ex:"Entre tú y yo.",gl:"Between you and me."},
-{en:"under, underneath",es:["debajo de","bajo"],ex:"Está debajo de la cama.",gl:"It's under the bed."},
-{en:"behind",es:["detrás de"],ex:"Está detrás de ti.",gl:"It's behind you."},
-{en:"in front of",es:["delante de","enfrente de"],ex:"Espera delante de la tienda.",gl:"Wait in front of the store."},
-{en:"near, close to",es:["cerca de","cerca"],ex:"Vivo cerca del centro.",gl:"I live near downtown."},
-{en:"far (from)",es:["lejos de","lejos"],ex:"Está lejos de aquí.",gl:"It's far from here."},
-{en:"together",es:["juntos"],ex:"Vamos juntos.",gl:"Let's go together."},
-{en:"alone, only",es:["solo"],ex:"Vive solo.",gl:"He lives alone."},
-{en:"maybe, perhaps",es:["quizás","tal vez","quizá"],ex:"Quizás mañana.",gl:"Maybe tomorrow."},
-{en:"instead of",es:["en vez de","en lugar de"],ex:"Té en vez de café.",gl:"Tea instead of coffee."},
-{en:"besides, also, furthermore",es:["además"],ex:"Además, es barato.",gl:"Besides, it's cheap."},
-{en:"however, nevertheless",es:["sin embargo"],ex:"Sin embargo, no funcionó.",gl:"However, it didn't work."},
-{en:"therefore, so",es:["por lo tanto","así que"],ex:"Llovía, así que no salimos.",gl:"It was raining, so we didn't go out."},
-{en:"even (including)",es:["incluso"],ex:"Incluso mi madre lo sabe.",gl:"Even my mother knows."},
-{en:"barely, hardly",es:["apenas"],ex:"Apenas lo conozco.",gl:"I barely know him."},
-{en:"enough, quite, fairly",es:["bastante"],ex:"Es bastante caro.",gl:"It's quite expensive."},
-{en:"too much, too many",es:["demasiado"],ex:"Hablas demasiado.",gl:"You talk too much."},
-{en:"at least",es:["por lo menos","al menos"],ex:"Por lo menos lo intentaste.",gl:"At least you tried."},
-{en:"of course",es:["por supuesto","claro"],ex:"Por supuesto que sí.",gl:"Of course."},
-{en:"anyway, in any case",es:["de todos modos","de todas formas"],ex:"De todos modos, gracias.",gl:"Thanks anyway."},
-{en:"on purpose",es:["a propósito"],ex:"Lo hizo a propósito.",gl:"He did it on purpose."},
-{en:"as soon as possible",es:["lo antes posible"],ex:"Llámame lo antes posible.",gl:"Call me as soon as possible."},
-{en:"nowadays, these days",es:["hoy en día"],ex:"Hoy en día todo es digital.",gl:"These days everything is digital."}
-];
+"use strict";
+var $ = function (i) { return document.getElementById(i); };
+var D = window.Drill;
 
-/* ================= storage ================= */
-const KEY = "esdrill:v2";
-const mem = {};
-const store = {
-  async get(k){
-    try{ const r = localStorage.getItem(k); if(r !== null) return r; }
-    catch(e){ return mem[k] ?? null; }
-    return mem[k] ?? null;
-  },
-  async set(k,v){
-    mem[k]=v;
-    try{ localStorage.setItem(k,v); }catch(e){}
-  }
-};
+/* The one database, reached the same way the drill reaches it. The endpoint
+   and the shape of what crosses the wire are the worker's, not this page's:
+   what `save()` sends is exactly what progress.json holds. */
+var SYNC_URL = "https://spanish-drill-sync.nomagonz.workers.dev";
+var KEY_STORE = "esdrill:key";
+var LOCAL_STORE = "esdrill:v3";     /* only used when there is no key */
+var OLD_STORE = "esdrill:v2";       /* what the Leitner version wrote */
 
-/* ================= state ================= */
-const DAY = 86400000;
-const today = () => Math.floor(Date.now()/DAY);
-const IVL = [0,1,3,7,16,35,90,180];
+var deck = null, answers = null, progress = null, version = null;
+var queue = [], current = null, asked = 0, total = 0, running = false;
+var held = false, askedAt = 0, touched = {}, key = null, offline = false;
 
-let S = {
-  cards:{},
-  settings:{dialect:"es-MX", newPer:20, window:6, hints:1},
-  day:today(), newDone:0, missToday:0
-};
-
-let queue = [], cur = null, saveT = null;
-let running = false, lastHeard = "", lastResult = null, statusText = "Ready";
-
-function save(){
-  clearTimeout(saveT);
-  saveT = setTimeout(()=>store.set(KEY, JSON.stringify(S)), 700);
-}
-async function load(){
-  const raw = await store.get(KEY);
-  if(raw){
-    try{
-      const p = JSON.parse(raw);
-      S = Object.assign(S, p);
-      S.settings = Object.assign({dialect:"es-MX",newPer:20,window:6,hints:1}, p.settings||{});
-    }catch(e){}
-  }
-  if(S.day !== today()){ S.day = today(); S.newDone = 0; S.missToday = 0; }
+function store(k, v) {
+  try {
+    if (v === undefined) return localStorage.getItem(k);
+    if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v);
+  } catch (e) { return null; }
 }
 
-/* ================= scheduling ================= */
-function dueList(){
-  const t = today(), out = [];
-  for(let i=0;i<DECK.length;i++){
-    const c = S.cards[i];
-    if(c && c.d <= t) out.push(i);
-  }
-  return out;
-}
-function newList(){
-  const out = [];
-  for(let i=0;i<DECK.length && out.length < 400;i++) if(!S.cards[i]) out.push(i);
-  return out;
-}
-function newRemaining(){ return Math.max(0, S.settings.newPer - S.newDone); }
-function learnedCount(){ let n=0; for(const k in S.cards) if(S.cards[k].b >= 3) n++; return n; }
-
-function buildQueue(){
-  const due = dueList();
-  for(let i=due.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [due[i],due[j]]=[due[j],due[i]]; }
-  const fresh = newList().slice(0, newRemaining());
-  const q = due.slice();
-  if(fresh.length){
-    const step = Math.max(1, Math.floor((q.length + fresh.length) / fresh.length));
-    let pos = 0;
-    for(const id of fresh){ q.splice(Math.min(pos, q.length), 0, id); pos += step + 1; }
-  }
-  queue = q;
+function esc(s) {
+  var d = document.createElement("div"); d.textContent = s; return d.innerHTML;
 }
 
-function grade(id, ok){
-  const isNew = !S.cards[id];
-  const c = S.cards[id] || {b:0,d:today(),r:0,l:0};
-  c.r++;
-  if(ok){
-    c.b = Math.min(IVL.length-1, Math.max(1, c.b + 1));
-    c.d = today() + IVL[c.b];
-  }else{
-    c.b = 0; c.d = today(); c.l++;
-    S.missToday++;
-    const at = Math.min(queue.length, 4 + ((Math.random()*3)|0));
-    queue.splice(at, 0, id);
-  }
-  S.cards[id] = c;
-  if(isNew) S.newDone++;
-  save();
-  return c;
-}
-function nextInterval(c){
-  if(c.b === 0) return "again this session";
-  const d = IVL[c.b];
-  if(d === 1) return "again tomorrow";
-  if(d < 30) return "again in " + d + " days";
-  return "again in " + Math.round(d/30) + " months";
-}
-
-/* ================= grading ================= */
-function norm(s){
-  return (s||"").toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-z0-9ñ ]/g," ")
-    .replace(/\s+/g," ").trim();
-}
-function stripLead(s){ return s.replace(/^(el|la|los|las|un|una|unos|unas)\s+/,""); }
-let REAL = null;
-function realWords(){
-  if(REAL) return REAL;
-  REAL = new Set();
-  for(const c of DECK) for(const a of c.es) REAL.add(norm(a));
-  return REAL;
-}
-function lev(a,b){
-  const m=a.length,n=b.length;
-  if(!m) return n; if(!n) return m;
-  let prev=Array.from({length:n+1},(_,i)=>i), curr=new Array(n+1);
-  for(let i=1;i<=m;i++){
-    curr[0]=i;
-    for(let j=1;j<=n;j++) curr[j]=Math.min(prev[j]+1, curr[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1));
-    [prev,curr]=[curr,prev];
-  }
-  return prev[n];
-}
-function tolerance(w){ return w.length<=5?0 : w.length<=8?1 : 2; }
-
-function checkOne(said, card){
-  const raw = norm(said);
-  if(!raw) return {ok:false};
-  const tries = raw === stripLead(raw) ? [raw] : [raw, stripLead(raw)];
-  for(const heard of tries){
-    for(const ans of card.es){
-      const a = norm(ans);
-      if(heard === a || heard === a.replace(/ (de|a|que)$/,"")) return {ok:true, matched:ans};
-      if(new RegExp("(^| )"+a.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"( |$)").test(heard)) return {ok:true, matched:ans};
-    }
-  }
-  for(const heard of tries){
-    if(realWords().has(heard)) continue;
-    for(const ans of card.es){
-      const a = norm(ans);
-      if(lev(heard, a) <= tolerance(a)) return {ok:true, matched:ans, close:true};
-    }
-  }
-  return {ok:false};
-}
-function check(alts, card){
-  for(const a of alts){ const r = checkOne(a, card); if(r.ok) return r; }
-  return {ok:false};
-}
-
-/* voice commands, so you never have to touch the screen */
-const CMD = {
-  repeat:["repite","repetir","otra vez","repeat","again","say it again"],
-  skip:["salta","saltar","skip","pasa","next","siguiente"],
-  stop:["para","parar","alto","stop","pause","pausa"],
-  reveal:["no sé","no se","no lo sé","dime","i dont know","i don't know","tell me","pass"]
-};
-function commandIn(alts){
-  for(const a of alts){
-    const n = norm(a);
-    for(const k in CMD) for(const p of CMD[k]) if(n === norm(p)) return k;
-  }
-  return null;
-}
-
-/* ================= audio ================= */
-let AC = null;
-function ac(){
-  if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
-  if(AC && AC.state === "suspended") AC.resume();
-  return AC;
-}
-function tone(freq, ms, vol, when){
-  const c = ac(); if(!c) return;
-  const t = c.currentTime + (when||0);
-  const o = c.createOscillator(), g = c.createGain();
-  o.type = "sine"; o.frequency.value = freq;
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(vol, t + 0.012);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + ms/1000);
-  o.connect(g); g.connect(c.destination);
-  o.start(t); o.stop(t + ms/1000 + 0.03);
-}
-const cueGo      = ()=>{ tone(1180, 70, .10); };
-const cueCorrect = ()=>{ tone(760, 90, .16); tone(1140, 130, .16, .085); };
-const cueWrong   = ()=>{ tone(240, 240, .17); };
-const cueEnd     = ()=>{ tone(660,120,.14); tone(520,120,.14,.13); tone(400,220,.14,.26); };
-
-/* ================= speech out ================= */
-let voices = [];
-function loadVoices(){ try{ voices = speechSynthesis.getVoices()||[]; }catch(e){ voices=[]; } }
-if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
-
-function speak(text, lang){
-  return new Promise(res=>{
-    if(!window.speechSynthesis || !text){ res(); return; }
-    let done = false;
-    const finish = ()=>{ if(!done){ done = true; res(); } };
-    try{
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang;
-      const v = voices.find(v=>v.lang && v.lang.replace("_","-").toLowerCase() === lang.toLowerCase())
-             || voices.find(v=>v.lang && v.lang.toLowerCase().startsWith(lang.slice(0,2)));
-      if(v) u.voice = v;
-      u.rate = lang.startsWith("es") ? 0.9 : 1;
-      u.onend = finish; u.onerror = finish;
-      speechSynthesis.speak(u);
-      setTimeout(finish, 1400 + text.length * 95);   // some browsers never fire onend
-    }catch(e){ finish(); }
-  });
-}
-const sleep = ms => new Promise(r=>setTimeout(r, ms));
-
-/* ================= speech in ================= */
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const VOICE_OK = !!SR;
-let rec = null, listening = false, lastSRError = "";
-
-// resolves to: array of transcripts | null (silence) | "BLOCKED" (no mic access)
-function listenOnce(ms){
-  return new Promise(resolve=>{
-    if(!VOICE_OK){ resolve("BLOCKED"); return; }
-    const deadline = Date.now() + ms;
-    let settled = false, restarts = 0, closing = false, timer = null;
-
-    const done = (v)=>{
-      if(settled) return; settled = true;
-      clearTimeout(timer); listening = false; stopMeter();
-      try{ if(rec){ rec.onresult = rec.onend = rec.onerror = rec.onstart = null; rec.abort(); } }catch(e){}
-      resolve(v);
-    };
-
-    const spin = ()=>{
-      if(settled || closing) return;
-      if(deadline - Date.now() < 500){ done(null); return; }
-      try{ rec = new SR(); }catch(e){ done("BLOCKED"); return; }
-      rec.lang = S.settings.dialect;
-      rec.interimResults = true;
-      rec.maxAlternatives = 5;
-      rec.continuous = false;
-
-      rec.onstart = ()=>{ listening = true; if(restarts === 0) startMeter(ms); setStatus("Listening"); };
-      rec.onresult = (e)=>{
-        let interim = "";
-        for(let i=e.resultIndex;i<e.results.length;i++){
-          const r = e.results[i];
-          if(r.isFinal){
-            const alts = [];
-            for(let k=0;k<r.length;k++) alts.push(r[k].transcript);
-            closing = true;
-            done(alts);
-            return;
-          }
-          interim += r[0].transcript;
-        }
-        const el = document.getElementById("heard");
-        if(el) el.textContent = interim;
-      };
-      rec.onerror = (e)=>{
-        if(e.error && e.error !== "no-speech") lastSRError = e.error;
-        // only a permission failure is fatal; no-speech / aborted / network get another turn
-        if(e.error === "not-allowed" || e.error === "service-not-allowed"){
-          micBlocked = true; closing = true; done("BLOCKED");
-        }
-      };
-      rec.onend = ()=>{
-        listening = false;
-        if(settled || closing) return;
-        if(restarts++ < 100) setTimeout(spin, 140);  // deadline is the authority, not the retry count
-        else done(null);
-      };
-      try{ rec.start(); }catch(e){
-        // start() throws if the previous instance hasn't released yet — back off and retry
-        if(restarts++ < 100) setTimeout(spin, 200); else done("BLOCKED");
-      }
-    };
-
-    timer = setTimeout(()=>{
-      closing = true;
-      try{ rec && rec.stop(); }catch(e){}
-      setTimeout(()=>done(null), 500);
-    }, ms);
-    spin();
-  });
-}
-// iOS keyboard dictation types into the field. Wait for it to go quiet, then submit.
-function awaitDictation(ms){
-  return new Promise(resolve=>{
-    const inp = document.getElementById("typed");
-    if(!inp){ resolve(null); return; }
-    inp.value = ""; try{ inp.focus(); }catch(e){}
-    setStatus("Dictate the answer");
-    let settled = false, quiet = null;
-    const fin = (v)=>{
-      if(settled) return; settled = true;
-      clearTimeout(quiet); clearTimeout(cap); inp.oninput = null; inp.onkeydown = null;
-      resolve(v);
-    };
-    const cap = setTimeout(()=>fin(null), ms + 5000);
-    inp.oninput = ()=>{
-      clearTimeout(quiet);
-      quiet = setTimeout(()=>{ const v = inp.value.trim(); if(v) fin([v]); }, 1300);
-    };
-    inp.onkeydown = (e)=>{ if(e.key === "Enter"){ const v = inp.value.trim(); if(v) fin([v]); } };
+/* ---- the wire -------------------------------------------------------- */
+function call(path, method, body) {
+  return fetch(SYNC_URL + path, {
+    method: method || "GET",
+    headers: {"Authorization": "Bearer " + key,
+              "Content-Type": "application/json"},
+    body: body === undefined ? undefined : JSON.stringify(body)
+  }).then(function (r) {
+    return r.json().then(function (d) { return {status: r.status, body: d}; });
   });
 }
 
-function abortListen(){ try{ rec && rec.abort(); }catch(e){} listening = false; stopMeter(); }
-
-/* ---- level meter ---- */
-const SEGS = 22;
-let analyser=null, micStream=null, meterRAF=null, meterStart=0, meterSpan=6000;
-let meterDisabled = /iPad|iPhone|iPod/.test(navigator.userAgent);
-async function ensureMeter(){
-  if(analyser || meterDisabled) return;
-  try{
-    micStream = await navigator.mediaDevices.getUserMedia({audio:true});
-    const c = ac(); if(!c){ meterDisabled = true; return; }
-    const src = c.createMediaStreamSource(micStream);
-    analyser = c.createAnalyser(); analyser.fftSize = 512;
-    src.connect(analyser);
-  }catch(e){ meterDisabled = true; }
+function wire(state, text) {
+  $("wire_dot").className = "dot" + (state ? " " + state : "");
+  $("wire_text").textContent = text;
 }
-function paintMeter(n, warm){
-  const segs = document.querySelectorAll(".seg");
-  for(let i=0;i<segs.length;i++){
-    segs[i].classList.toggle("on", i < n);
-    segs[i].classList.toggle("warm", warm && i < n);
+
+function loadState() {
+  if (!key) {
+    wire("off", "this browser only");
+    var raw = store(LOCAL_STORE);
+    if (raw) return Promise.resolve(JSON.parse(raw));
+    // Whatever the Leitner version left in this browser. Its cards are keyed
+    // by deck position and carry a box number rather than an ease, and both
+    // are shapes `Progress` already knows how to read.
+    var old = store(OLD_STORE);
+    return Promise.resolve(old ? JSON.parse(old) : {});
   }
+  return call("/state").then(function (r) {
+    if (r.status !== 200) throw new Error("key refused (" + r.status + ")");
+    version = r.body.version;
+    wire("on", "shared with the app · v" + version);
+    return r.body.state || {};
+  });
 }
-function startMeter(ms){
-  meterStart = Date.now(); meterSpan = ms || 6000;
-  const tick = ()=>{
-    if(!listening) return;
-    if(analyser){
-      const buf = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteTimeDomainData(buf);
-      let peak = 0;
-      for(let i=0;i<buf.length;i++){ const v = Math.abs(buf[i]-128)/128; if(v>peak) peak=v; }
-      paintMeter(Math.min(SEGS, Math.round(peak * SEGS * 2.6)), false);
-    }else{
-      const left = 1 - Math.min(1, (Date.now()-meterStart)/meterSpan);
-      paintMeter(Math.round(left * SEGS), true);
-    }
-    meterRAF = requestAnimationFrame(tick);
-  };
-  cancelAnimationFrame(meterRAF); tick();
-}
-function stopMeter(){ cancelAnimationFrame(meterRAF); paintMeter(0,false); }
 
-/* ================= the loop ================= */
-let micBlocked = false;
-let phase = "idle";
-
-function setStatus(t){ statusText = t; const e = document.getElementById("status"); if(e) e.textContent = t; }
-
-async function runLoop(){
-  while(running){
-    if(!queue.length) buildQueue();
-    if(!queue.length){
-      running = false; phase = "done"; lastResult = null; render();
-      cueEnd(); await speak("Queue clear.", "en-US");
-      return;
-    }
-    cur = queue.shift();
-    const card = DECK[cur];
-    lastHeard = ""; lastResult = null; phase = "ask";
-    render();
-
-    setStatus("Speaking");
-    await speak(card.en.replace(/\s*\(.*?\)\s*/g," ").trim(), "en-US");
-    if(!running) return;
-    await sleep(150);                       // let the synth release the mic
-    if(!running) return;
-
-    const winMs = S.settings.window * 1000;
-    let res = null, silent = 0, revealed = false;
-
-    while(running && !res && !revealed){
-      cueGo();
-      const t0 = Date.now();
-      const alts = dictMode ? await awaitDictation(winMs) : await listenOnce(winMs);
-      if(!running) return;
-
-      if(alts === "BLOCKED"){ voiceFail("blocked"); return; }
-      // a window that shut almost immediately means the recognizer never really opened
-      if(!dictMode && alts === null && Date.now() - t0 < winMs * 0.5){
-        if(++fastFails >= 2){ voiceFail("unreliable"); return; }
-      }else{
-        fastFails = 0;
+/* Every save sends the whole state, so a failed one is repaired by the next.
+   A refusal means somebody else wrote first: take their copy, put back the
+   cards this session actually touched, and offer it again. That is the same
+   rule the desktop merges by, narrowed to what a browser can know. */
+function save() {
+  var state = progress.toState();
+  if (!key) { store(LOCAL_STORE, JSON.stringify(state)); return Promise.resolve(); }
+  return call("/state", "PUT", {state: state, base: version})
+    .then(function (r) {
+      if (r.status === 200) {
+        version = r.body.version; offline = false;
+        wire("on", "shared with the app · v" + version);
+        return;
       }
-
-      if(alts === null){
-        silent++;
-        if(silent === 1){ setStatus("Didn't catch that"); await sleep(250); continue; }
-        revealed = true; break;             // two silences: treat as a miss
+      if (r.status === 409) {
+        var theirs = r.body.state || {};
+        Object.keys(touched).forEach(function (id) {
+          theirs.cards = theirs.cards || {};
+          theirs.cards[id] = state.cards[id];
+        });
+        version = r.body.version;
+        return call("/state", "PUT", {state: theirs, base: version})
+          .then(function (again) {
+            if (again.status === 200) {
+              version = again.body.version;
+              progress = new D.Progress(deck, theirs);
+              wire("on", "shared with the app · v" + version);
+            }
+          });
       }
-      lastHeard = alts[0] || "";
-      const cmd = commandIn(alts);
-      if(cmd === "stop"){ running = false; phase = "ask"; setStatus("Paused"); render(); return; }
-      if(cmd === "skip"){ res = "skip"; break; }
-      if(cmd === "reveal"){ revealed = true; break; }
-      if(cmd === "repeat"){
-        setStatus("Speaking");
-        await speak(card.en.replace(/\s*\(.*?\)\s*/g," ").trim(), "en-US");
-        await sleep(150); silent = 0; continue;
-      }
-      res = check(alts, card);
-      render();
-    }
-    if(!running) return;
-
-    if(res === "skip"){ queue.push(cur); continue; }
-
-    const ok = !!(res && res.ok);
-    const c = grade(cur, ok);
-    lastResult = {ok, said:lastHeard, card, c, close: res && res.close, silent: revealed && !lastHeard};
-    phase = "show";
-    render();
-
-    if(ok){
-      cueCorrect(); setStatus("Correct");
-      if(S.settings.hints) await speak(card.es[0], S.settings.dialect);
-      await sleep(S.settings.hints ? 250 : 700);
-    }else{
-      cueWrong(); setStatus("Missed");
-      await sleep(200);
-      await speak(card.es[0] + ". " + card.ex, S.settings.dialect);
-      await sleep(350);
-    }
-  }
-}
-
-let fastFails = 0, voiceError = "", crashMsg = "";
-let dictMode = false;
-
-function voiceFail(kind){
-  running = false; voiceError = kind; abortListen();
-  try{ speechSynthesis.cancel(); }catch(e){}
-  setStatus("Mic unavailable");
-  phase = cur == null ? "idle" : "ask";
-  render();
-}
-
-// Ask for the mic so the permission prompt appears, but never let this block the loop —
-// in a frame, getUserMedia can hang without ever resolving or rejecting.
-function requestMic(){
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return Promise.resolve(false);
-  // 60s, not 4s: on a first run this races a permission dialog the user is still reading.
-  const timeout = new Promise(r=>setTimeout(()=>r("timeout"), 60000));
-  return Promise.race([navigator.mediaDevices.getUserMedia({audio:true}), timeout])
-    .then(s=>{
-      if(s === "timeout" || !s) return false;
-      if(meterDisabled){ s.getTracks().forEach(t=>t.stop()); return true; }  // iOS: release so it can't fight the recognizer
-      micStream = s;
-      try{
-        const c = ac();
-        const src = c.createMediaStreamSource(s);
-        analyser = c.createAnalyser(); analyser.fftSize = 512;
-        src.connect(analyser);
-      }catch(e){ meterDisabled = true; }
-      return true;
+      throw new Error("save refused (" + r.status + ")");
     })
-    .catch(e=>{
-      if(e && (e.name === "NotAllowedError" || e.name === "SecurityError")) micBlocked = true;
-      return false;
+    .catch(function () {
+      offline = true;
+      wire("off", "cannot reach the database");
     });
 }
 
-async function start(){
-  ac();
-  if(window.speechSynthesis){ try{ speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); }catch(e){} }
-  voiceError = ""; fastFails = 0;
-  if(!queue.length) buildQueue();
-  running = true;
-  setStatus("Starting");
-  // Wait for the permission dialog to settle. Fire-and-forget meant the first
-  // run listened while the dialog was still up, and heard nothing.
-  await requestMic();
-  if(!running) return;                // paused while the dialog was open
-  runLoop().catch(err=>{              // never fail silently
-    console.error(err);
-    crashMsg = (err && err.message) || String(err);
-    voiceFail("crash");
+/* ---- the panel ------------------------------------------------------- */
+function panel() {
+  var parts = progress.queueParts();
+  var due = parts.due.length + parts.fresh.length;
+  $("c_learned").textContent = progress.new_done;
+  $("l_learned").textContent = "LEARNED · " + progress.newRemaining() + "/" +
+                               progress.new_per + " LEFT";
+  $("c_reviews").textContent = progress.reviews_done;
+  $("c_due").textContent = due;
+  $("l_due").textContent = parts.fresh.length
+    ? "IN QUEUE · " + parts.fresh.length + " NEW" : "IN QUEUE";
+  $("c_missed").textContent = progress.missed_today;
+  $("c_learning").textContent = progress.learningCount();
+  $("l_learning").textContent = "LEARNING · " + progress.matureCount() + " MATURE";
+
+  var rungs = progress.ladderSteps();
+  $("ladder").innerHTML = rungs.length
+    ? rungs.map(function (r) {
+        return '<span class="rung">' + esc(r[0]) + "<b>" + r[1] + "</b></span>";
+      }).join("")
+    : "nothing scheduled yet";
+  var share = progress.kept + progress.overturned;
+  $("tally").textContent = progress.overturned + " OVERTURNED  ·  " +
+    progress.kept + " KEPT" + (share
+      ? "  (" + Math.round(100 * progress.overturned / share) +
+        "% of misses were the local model)" : "");
+
+  $("n_words").innerHTML = due + "<small>DUE</small>";
+  // Only when idle. While a drill runs the same corner carries what the drill
+  // is doing, and the two were printing over each other.
+  if (!running) $("status").textContent = due + " words due";
+}
+
+function fillSettings() {
+  var counts = {}, i;
+  for (i = 0; i < deck.length; i++) {
+    counts[deck[i].pos] = (counts[deck[i].pos] || 0) + 1;
+  }
+  var order = Object.keys(counts).sort(function (a, b) {
+    return counts[b] - counts[a];
   });
-}
-function pause(){
-  running = false; abortListen();
-  try{ speechSynthesis.cancel(); }catch(e){}
-  setStatus("Paused"); render();
-}
-
-/* manual override, for when the mic isn't available */
-function manualGrade(ok){
-  if(cur == null) return;
-  const c = grade(cur, ok);
-  lastResult = {ok, said:"", card:DECK[cur], c};
-  phase = "show"; render();
-}
-function submitTyped(){
-  const el = document.getElementById("typed");
-  if(!el || !el.value.trim() || cur == null) return;
-  const r = checkOne(el.value.trim(), DECK[cur]);
-  const c = grade(cur, r.ok);
-  lastResult = {ok:r.ok, said:el.value.trim(), card:DECK[cur], c, close:r.close};
-  phase = "show"; render();
-}
-function manualNext(){
-  if(!queue.length) buildQueue();
-  if(!queue.length){ phase = "done"; render(); return; }
-  cur = queue.shift(); phase = "ask"; lastResult = null; lastHeard = ""; render();
-  speak(DECK[cur].en.replace(/\s*\(.*?\)\s*/g," ").trim(), "en-US");
+  var options = ['<option value="all">everything (' + deck.length + ')</option>'];
+  order.forEach(function (pos) {
+    options.push('<option value="' + esc(pos) + '">' + esc(pos) + "s only (" +
+                 counts[pos] + ")</option>");
+  });
+  $("category").innerHTML = options.join("");
+  $("category").value = progress.category || "all";
+  $("new_per").value = progress.new_per;
+  $("dialect").value = progress.dialect;
 }
 
-/* ================= render ================= */
-function el(tag, cls, html){ const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
-function esc(s){ return (s||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m])); }
+/* ---- the drill ------------------------------------------------------- */
+var TABS = ["drill", "progress", "settings"];
+function openTab(which) {
+  TABS.forEach(function (t) {
+    $("tab_" + t).setAttribute("aria-selected", String(t === which));
+    $("page_" + t).classList.toggle("on", t === which);
+  });
+  if (which === "drill" && running) $("box").focus();
+}
+TABS.forEach(function (t) { $("tab_" + t).onclick = function () { openTab(t); }; });
 
-function render(){
-  document.getElementById("cNew").textContent   = newRemaining();
-  document.getElementById("cDue").textContent   = queue.length;
-  document.getElementById("cMiss").textContent  = S.missToday;
-  document.getElementById("cKnown").textContent = learnedCount();
-
-  const stage = document.getElementById("stage");
-  const ctrl  = document.getElementById("controls");
-  stage.innerHTML = ""; ctrl.innerHTML = "";
-
-  if(phase === "idle" || (phase === "done" && !running)){
-    const d = el("div","done");
-    if(phase === "done"){
-      const t = today(); let soon = 0;
-      for(const k in S.cards) if(S.cards[k].d === t+1) soon++;
-      d.innerHTML = "<h2>Queue clear.</h2><p>" + soon + " word" + (soon===1?"":"s") + " come back tomorrow."
-        + (newRemaining()>0 ? " " + newRemaining() + " new words still available today." : " Today's new-word cap is reached — that cap is what keeps tomorrow survivable.") + "</p>";
-    }else{
-      d.innerHTML = "<h2>Hands free.</h2><p>Press go, put the phone down. It says an English word, waits for you to say the Spanish, chimes, and moves on. Miss one and it reads you the answer and a sentence, then brings the word back a few cards later.</p><p style='font-size:12px'>Say <b>skip</b>, <b>repeat</b>, <b>I don't know</b>, or <b>stop</b> at any time.</p>";
-    }
-    stage.appendChild(d);
-    const b = el("button","btn primary go", phase==="done" ? "Keep going" : "Go");
-    b.onclick = ()=>{ if(phase==="done" && newRemaining()<=0) S.settings.newPer += 10; phase="ask"; start(); };
-    ctrl.appendChild(b);
-    if(!VOICE_OK) ctrl.appendChild(el("div","hint","This browser has no speech recognition, so you'll type or self-grade. Chrome and Safari support voice."));
-    else{
-      const mt = el("button","btn ghost","Test the mic");
-      let micReady = false;
-      mt.onclick = async ()=>{
-        ac();
-        // First press: just settle permission. The iOS dialog would otherwise sit on
-        // screen for the whole listening window, and every test would hear nothing.
-        if(!micReady){
-          mt.textContent = "Allow the mic…";
-          micReady = await requestMic();
-          mt.textContent = micReady ? "Mic ready — press again to test"
-                                    : "Mic blocked — Settings › Safari › Microphone";
-          return;
-        }
-        mt.textContent = "Say anything…";
-        lastSRError = "";
-        const r = await listenOnce(5000);
-        mt.textContent = r === "BLOCKED" ? "Mic blocked — Settings › Safari › Microphone"
-                       : r === null      ? ("Heard nothing" + (lastSRError ? " (" + lastSRError + ")" : "") + ". Try again")
-                       : "Heard: " + r[0];
-      };
-      ctrl.appendChild(mt);
-      // iOS backs the Web Speech API with Apple's dictation service. When that is
-      // off or uncooperative the recognizer just ends with no result, which never
-      // trips the "blocked" path, so this fallback has to be reachable from here.
-      const dm = el("button","btn ghost","Use keyboard dictation instead");
-      dm.onclick = ()=>{ dictMode = true; voiceError = ""; micBlocked = false; phase="ask"; start(); };
-      ctrl.appendChild(dm);
-      ctrl.appendChild(el("div","hint","If the mic test hears nothing, check Settings › General › Keyboard › Enable Dictation. Failing that, use dictation mode above and tap the mic key on your keyboard."));
-      ctrl.appendChild(el("div","hint","Headphones help — they stop the mic from hearing the app read the answer."));
-    }
+function start() {
+  progress.rollOver();
+  queue = progress.buildQueue();
+  if (!queue.length) {
+    $("cue").textContent = progress.whyNothingIsDue();
+    $("label").textContent = "NOTHING DUE";
+    $("note").textContent = "";
     return;
   }
-
-  const card = cur!=null ? DECK[cur] : null;
-  const screen = el("div","screen" + (running ? " live" : ""));
-  const tag = el("div","tag");
-  const c = cur!=null ? S.cards[cur] : null;
-  const state = cur==null ? "" : (!c || c.r<=1 ? "New word" : (c.b === 0 ? "Relearning" : "Review · box " + c.b));
-  tag.innerHTML = "<span>" + state + '</span><span id="status">' + esc(statusText) + "</span>";
-  screen.appendChild(tag);
-  screen.appendChild(el("div","prompt" + (card && card.en.length > 22 ? " small" : ""), card ? esc(card.en) : ""));
-
-  const meter = el("div","meter");
-  for(let i=0;i<SEGS;i++) meter.appendChild(el("div","seg"));
-  screen.appendChild(meter);
-  const ml = el("div","meterlabel");
-  ml.innerHTML = '<span>Say it in Spanish</span><span class="heard" id="heard">' + esc(lastHeard) + '</span>';
-  screen.appendChild(ml);
-  stage.appendChild(screen);
-
-  if(phase === "show" && lastResult){
-    const r = lastResult;
-    const s = el("div","slip " + (r.ok ? "ok" : "no"));
-    let v = r.ok ? "Correct" : (r.silent ? "No answer — counted as a miss" : "Missed");
-    if(r.ok && r.close) v = "Correct — check the spelling";
-    s.appendChild(el("div","verdict", v));
-    s.appendChild(el("div","answer", esc(r.card.es[0])));
-    if(r.card.es.length > 1) s.appendChild(el("div","alt","also: " + r.card.es.slice(1).map(esc).join(", ")));
-    if(r.said) s.appendChild(el("div","alt","you said: " + esc(r.said)));
-    s.appendChild(el("div","ex", esc(r.card.ex)));
-    s.appendChild(el("div","gl", esc(r.card.gl)));
-    const sch = el("div","sched");
-    sch.innerHTML = "<span>" + nextInterval(r.c) + "</span>";
-    const sp = el("button","speak","Hear it again");
-    sp.onclick = ()=> speak(r.card.es[0] + ". " + r.card.ex, S.settings.dialect);
-    sch.appendChild(sp);
-    s.appendChild(sch);
-    stage.appendChild(s);
-  }
-
-  if(running){
-    if(dictMode){
-      const i = document.createElement("input");
-      i.type="text"; i.id="typed"; i.placeholder="tap the mic on your keyboard, then speak";
-      i.autocapitalize="off"; i.autocomplete="off"; i.spellcheck=false;
-      ctrl.appendChild(i);
-      if(phase === "ask") setTimeout(()=>{ const x=document.getElementById("typed"); x && x.focus(); }, 20);
-    }
-    const b = el("button","btn primary live","Pause");
-    b.onclick = pause;
-    ctrl.appendChild(b);
-    ctrl.appendChild(el("div","hint", dictMode
-      ? "Keep the keyboard mic on. It submits on its own when you stop talking."
-      : "or just say \u201cstop\u201d"));
-    return;
-  }
-
-  // paused / manual
-  const b = el("button","btn primary go","Resume");
-  b.onclick = start;
-  ctrl.appendChild(b);
-
-  if(phase === "show"){
-    const n = el("button","btn ghost","Next word"); n.onclick = manualNext;
-    ctrl.appendChild(n);
-  }else if(cur != null){
-    const i = document.createElement("input");
-    i.type="text"; i.id="typed"; i.placeholder="or type the answer";
-    i.autocapitalize="off"; i.autocomplete="off"; i.spellcheck=false;
-    i.onkeydown = (e)=>{ if(e.key==="Enter") submitTyped(); };
-    ctrl.appendChild(i);
-    const row = el("div","row");
-    const g = el("button","btn ghost","Check"); g.onclick = submitTyped;
-    const no = el("button","btn ghost","Show me"); no.onclick = ()=> manualGrade(false);
-    row.appendChild(g); row.appendChild(no);
-    ctrl.appendChild(row);
-  }
-  if(voiceError === "blocked"){
-    const a = el("div","alert","<b>The mic is blocked here.</b> Browsers only grant microphone access over https, so this frame — and a downloaded copy opened as a local file — both get refused. Two things do work: put the file on any https address, or use your keyboard's dictation mic in the mode below.");
-    ctrl.appendChild(a);
-    const d = el("button","btn primary","Run in dictation mode");
-    d.onclick = ()=>{ dictMode = true; voiceError = ""; micBlocked = false; start(); };
-    ctrl.appendChild(d);
-  }else if(voiceError === "crash"){
-    ctrl.appendChild(el("div","alert","<b>Something threw an error.</b> " + esc(crashMsg) + " — the loop stopped rather than pretending to work. Type your answers below, or reload the page."));
-  }else if(voiceError === "unreliable"){
-    ctrl.appendChild(el("div","alert","<b>Speech recognition isn't responding.</b> The listening window kept closing instantly, so I stopped rather than marking words wrong that you never got a chance to say. Open this file directly in Chrome or Safari, or type your answers."));
-  }
+  running = true; asked = 0; total = queue.length; held = false;
+  $("running").style.display = "grid";
+  $("legend").textContent = "SWITCH DRILL";
+  $("mode").textContent = "WORDS";
+  $("box").disabled = false;
+  $("track").style.display = "block";
+  openTab("drill");
+  next();
 }
 
-/* ================= panels ================= */
-function syncGroups(){
-  const map = {dialectGroup:"dialect", newGroup:"newPer", winGroup:"window", hintGroup:"hints"};
-  for(const gid in map){
-    const g = document.getElementById(gid); if(!g) continue;
-    [...g.children].forEach(b=>{
-      const v = b.dataset.v, cv = String(S.settings[map[gid]]);
-      b.setAttribute("aria-pressed", v === cv ? "true":"false");
-      b.onclick = ()=>{ S.settings[map[gid]] = (gid==="dialectGroup") ? v : Number(v); save(); syncGroups(); };
-    });
-  }
+function stop() {
+  running = false; current = null; held = false;
+  $("running").style.display = "none";
+  $("legend").textContent = "CHOOSE A DRILL";
+  $("mode").textContent = "";
+  $("box").disabled = true; $("box").value = "";
+  $("track").style.display = "none"; $("count").textContent = "";
+  $("cue").textContent = "Pick a drill to start.";
+  $("label").textContent = ""; $("note").textContent = "";
+  $("slip").style.display = "none";
+  panel();
+  save();
 }
-document.getElementById("btnSet").onclick = ()=>{ syncGroups(); document.getElementById("setPanel").hidden = false; };
-document.getElementById("btnClose").onclick = ()=>{ document.getElementById("setPanel").hidden = true; };
-document.getElementById("setPanel").onclick = (e)=>{ if(e.target.id==="setPanel") e.currentTarget.hidden = true; };
-document.getElementById("btnReset").onclick = async ()=>{
-  if(!confirm("Erase all progress and start from zero?")) return;
-  pause();
-  S.cards = {}; S.newDone = 0; S.missToday = 0; queue = []; phase = "idle"; cur = null;
-  await store.set(KEY, JSON.stringify(S));
-  document.getElementById("setPanel").hidden = true; render();
-};
 
-document.getElementById("btnLog").onclick = ()=>{
-  const body = document.getElementById("logBody");
-  const rows = Object.keys(S.cards).map(Number).filter(i=>S.cards[i].l>0).sort((a,b)=> S.cards[b].l - S.cards[a].l);
-  if(!rows.length){
-    body.innerHTML = '<p class="empty">Nothing here yet. Words you get wrong land on this list with a count, so you can see which ones keep beating you.</p>';
-  }else{
-    const t = document.createElement("table"); t.className="log";
-    rows.slice(0,80).forEach(i=>{
-      const tr = t.insertRow();
-      tr.insertCell().outerHTML = '<td class="w">'+esc(DECK[i].es[0])+'<div style="font-family:var(--mono);font-size:11.5px;color:var(--mute);font-weight:400;margin-top:2px">'+esc(DECK[i].en)+'</div></td>';
-      tr.insertCell().outerHTML = '<td class="n">'+S.cards[i].l+' miss'+(S.cards[i].l===1?"":"es")+'</td>';
-    });
-    body.innerHTML = ""; body.appendChild(t);
-  }
-  document.getElementById("logPanel").hidden = false;
-};
-document.getElementById("btnCloseLog").onclick = ()=>{ document.getElementById("logPanel").hidden = true; };
-document.getElementById("logPanel").onclick = (e)=>{ if(e.target.id==="logPanel") e.currentTarget.hidden = true; };
+function next() {
+  $("slip").style.display = "none";
+  if (!queue.length) { finish(); return; }
+  current = queue.shift();
+  var card = deck[current];
+  var state = progress.cards[current];
+  $("label").textContent = D.describeState(state).toUpperCase();
+  $("cue").textContent = card.en;
+  $("note").textContent = progress.hints && state && state.lapses
+    ? "missed " + state.lapses + "x before" : "";
+  $("count").textContent = asked + " / " + total;
+  $("fill").style.width = total ? (100 * asked / total) + "%" : "0";
+  $("status").textContent = "Type it";
+  askedAt = Date.now();
+  $("box").value = ""; $("box").focus();
+}
 
-document.addEventListener("keydown", (e)=>{
-  if(e.target.tagName === "INPUT") return;
-  if(e.code === "Space"){ e.preventDefault(); running ? pause() : start(); }
+function finish() {
+  $("cue").textContent = "Done for now.";
+  $("label").textContent = "FINISHED";
+  stop();
+}
+
+function answer(text) {
+  var card = deck[current];
+  var blank = !text.trim();
+  var match = blank ? null : D.check(text, card, answers);
+  var elapsed = (Date.now() - askedAt) / 1000;
+  var q = D.typedQuality(!!match, !!(match && match.close), blank, elapsed,
+                         card.answers[0]);
+
+  var state = progress.cards[current];
+  var fresh = !state;
+  if (fresh) state = progress.cards[current] = D.newCard();
+  D.schedule(state, q, D.today());
+  touched[card.id] = true;
+
+  if (fresh) progress.new_done += 1; else progress.reviews_done += 1;
+  if (!match) { progress.missed_today += 1; queue.push(current); }
+  else { asked += 1; }
+
+  var slip = $("slip");
+  slip.style.display = "block";
+  slip.className = "slip" + (match ? "" : " bad");
+  $("verdict").textContent = match
+    ? (match.close ? "CLOSE ENOUGH" : "CORRECT") : "NOT QUITE";
+  $("answer").textContent = card.answers[0] +
+    (card.answers.length > 1 ? "   (also: " + card.answers.slice(1).join(", ") + ")" : "");
+  $("ex").textContent = card.ex || "";
+  $("gl").textContent = card.gl || "";
+  var detail = D.describeInterval(state.interval) + "  ·  ease " +
+               state.ease.toFixed(2);
+  if (!blank && !match) detail += "  ·  you typed: " + text.trim();
+  if (!match) detail += "  ·  press Enter to continue";
+  $("detail").textContent = detail;
+
+  $("count").textContent = asked + " / " + total;
+  $("fill").style.width = total ? (100 * asked / total) + "%" : "0";
+  panel();
+  save();
+
+  /* A miss holds, the same as everywhere else: being shown the answer is not
+     the same as having produced it, and the card goes back in the queue. */
+  held = !match;
+  $("box").value = "";
+  if (held) { $("box").focus(); return; }
+  $("status").textContent = match.close ? "Close enough" : "Right";
+  setTimeout(function () { if (running) next(); }, 850);
+}
+
+$("box").addEventListener("keydown", function (e) {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  if (!running) return;
+  if (held) { held = false; next(); return; }
+  answer($("box").value);
 });
-document.addEventListener("visibilitychange", ()=>{ if(document.hidden && running) pause(); });
+$("go").onclick = start;
+$("stop").onclick = stop;
 
-/* ================= boot ================= */
-(async function(){ await load(); render(); })();
+function settingsChanged() {
+  progress.category = $("category").value;
+  progress.new_per = Math.max(0, Math.min(100, parseInt($("new_per").value, 10) || 0));
+  progress.dialect = $("dialect").value;
+  panel();
+  save();
+}
+["category", "new_per", "dialect"].forEach(function (id) {
+  $(id).addEventListener("change", settingsChanged);
+});
+
+$("connect").onclick = function () {
+  var given = $("key").value.trim();
+  if (!given) return;
+  store(KEY_STORE, given);
+  location.reload();
+};
+$("forget").onclick = function () {
+  store(KEY_STORE, null);
+  location.reload();
+};
+
+/* ---- opening --------------------------------------------------------- */
+function boot() {
+  /* A key in the address is taken once and then kept, so a link can carry it
+     and the address bar does not have to. */
+  var fromUrl = new URLSearchParams(location.search).get("key");
+  if (fromUrl) {
+    store(KEY_STORE, fromUrl);
+    history.replaceState(null, "", location.pathname);
+  }
+  key = store(KEY_STORE) || null;
+
+  fetch("deck.json")
+    .then(function (r) { return r.json(); })
+    .then(function (raw) {
+      deck = raw.map(function (c) {
+        return {id: c.id || c.es[0], en: c.en, answers: c.es, ex: c.ex,
+                gl: c.gl, pos: c.pos || "other", lemma: c.lemma || "",
+                form: c.form || ""};
+      });
+      answers = new Set();
+      deck.forEach(function (c) {
+        c.answers.forEach(function (a) { answers.add(D.normalize(a)); });
+      });
+      return loadState();
+    })
+    .then(function (state) {
+      progress = new D.Progress(deck, state);
+      if (progress.rollOver()) save();
+      fillSettings();
+      panel();
+      $("cue").textContent = "Pick a drill to start.";
+      $("status").textContent = progress.queueParts().due.length + " words due";
+      panel();
+    })
+    .catch(function (e) {
+      $("cue").textContent = "Could not start.";
+      $("note").textContent = String(e.message || e);
+      $("status").textContent = "error";
+      wire("off", String(e.message || e));
+      if (key) openTab("settings");
+    });
+}
+boot();
 </script>
-</body>
-</html>
+</body></html>

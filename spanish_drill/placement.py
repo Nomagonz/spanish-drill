@@ -124,6 +124,11 @@ class PlacementSession(DrillSession):
         per card while you are only being sorted. A miss also gets the word
         itself, so you learn what you failed to produce.
         """
+        if self.typed:
+            # Sorting silently. The slip on screen carries the word, and a
+            # tone would defeat the point of a mode meant for a dinner table.
+            self._emit("on_status", "Correct" if correct else "To learn")
+            return
         if correct:
             self._emit("on_status", "Correct")
             cues.correct()

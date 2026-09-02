@@ -1,0 +1,28 @@
+# The worker in front of the one database.
+#
+# Nothing here refers to any other resource on the account, and nothing here
+# should ever be pointed at one. The binding below is deliberately a single
+# purpose-named database that this project creates for itself.
+
+# Copy this to wrangler.toml and fill both ids in. The real file is kept out
+# of the repository: this one is public, and an account id is not something to
+# publish. Pin the account explicitly rather than leaving it to a prompt if the
+# login can see more than one.
+account_id = ""          # from `wrangler whoami`
+
+name = "spanish-drill-sync"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "spanish-drill-progress"
+# From `wrangler d1 create spanish-drill-progress`. Created new for this
+# project; it is the only database this worker can reach.
+database_id = ""         # from `wrangler d1 create spanish-drill-progress`
+
+# SYNC_TOKEN is a credential and is not kept in this file. Set it with:
+#
+#     wrangler secret put SYNC_TOKEN
+#
+# and give the drill the same value as SPANISH_DRILL_SYNC_TOKEN.

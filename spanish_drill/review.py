@@ -3,7 +3,7 @@
 Most misses are now caught during the session. This exists for anything
 recorded while the live check was off, or before it existed.
 """
-from .answers import AnswerLog
+from .answers import AnswerLog, resolve_index
 from .config import VERIFY_MODEL
 from .deck import load_deck
 from .grading import check, quality
@@ -13,14 +13,22 @@ from .scheduler import (Card, PASSING_QUALITY, migrate, schedule,
 from .transcribe import assert_steer_is_clean, second_opinion
 
 
-def repair(progress, record, new_quality):
+def repair(progress, record, new_quality, index=None):
     """Undo a miss the recogniser invented, without trampling what came after.
 
     Only the interval is restored, and only when the card is still sitting in
     the state that bad miss left it in. If it has been answered correctly since,
     that repetition is real and its scheduling is already right.
+
+    The index is resolved by the caller, never read off the record: the stored
+    position belongs to whatever deck was loaded the day it was written.
     """
-    index = record.get("card_index", record.get("cid"))
+    if index is None:
+        index = resolve_index(record)
+    if index is None:
+        # Silently filing this under None would create a phantom card and
+        # leave the real one unrepaired. Refusing is the safe failure.
+        raise ValueError("cannot tell which card this answer was about")
     card = progress.card_or_new(index)
     unschedule_penalty(card, record["quality"], new_quality)
     restored = card.reps == 0 and card.interval == 0
@@ -52,7 +60,14 @@ def review(model=VERIFY_MODEL, log=None, progress=None, verifier=None):
     buckets = {"overturned": [], "confirmed": [], "unusable": [], "accepted": []}
 
     for record in pending:
-        index = record.get("card_index", record.get("cid"))
+        index = resolve_index(record, deck)
+        if index is None:
+            # The card it was about is not in this deck any more, or the
+            # record is too old to say which one it was. Repairing a guess
+            # would move a schedule that belongs to a different word.
+            record["verdict"] = "unknown-card"
+            buckets["unusable"].append(record)
+            continue
         card = deck[index]
         path = log.audio_path(record)
         if path is None:
@@ -74,7 +89,7 @@ def review(model=VERIFY_MODEL, log=None, progress=None, verifier=None):
         if match and was_miss:
             new_q = quality(True, match.close, False,
                             record["elapsed"], progress.window)
-            _, restored = repair(progress, record, new_q)
+            _, restored = repair(progress, record, new_q, index)
             record.update(verdict="false-miss", corrected_quality=new_q,
                           interval_restored=restored)
             buckets["overturned"].append(record)

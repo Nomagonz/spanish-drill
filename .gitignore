@@ -8,6 +8,8 @@ spanish-voice-drill.html
 .venv/
 progress.json
 progress.json.tmp
+conjugation-progress.json
+conjugation-progress.json.tmp
 __pycache__/
 
 # Recorded answer audio from sessions
@@ -18,3 +20,20 @@ backups/
 
 # Recorded prompt audio, rebuilt on demand
 prompts/
+
+# API-written sentences, capped and cached. Rebuilt on demand.
+sentences-generated.json
+sentences-generated.json.tmp
+
+# The phone key. Anyone holding it can drill the deck.
+.serve-token
+
+# The key to the shared database, and where it lives. Local only: anyone
+# holding the token can read and rewrite the schedule.
+.sync-token
+.sync-url
+
+# The deployed worker's own config. It names a Cloudflare account and a
+# database, this repository is public, and neither is something to publish.
+# worker/wrangler.example.toml is the committed copy, with the ids blank.
+worker/wrangler.toml
