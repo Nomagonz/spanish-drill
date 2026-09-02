@@ -108,13 +108,24 @@ def main(argv=None):
         try:
             _, token = start_server(hub, port=args.port)
         except OSError as exc:
-            # Almost always something already on the port, which usually means
-            # another copy of this app. Worth saying and not worth refusing to
-            # start over: the window on its own is still a drill.
-            print(f"  not serving on {args.port}: {exc}", flush=True)
-        else:
-            for line in where_to_point_a_phone(args.port, token):
-                print(line, flush=True)
+            # Refused rather than carried on with. Something is already on
+            # that port and it is almost always another copy of this, and a
+            # second window is a second drill: two sessions, two cards, and
+            # an answer on one screen doing nothing to the other. That is the
+            # exact fault this is built to make impossible, so it must not be
+            # reachable by running the app twice.
+            print(f"  The drill is already running and serving on "
+                  f"{args.port}.", flush=True)
+            print("  That window and its phone URL are one drill; a second "
+                  "one here would be a separate drill on the same deck.",
+                  flush=True)
+            print("  Use the window that is already open, or close it first. "
+                  f"({exc})", flush=True)
+            print(f"  To run one that serves nothing: ./run.sh --alone",
+                  flush=True)
+            return 1
+        for line in where_to_point_a_phone(args.port, token):
+            print(line, flush=True)
     window.show()
     return app.exec()
 
