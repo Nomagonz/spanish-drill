@@ -212,8 +212,9 @@ button.primary{background:var(--signal); color:#20160A; border:none}
       <span id="wire_text">not connected</span></div>
     <div class="field" style="margin-top:12px">
       <label for="key">DATABASE KEY</label>
-      <input id="key" type="password" placeholder="paste the key"
-       autocomplete="off" spellcheck="false">
+      <input id="key" type="text" placeholder="paste the key here"
+       autocomplete="off" autocorrect="off" autocapitalize="off"
+       spellcheck="false" inputmode="text">
       <div class="hint">With the key, this page drills the same schedule as the
         desktop app and the phone: one database, and what you answer here shows
         up there. Without it, this page keeps its own progress in this browser
