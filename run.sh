@@ -3,7 +3,8 @@
 #
 #   ./run.sh                       drill
 #   ./run.sh --model small         faster, less accurate
-#   ./run.sh --serve               drill from a phone (typed)
+#   ./run.sh --alone               without serving it to anything else
+#   ./run.sh --headless            serve with no window (no microphone)
 #   ./run.sh --review              re-check past answers
 #   ./run.sh --devices             list microphones
 cd "$(dirname "$0")"

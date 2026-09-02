@@ -548,52 +548,21 @@ The account id is pinned in `wrangler.toml` on purpose. This login can see a
 second account holding live business data, and an unpinned command is one
 prompt away from landing there.
 
-## Web version
+## There is no web version any more
 
-`index.html`, live at https://nomagonz.github.io/spanish-drill/
+`index.html` was a page on GitHub Pages that drilled the same schedule from
+its own copy of the rules, so that it kept working with this machine asleep.
+It was removed because it could not do the thing the drill is actually for:
+it ran a session of its own, so it agreed with the window about what you knew
+and sat on a different card. Two screens that cannot answer the same question
+are two drills, whatever they share.
 
-It is no longer a separate program. It reads the same `deck.json`, runs the
-same SM-2 schedule keyed by the same card ids, grades by the same rules, and
-keeps its progress in the same database the window and the phone use. Answer a
-word here and it is answered everywhere.
+What replaced it is the window serving its own drill, which any browser can
+open. That needs this machine awake, and it is the same card on every screen.
 
-What it does not do is the spoken drill, or sentences, placement and
-conjugations. Those stay in the desktop app, and the page says so rather than
-pretending otherwise.
-
-### Why the rules are written twice
-
-The page cannot ask this machine whether an answer was right: the whole point
-of it is to work when this machine is asleep. So `web/drill.js` is a port of
-`text.py`, `grading.py`, `scheduler.py` and the queue-building half of
-`progress.py`.
-
-Two copies of a rule drift. `tests/test_web_port.py` is what stops it: it puts
-the same inputs through both, over the real deck, and fails on any difference.
-Not a spot check — the cases are generated from the deck, and the suite is
-checked by breaking the port on purpose and confirming each break is caught:
-
-    the half-to-even rounding SM-2 intervals land on
-    the silent h, and its exception in "ch"
-    the full list of articles that get stripped
-    the unlock rule, which asks for a right answer and not merely a card
-    the head of a verb's chain, which is the infinitive in the other tracker
-    the order of the persons, and of the tenses
-    the dialect filter that drops vosotros
-
-Each of those was found by a break slipping through a first draft of the tests
-that looked thorough and was not: every state had reps of 1, so "answered
-right" and "seen at all" gave the same answer, and no sequence ever landed on
-a rounding boundary.
-
-### The key
-
-The page is public and the database is not. With a key it drills the shared
-schedule; without one it keeps its own progress in that browser and says so.
-The key is typed in once, kept on the device, and never written into the page.
-
-Progress from the old Leitner version is carried forward rather than dropped:
-those saves keep their rung on the ladder and their lapse history.
+The page and its ported rules are in the history if a standalone version is
+ever wanted again: it worked, and `tests/test_web_port.py` held it to the
+Python it was ported from.
 
 ## Unrelated repo — do not touch
 

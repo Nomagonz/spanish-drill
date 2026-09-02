@@ -31,8 +31,11 @@ def build_parser():
     p.add_argument("--categories", action="store_true",
                    help="list the parts of speech in the deck")
     p.add_argument("--serve", action="store_true",
-                   help="drill from a phone: serves a typed drill over HTTP. "
-                        "Everything stays on this machine.")
+                   help="kept for the habit: the window serves its own drill "
+                        "anyway, so this does what plain ./run.sh does.")
+    p.add_argument("--headless", action="store_true",
+                   help="serve with no window, for a machine with no screen. "
+                        "The drill then has no microphone and is typed only.")
     p.add_argument("--port", type=int, default=8765,
                    help="port for --serve (default: %(default)s)")
     p.add_argument("--alone", action="store_true",
@@ -69,7 +72,7 @@ def main(argv=None):
             print(f"  [{index}] {name}")
         return 0
 
-    if args.serve:
+    if args.headless:
         from .serve import serve
         return serve(port=args.port)
 
@@ -94,6 +97,11 @@ def main(argv=None):
     # One hub, and the window is one of the screens looking at it. Serving it
     # is the default because the alternative is what this used to be: the
     # window drilling one card while every other screen drilled another.
+    #
+    # `--serve` lands here too. It used to mean "serve instead of a window",
+    # which was a second drill on the same deck and the surest way to end up
+    # with two screens on two different cards. There is nothing left for it
+    # to mean that plain `./run.sh` does not already do.
     hub = Hub()
     window = Window(args.model, hub=hub)
     if not args.alone:
