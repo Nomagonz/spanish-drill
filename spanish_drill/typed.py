@@ -149,3 +149,116 @@ class TypedListener:
 
     def close(self):
         pass
+
+
+class SharedListener:
+    """One card, however many screens are looking at it.
+
+    `DrillSession` takes its listener as a plain dependency, so this is
+    another one. It holds whatever this machine listens with — a microphone,
+    or nothing at all — and a queue that any screen can drop an answer into.
+    Whichever arrives first is the answer, and the other is told to give up.
+
+    That is the whole of what makes two screens one drill rather than two.
+    Without it the window and the phone each had to own a session to have
+    somewhere to put an answer, and two sessions cannot be on the same card.
+
+    The inner listener is run on a thread of its own because a microphone
+    blocks while it records: there is no way to wait on audio and on a queue
+    at once without one of them being somewhere else.
+    """
+
+    POLL_SECONDS = 0.05
+
+    def __init__(self, inner=None):
+        self.inner = inner
+        self._typed = queue.Queue()
+        self._paused = threading.Event()
+
+    # -- what any screen calls ---------------------------------------------
+    def submit(self, text):
+        """An answer, from whichever screen was in front of you."""
+        self._typed.put(text or "")
+
+    def clear(self):
+        while True:
+            try:
+                self._typed.get_nowait()
+            except queue.Empty:
+                break
+        if hasattr(self.inner, "clear"):
+            self.inner.clear()
+
+    # -- pausing ------------------------------------------------------------
+    def pause(self):
+        self._paused.set()
+        if hasattr(self.inner, "pause"):
+            self.inner.pause()
+
+    def resume(self):
+        self._paused.clear()
+        if hasattr(self.inner, "resume"):
+            self.inner.resume()
+
+    @property
+    def paused(self):
+        return self._paused.is_set()
+
+    # -- the microphone's shape ---------------------------------------------
+    def listen(self, window=None, should_stop=None, **rest):
+        """Wait for one answer from anywhere. None means silence, or a stop."""
+        done = threading.Event()
+        box = {}
+
+        def enough():
+            return done.is_set() or bool(should_stop and should_stop())
+
+        def run_inner():
+            try:
+                box["said"] = self.inner.listen(window, should_stop=enough, **rest)
+            except Exception:
+                box["said"] = None
+            finally:
+                # Assigned before the flag, so a reader that sees the flag can
+                # rely on the answer being there.
+                done.set()
+
+        worker = None
+        if self.inner is not None:
+            worker = threading.Thread(target=run_inner, daemon=True)
+            worker.start()
+
+        while True:
+            if done.is_set() and "said" in box:
+                return box["said"]          # this machine's own input won
+            try:
+                text = self._typed.get(timeout=self.POLL_SECONDS)
+            except queue.Empty:
+                if should_stop and should_stop():
+                    done.set()
+                    if worker:
+                        worker.join(timeout=1)
+                    return None
+                continue
+            if self.paused:
+                continue        # a held drill takes nothing from any screen
+            done.set()          # tell this machine's own input to give up
+            if worker:
+                worker.join(timeout=1)
+            return (text or "").strip() or None
+
+    # -- the rest of the microphone's surface -------------------------------
+    def calibrate(self):
+        return self.inner.calibrate() if hasattr(self.inner, "calibrate") else 1.0
+
+    def set_device(self, device_name):
+        if hasattr(self.inner, "set_device"):
+            self.inner.set_device(device_name)
+
+    def close(self):
+        if hasattr(self.inner, "close"):
+            self.inner.close()
+
+    @property
+    def last_audio(self):
+        return getattr(self.inner, "last_audio", None)

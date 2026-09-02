@@ -459,6 +459,37 @@ panel had to learn one number it never reported: how many conjugated forms are
 due. Asking costs about two milliseconds, so it is asked every time rather than
 cached into something that can go stale.
 
+## One drill, however many screens
+
+Not one schedule. One session.
+
+The window used to build a session of its own and the phone built another, so
+the two agreed about what you knew and still sat on different cards, each
+waiting for an answer the other could not give. Sharing a database fixes the
+first half of that and none of the second.
+
+`Hub` now owns the session. The window asks it for one and only runs it —
+running is all it was ever doing that the hub could not, because calibrating a
+microphone belongs off the interface. Everything the session emits is fanned
+out to every screen: the window through Qt signals, browsers over HTTP. So the
+window, the phone and a browser show the same card, and an answer from any of
+them is the answer to that card.
+
+    ./run.sh              the window, and its drill served on 8765
+    ./run.sh --alone      the window only
+    ./run.sh --serve      the server only, no window
+
+What made it possible is `SharedListener`. A session takes its listener as a
+plain dependency, so this is another one: it holds this machine's own input —
+a microphone, or nothing — and a queue any screen can drop an answer into,
+and returns whichever arrives first. Without it every screen needed a session
+of its own simply to have somewhere to put an answer, and two sessions cannot
+be on the same card.
+
+That is also what lets a spoken drill take a typed answer. The desktop listens
+on the microphone; the phone in your pocket is still a screen on that card and
+can answer it, and the drill never learns which one you used.
+
 ## One database
 
 The desktop app and the phone page have always shared `progress.json`, because

@@ -219,14 +219,33 @@ class SessionWorker(QObject):
         super().__init__()
         self.session = session
         self.silent_floor = silent_floor
-        session.on_prompt = self.prompt.emit
-        session.on_status = self.status.emit
-        session.on_heard = self.heard.emit
-        session.on_result = self.result.emit
-        session.on_counts = self.counts.emit
-        session.on_progress = self.progress.emit
-        session.on_verify = self.verified.emit
-        session.on_finished = self.finished.emit
+        # Added to whatever is already listening rather than put in its place.
+        # The hub wires the same callbacks so every other screen sees the same
+        # card, and assigning over them left this window the only one being
+        # told anything.
+        for name, signal in (("on_prompt", self.prompt),
+                             ("on_status", self.status),
+                             ("on_heard", self.heard),
+                             ("on_result", self.result),
+                             ("on_counts", self.counts),
+                             ("on_progress", self.progress),
+                             ("on_verify", self.verified),
+                             ("on_finished", self.finished)):
+            self._also(session, name, signal.emit)
+
+    @staticmethod
+    def _also(session, name, extra):
+        """One more listener on a callback, without displacing the first."""
+        already = getattr(session, name, None)
+        if already is None:
+            setattr(session, name, extra)
+            return
+
+        def both(*args):
+            already(*args)
+            extra(*args)
+
+        setattr(session, name, both)
 
     def run(self):
         # Calibration reads the microphone for about a second. On the main
@@ -267,9 +286,16 @@ def _label(text, style):
 
 
 class Window(QWidget):
-    def __init__(self, model_name=MAIN_MODEL):
+    def __init__(self, model_name=MAIN_MODEL, hub=None):
         super().__init__()
         self.progress = Progress.load()
+        # The one session, and everything looking at it. Built here when this
+        # window is on its own, handed in when a server is sharing it with a
+        # phone or a browser: whoever holds it, there is one of it, which is
+        # what puts every screen on the same card.
+        from .serve import Hub
+        self.hub = hub or Hub(self.progress)
+        self.progress = self.hub.progress
         self.model_name = model_name or self.progress.model
         self.listener = None
         self.worker = self.thread = None
@@ -978,13 +1004,17 @@ class Window(QWidget):
             self._request_stop()
             return
         self._apply_settings()
-        if self.listener is None:
+        typed = self.typing.isChecked()
+        # Only the spoken drill waits for the speech model. Typing needs no
+        # recogniser at all, and made you sit through the download anyway,
+        # which is the one mode you reach for when you cannot wait or speak.
+        if self.listener is None and not typed:
             self.status_label.setText("Models still loading…")
             return
         if self._nothing_to_ask():
             self._show_idle_state()
             return
-        self._start_session(typed=self.typing.isChecked())
+        self._start_session(typed=typed)
 
     def _apply_settings(self):
         chosen = self.mic.currentData() or ""
@@ -1067,6 +1097,14 @@ class Window(QWidget):
 
     def _build_session(self, placement=False, typed=False, sentences=False,
                        conjugations=False):
+        """Ask the hub for a session, then run it here.
+
+        The window used to build its own, which is why it and the phone were
+        never on the same card: two sessions cannot be, whatever schedule they
+        share. The hub builds exactly one and tells every screen what it is
+        doing; this thread is only the one that happens to run it, because
+        calibrating a microphone belongs off the interface.
+        """
         # GO only becomes the stop control for the run it started.
         self.go.setText(self.WORDS if placement or sentences or conjugations
                         else "STOP")
@@ -1074,29 +1112,26 @@ class Window(QWidget):
         self._hide_progress()
         self.typing.setEnabled(False)       # not mid-session
 
-        # Same reason as the phone: the queue has to be sized from the file
-        # as it stands, not from the snapshot this process started with, or
-        # the two screens count to different totals for the same deck.
-        self.progress.refresh()
-        self.progress.roll_over()
-
-        listener = self.listener
         if typed:
-            self._typed_input = listener = TypedListener()
-            # Only the typing mode holds a miss on screen. The spoken drill is
-            # hands-free by design and would stop being so the moment it
-            # started waiting for a keypress.
-            self._gate = Gate()
             self.answer_box.setVisible(True)
             self.answer_box.setFocus()
+
+        mode = ("placement" if placement else "sentences" if sentences
+                else "conjugations" if conjugations else "words")
+        # Handed over rather than built there: loading the speech model takes
+        # seconds and has already happened here.
+        self.hub.microphone = self.listener
+        self.hub.scope = self.scope.currentData() or "new"
+        # Same reason as the phone: the queue is sized from the file as it
+        # stands, not from the snapshot this process started with, or the two
+        # screens count to different totals for the same deck. The hub does
+        # that refresh itself.
+        self.hub.start(mode, voice=not typed, run=False)
+        session = self.hub.session
+        self._gate = self.hub.gate
+        self._typed_input = self.hub.typed
+
         if sentences:
-            session = SentenceDrill(
-                self.progress, listener, typed=typed,
-                # Only the typed mode holds a miss on screen. Spoken is
-                # hands-free by design and would stop being so the moment it
-                # started waiting for a keypress.
-                hold_on_miss=self._gate if typed else None,
-                answer_log=None if typed else AnswerLog())
             self.mode_label.setText("SENTENCES" if typed
                                     else "SENTENCES · SPOKEN")
             self.sentences.setText("STOP")
@@ -1105,15 +1140,6 @@ class Window(QWidget):
             self.conjugations.setEnabled(False)
             self.screen.setStyleSheet(self._screen_style(HIT))
         elif conjugations:
-            # Its own tracker and its own log. `--review` repairs cards in
-            # whichever pair it is handed, so sharing either one would let a
-            # conjugation re-check write into the vocabulary schedule.
-            session = ConjugationSession(
-                ConjugationProgress.open(self.progress), listener, typed=typed,
-                # Its own second opinion, steered for a conjugated form.
-                verifier=None if typed else _conjugation_verifier,
-                hold_on_miss=self._gate if typed else None,
-                answer_log=AnswerLog(path=CONJUGATION_LOG))
             self.mode_label.setText("CONJUGATIONS · TYPING" if typed
                                     else "CONJUGATIONS")
             self.conjugations.setText("STOP")
@@ -1122,22 +1148,14 @@ class Window(QWidget):
             self.sentences.setEnabled(False)
             self.screen.setStyleSheet(self._screen_style(HIT))
         elif placement:
-            session = PlacementSession(
-                self.progress, listener, typed=typed,
-                verifier=None if typed else _api_verifier,
-                hold_on_miss=self._gate if typed else None,
-                retest=self.scope.currentData() == "all")
             self.mode_label.setText("PLACEMENT · TYPING" if typed
-                                    else "PLACEMENT TEST")
-            self.placement.setText("STOP TEST")
+                                    else "PLACEMENT")
+            self.placement.setText("STOP")
             self.go.setEnabled(False)
             self.sentences.setEnabled(False)
             self.conjugations.setEnabled(False)
             self.screen.setStyleSheet(self._screen_style(SIGNAL))
         else:
-            session = DrillSession(self.progress, listener, typed=typed,
-                                   verifier=None if typed else _api_verifier,
-                                   hold_on_miss=self._gate if typed else None)
             self.mode_label.setText("TYPING" if typed else "")
             self.placement.setEnabled(False)
             self.sentences.setEnabled(False)

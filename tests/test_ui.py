@@ -457,3 +457,106 @@ class TestThePanelNoticesANewDay:
         """Nothing else touches the panel overnight, so it needs a heartbeat."""
         assert window._day_timer.isActive()
         assert window._day_timer.interval() <= 60_000
+
+
+class TestTheWindowAndTheBrowserAreOneDrill:
+    """Not one schedule. One session.
+
+    The window used to build a session of its own, so it and the phone agreed
+    about what you knew and still sat on different cards, each waiting for an
+    answer the other could not give. The window now asks the hub for the
+    session and only runs it, which is what makes every screen a view of the
+    same card rather than the start of another drill.
+    """
+
+    @pytest.fixture
+    def shared(self, app, tmp_path):
+        import json as _json
+        import re as _re
+        import time as _time
+        import urllib.request as _req
+        from spanish_drill.progress import Progress
+        from spanish_drill.scheduler import Card, today
+        from spanish_drill.serve import Hub, start_server
+
+        hub = Hub(Progress.load(path=tmp_path / "p.json"))
+        # Enough due to have something to ask without touching the real file.
+        for i in range(12):
+            hub.progress.cards[i] = Card(interval=1, reps=1, due=0)
+        hub.progress.day = today()
+
+        window = Window(hub=hub)
+        window.go.setEnabled(True)          # the model preload normally does this
+        server, token = start_server(hub, port=0, host="127.0.0.1", token="tok")
+        base = "http://127.0.0.1:%d" % server.server_address[1]
+
+        def pump(seconds=1.0):
+            end = _time.time() + seconds
+            while _time.time() < end:
+                app.processEvents()
+                _time.sleep(0.01)
+
+        def post(path, body=None):
+            r = _req.Request(f"{base}{path}?t=tok", method="POST",
+                             data=_json.dumps(body or {}).encode(),
+                             headers={"Content-Type": "application/json"})
+            return _req.urlopen(r, timeout=30).read()
+
+        def browser_card(since):
+            with _req.urlopen(f"{base}/poll?t=tok&since={since}", timeout=30) as a:
+                d = _json.loads(a.read())
+            shown = [_json.loads(e) for e in d["events"]
+                     if _json.loads(e)["event"] == "prompt"]
+            return (shown[-1]["text"] if shown else None), d["next"]
+
+        def on_screen():
+            return _re.sub(r"<[^>]+>", "", window.prompt_label.text())
+
+        try:
+            yield dict(hub=hub, window=window, pump=pump, post=post,
+                       browser_card=browser_card, on_screen=on_screen)
+        finally:
+            hub.stop()
+            pump(0.5)
+            server.shutdown()
+            window.close()
+
+    def start(self, s):
+        s["window"].typing.setChecked(True)
+        s["pump"](0.2)
+        s["window"].toggle()
+        s["pump"](3.0)
+
+    def test_both_screens_are_shown_the_same_card(self, shared):
+        self.start(shared)
+        theirs, _ = shared["browser_card"](0)
+        assert theirs, "the browser was never told about a card"
+        assert shared["on_screen"] == theirs or shared["on_screen"]() == theirs
+
+    def test_answering_in_the_browser_moves_the_window(self, shared):
+        self.start(shared)
+        hub = shared["hub"]
+        was = shared["on_screen"]()
+        card = hub.deck[hub.session.current]
+        shared["post"]("/answer", {"text": card.answers[0]})
+        shared["pump"](4.0)
+        assert shared["on_screen"]() != was, (
+            "the window ignored an answer given on another screen")
+
+    def test_answering_in_the_window_moves_the_browser(self, shared):
+        self.start(shared)
+        hub, window = shared["hub"], shared["window"]
+        _, since = shared["browser_card"](0)
+        was = shared["on_screen"]()
+        card = hub.deck[hub.session.current]
+        window.answer_box.setText(card.answers[0])
+        window._submit_typed()
+        shared["pump"](4.0)
+        theirs, _ = shared["browser_card"](since)
+        assert shared["on_screen"]() != was
+        assert theirs == shared["on_screen"](), (
+            "the browser is still showing the card the window has left")
+
+    def test_there_is_only_ever_one_session(self, shared):
+        self.start(shared)
+        assert shared["window"].worker.session is shared["hub"].session

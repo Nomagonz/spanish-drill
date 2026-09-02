@@ -35,6 +35,11 @@ def build_parser():
                         "Everything stays on this machine.")
     p.add_argument("--port", type=int, default=8765,
                    help="port for --serve (default: %(default)s)")
+    p.add_argument("--alone", action="store_true",
+                   help="do not serve the window's own drill. Normally the "
+                        "app puts whatever it is drilling on that port too, "
+                        "so a phone or a browser shows the same card and can "
+                        "answer it. This keeps it to this machine.")
     p.add_argument("--devices", action="store_true",
                    help="list the microphones this machine can record from")
     return p
@@ -82,9 +87,26 @@ def main(argv=None):
         return 0
 
     from PyQt6.QtWidgets import QApplication
+    from .serve import Hub, start_server, where_to_point_a_phone
     from .ui import Window
+
     app = QApplication(sys.argv[:1])
-    window = Window(args.model)
+    # One hub, and the window is one of the screens looking at it. Serving it
+    # is the default because the alternative is what this used to be: the
+    # window drilling one card while every other screen drilled another.
+    hub = Hub()
+    window = Window(args.model, hub=hub)
+    if not args.alone:
+        try:
+            _, token = start_server(hub, port=args.port)
+        except OSError as exc:
+            # Almost always something already on the port, which usually means
+            # another copy of this app. Worth saying and not worth refusing to
+            # start over: the window on its own is still a drill.
+            print(f"  not serving on {args.port}: {exc}", flush=True)
+        else:
+            for line in where_to_point_a_phone(args.port, token):
+                print(line, flush=True)
     window.show()
     return app.exec()
 

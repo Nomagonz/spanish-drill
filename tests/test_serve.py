@@ -937,3 +937,107 @@ class TestThePanelAgreesWithTheDrill:
                 break
             time.sleep(0.02)
         assert hub.state()["running"] is False
+
+
+class TestOneDrillHoweverManyScreens:
+    """The point of the hub: not one schedule, one session.
+
+    Two screens sharing a schedule agree about what you know and still sit on
+    different cards, because each has to own a session to have somewhere to
+    put an answer. These are the properties that make them the same drill.
+    """
+
+    def test_a_watcher_in_this_process_sees_what_the_browsers_see(self, hub):
+        """How the window attaches: it renders these rather than running a
+        session of its own."""
+        seen = []
+        hub.watch(seen.append)
+        hub.publish("prompt", text="the cue")
+        assert {"event": "prompt", "text": "the cue"} in seen
+
+    def test_a_watcher_that_fails_does_not_stop_the_drill(self, hub):
+        """A screen failing to draw is not a reason to end everyone's
+        session."""
+        def broken(_):
+            raise RuntimeError("this screen is on fire")
+        hub.watch(broken)
+        seen = []
+        hub.watch(seen.append)
+        hub.publish("status", text="still going")
+        assert seen and seen[0]["text"] == "still going"
+
+    def test_every_screen_is_told_the_same_card(self, hub):
+        """One prompt, and both a watcher here and a browser polling get it."""
+        seen = []
+        hub.watch(seen.append)
+        hub.start("sentences")
+        try:
+            for _ in range(150):
+                if any(e["event"] == "prompt" for e in seen):
+                    break
+                time.sleep(0.02)
+            mine = next(e for e in seen if e["event"] == "prompt")
+            polled = [json.loads(m) for m in hub.since(0)[1]]
+            theirs = next(e for e in polled if e["event"] == "prompt")
+            assert mine["text"] == theirs["text"], (
+                "the window and the browser are looking at different cards")
+        finally:
+            hub.stop()
+
+    def test_an_answer_from_any_screen_reaches_the_one_session(self, hub):
+        """The listener takes the first answer from anywhere, so the drill
+        never learns which screen you were sitting at.
+
+        Judged on a verdict coming back rather than on the card changing: a
+        missed sentence is asked again, so the card staying put is what a
+        wrong answer is supposed to look like.
+        """
+        seen = []
+        hub.watch(seen.append)
+        hub.start("sentences")
+        try:
+            for _ in range(200):
+                if hub.session and hub.session.current:
+                    break
+                time.sleep(0.02)
+            hub.answer("una respuesta desde otra pantalla")
+            for _ in range(250):
+                if any(e["event"] == "result" for e in seen):
+                    break
+                time.sleep(0.02)
+            assert any(e["event"] == "result" for e in seen), (
+                "the answer never reached the session")
+        finally:
+            hub.stop()
+
+    def test_a_spoken_drill_still_takes_a_typed_answer(self, hub):
+        """The desktop drills by voice; the phone in your pocket is still a
+        screen on the same card and has to be able to answer it."""
+        class DeafMicrophone:
+            """Hears nothing, ever, so the remote answer is the only one."""
+            def listen(self, window=None, should_stop=None, **rest):
+                while not (should_stop and should_stop()):
+                    time.sleep(0.01)
+                return None
+            def calibrate(self):
+                return 1.0
+
+        seen = []
+        hub.watch(seen.append)
+        hub.microphone = DeafMicrophone()
+        hub.start("sentences", voice=True)
+        try:
+            assert hub.session.typed is False, "this should be a spoken drill"
+            for _ in range(250):
+                if hub.session and hub.session.current:
+                    break
+                time.sleep(0.02)
+            hub.answer("escrito en el telefono")
+            for _ in range(250):
+                if any(e["event"] == "result" for e in seen):
+                    break
+                time.sleep(0.02)
+            assert any(e["event"] == "result" for e in seen), (
+                "a spoken drill ignored the answer typed on another screen")
+        finally:
+            hub.stop()

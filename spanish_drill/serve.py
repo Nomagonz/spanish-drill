@@ -30,7 +30,7 @@ from .paradigm import ConjugationProgress, ConjugationSession
 from .placement import PlacementSession
 from .progress import Progress
 from .session import DrillSession
-from .typed import Gate, TypedListener
+from .typed import Gate, SharedListener, TypedListener
 
 # How long a poll waits for something to happen before answering "nothing
 # yet". Long enough that an idle drill is not a busy loop, short enough that
@@ -58,6 +58,15 @@ class Hub:
         # those go through anything.
         self.events = []                # (sequence number, json string)
         self.seq = 0
+        # Screens in this process, as opposed to the ones polling over HTTP.
+        # The window is one of these: it renders what the session emits
+        # rather than running a session of its own, which is the whole of
+        # what makes it and the phone the same drill instead of two.
+        self.watchers = []
+        # This machine's own microphone, when there is one. Handed in rather
+        # than built here: loading the speech model takes seconds and belongs
+        # off whatever thread is starting a drill.
+        self.microphone = None
         self.changed = threading.Condition()
         self.session = None
         self.thread = None
@@ -77,13 +86,27 @@ class Hub:
         self._hold_pending = False
 
     # -- the log ----------------------------------------------------------
+    def watch(self, callback):
+        """Have `callback` receive every event, in this process."""
+        self.watchers.append(callback)
+        return callback
+
     def publish(self, event, **data):
-        message = json.dumps({"event": event, **data})
+        payload = {"event": event, **data}
+        message = json.dumps(payload)
         with self.changed:
             self.seq += 1
             self.events.append((self.seq, message))
             del self.events[:-BACKLOG]
             self.changed.notify_all()
+        # Outside the lock, and never allowed to take the session down with
+        # it: a watcher is a screen, and a screen failing to draw is not a
+        # reason to stop the drill everyone else is doing.
+        for watcher in list(self.watchers):
+            try:
+                watcher(payload)
+            except Exception:
+                pass
 
     def since(self, mark, timeout=POLL_SECONDS):
         """Everything after `mark`, waiting up to `timeout` for something.
@@ -160,13 +183,17 @@ class Hub:
             "in_scope": in_scope,
             "why_empty": p.why_nothing_is_due(),
             "nothing_due": not (due or fresh),
-            "running": bool(self.live and self.thread and self.thread.is_alive()),
+            # `live` is what a finish clears, and it is the only answer when
+            # the session is being run from somewhere else — the window runs
+            # it on a thread this object never sees.
+            "running": bool(self.live and (self.thread is None
+                                           or self.thread.is_alive())),
             "paused": self.paused,
         }
 
     def active_progress(self):
         """The schedule the running drill is actually moving."""
-        if self.thread and self.thread.is_alive() and self.session is not None:
+        if self.live and self.session is not None:
             return getattr(self.session, "progress", self.progress)
         return self.progress
 
@@ -197,19 +224,32 @@ class Hub:
         """The first thing a fresh browser should be told."""
         self.announce()
 
-    def start(self, mode="sentences"):
+    def start(self, mode="sentences", voice=False, run=True):
         """Begin a mode, whatever is running now.
 
         Refusing while something else was going meant the only way out of the
         sentence drill was to find STOP first, and a session that stuck for
         any reason locked every button on the page. Pressing a mode is an
         unambiguous instruction to be in that mode.
+
+        `voice` runs it hands-free off this machine's microphone. Answers
+        typed on any screen still arrive either way: the listener takes the
+        first answer from anywhere, so the drill does not know or care which
+        screen you were sitting at.
+
+        `run=False` builds the session and wires it up but leaves it for
+        somebody else to run. That is how the window drives one: it has a
+        thread of its own that calibrates the microphone off the interface,
+        and running it here as well would be running the same drill twice.
         """
         if self.thread and self.thread.is_alive():
             self.stop()
             self.thread.join(timeout=5)
-        self.typed = TypedListener()
-        self.gate = Gate()
+        spoken = bool(voice and self.microphone is not None)
+        self.typed = SharedListener(self.microphone if spoken else TypedListener())
+        # Only a typed drill holds a miss on screen. Spoken is hands-free by
+        # design and would stop being so the moment it waited for a keypress.
+        self.gate = None if spoken else Gate()
         # The queue is about to be built, and it must be built from what is
         # on disk right now. Both sides hold their own copy of progress.json
         # and only the panel ever re-read it, so a drill started here sized
@@ -223,21 +263,30 @@ class Hub:
             # conjugation re-check write into the vocabulary schedule.
             self.session = ConjugationSession(
                 ConjugationProgress.open(self.progress), self.typed,
-                typed=True, verifier=None, hold_on_miss=self.gate,
+                typed=not spoken,
+                **({} if spoken else {"verifier": None}),
+                hold_on_miss=self.gate,
                 answer_log=AnswerLog(path=CONJUGATION_LOG))
             self.session.on_result = self._word_result
         elif mode == "placement":
             self.session = PlacementSession(
-                self.progress, self.typed, typed=True, verifier=None,
+                self.progress, self.typed, typed=not spoken,
+                **({} if spoken else {"verifier": None}),
                 hold_on_miss=self.gate, retest=self.scope == "all")
             self.session.on_result = self._word_result
         elif mode == "words":
-            self.session = DrillSession(self.progress, self.typed, typed=True,
-                                        verifier=None, hold_on_miss=self.gate)
+            self.session = DrillSession(
+                self.progress, self.typed, typed=not spoken,
+                **({} if spoken else {"verifier": None}),
+                hold_on_miss=self.gate)
             self.session.on_result = self._word_result
         else:
-            self.session = SentenceDrill(self.progress, self.typed,
-                                         hold_on_miss=self.gate)
+            self.session = SentenceDrill(
+                self.progress, self.typed, typed=not spoken,
+                hold_on_miss=self.gate,
+                # A spoken sentence is worth keeping the audio of; a typed one
+                # is already the text it would have recorded.
+                answer_log=AnswerLog() if spoken else None)
             self.session.on_result = self._sentence_result
         self.session.on_prompt = self._prompt
         self.session.on_status = lambda text: self.publish("status", text=text)
@@ -249,9 +298,11 @@ class Hub:
             skipped=getattr(session, "skipped", 0))
         self.session.on_counts = self.announce
         self.session.on_finished = self._finished
-        self.thread = threading.Thread(target=self.session.run, daemon=True)
         self.live = True
-        self.thread.start()
+        self.thread = None
+        if run:
+            self.thread = threading.Thread(target=self.session.run, daemon=True)
+            self.thread.start()
         # Say so at once. The panel reports `running` from whether this thread
         # is alive, and nothing else here published one after starting it, so
         # the browser kept the answer it was given before the drill began:
@@ -982,6 +1033,40 @@ def tailscale_host():
         except Exception:
             continue
     return None
+
+
+def start_server(hub, port=8765, host="0.0.0.0", token=None):
+    """Put `hub` behind HTTP on a background thread. Returns (server, token).
+
+    Separated from `serve` so the window can share the session it is running
+    rather than a copy of it. That is the whole difference between a phone
+    that watches this drill and a phone that starts its own: both read the
+    same hub, so both are told about the same card.
+    """
+    token = token or stored_token()
+    Handler.hub = hub
+    Handler.token = token
+    server = ThreadingHTTPServer((host, port), Handler)
+    server.daemon_threads = True
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, token
+
+
+def where_to_point_a_phone(port, token, state=None):
+    """The lines printed on startup, so both entry points say the same thing."""
+    lines = []
+    if state:
+        lines.append(f"  {state['sentences']} sentences unlocked · "
+                     f"{state['words_due']} words due")
+    lines.append(f"  http://localhost:{port}/?t={token}")
+    tailnet = tailscale_host()
+    if tailnet:
+        lines.append(f"  http://{tailnet}:{port}/?t={token}"
+                     "   <- from any device on your tailnet")
+    else:
+        lines.append("  Put a tunnel in front of that port to reach it from "
+                     "a phone.")
+    return lines
 
 
 def serve(port=8765, host="0.0.0.0", token=None, progress=None):
