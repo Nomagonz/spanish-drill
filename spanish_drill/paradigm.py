@@ -92,6 +92,29 @@ class ConjugationProgress(Progress):
     known: tuple = ()
 
     @classmethod
+    def over(cls, main):
+        """The conjugation view of a schedule already in memory.
+
+        No reading of anything. `open` loads, which was the right thing when
+        this had a file of its own and is wasteful now that it shares one:
+        the panel asks how many forms are due every time it refreshes, and
+        with a shared database behind it that was a network round trip and a
+        file write per answered card, sitting between you and the next one.
+
+        The cards are the same objects, not a copy. There is one schedule and
+        this is another way of looking at it.
+        """
+        p = cls(path=main.path, store=main._store())
+        for key in cls._SETTINGS:
+            if key not in ("category", "speak_cue"):
+                setattr(p, key, getattr(main, key))
+        p.category = "all"
+        p.day = main.day
+        p.cards = main.cards
+        p.known = known_verbs(main)
+        return p
+
+    @classmethod
     def open(cls, main, path=None, today=None):
         """Load the conjugation schedule, borrowing the main drill's settings.
 

@@ -152,7 +152,11 @@ class Hub:
         if isinstance(p, ConjugationProgress):
             forms_due = len(due) + len(fresh)   # already the one in hand
         else:
-            paradigms = ConjugationProgress.open(p)
+            # `over`, not `open`: this is asked on every refresh, and
+            # loading a second copy of the schedule to count it meant a
+            # network round trip and a file write between one card and the
+            # next.
+            paradigms = ConjugationProgress.over(p)
             waiting, opening = paradigms.queue_parts()
             forms_due = len(waiting) + len(opening)
         return {

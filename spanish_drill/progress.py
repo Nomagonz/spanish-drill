@@ -156,6 +156,47 @@ class Progress:
         p._remember()
         return p
 
+    def _landed(self, data):
+        """The store has had `data` accepted. That is now the agreed copy.
+
+        Kept separate from saving because the two stopped happening together:
+        a save hands the database to a thread and returns, so the moment a
+        write is really shared arrives later, on that thread.
+        """
+        with self._writing:
+            self._baseline = {
+                "cards": dict(data.get("cards", {})),
+                "counters": {k: data.get(k, 0) for k in self._COUNTERS},
+                "done": set(data.get("sentences_done", []) or ()),
+            }
+
+    def _fold_in(self, raw):
+        """Somebody else's state, folded into ours. Returns what to send.
+
+        Handed to the store so a refused push can be settled where the merge
+        rule already lives. A save cannot do it any more: it hands the
+        database to a thread and returns, so the refusal arrives well after
+        the drill has moved on to the next card and there is nobody left in
+        that call to ask.
+        """
+        with self._writing:
+            deck = load_deck()
+            if raw:
+                self._absorb(raw, deck)
+            self._remember(deck)
+            return self._as_dict(deck)
+
+    def _as_dict(self, deck):
+        """Everything worth keeping, in the shape the store takes."""
+        data = {"cards": {deck[k].id: v.to_dict()
+                          for k, v in sorted(self.cards.items())
+                          if 0 <= k < len(deck)}}
+        for key in self._SETTINGS + self._COUNTERS:
+            data[key] = getattr(self, key)
+        # Sorted so the file diffs readably and a set survives JSON.
+        data["sentences_done"] = sorted(self.sentences_done)
+        return data
+
     def _store(self):
         """The backend, built on first use rather than in `__init__`.
 
@@ -164,11 +205,24 @@ class Progress:
         talking to the file it asked for rather than the one it was born with.
         """
         if self.store is not None:
-            return self.store
+            return self._offering_a_merge(self.store)
         if self._backend is None or self._backend_for != self.path:
             self._backend = default_store(self.path)
             self._backend_for = self.path
-        return self._backend
+        return self._offering_a_merge(self._backend)
+
+    def _offering_a_merge(self, store):
+        """Make sure the store can ask for the two sides folded together.
+
+        Done here rather than where the store is built because it is handed
+        in as often as it is made, and a store that cannot ask silently drops
+        whatever it was refused.
+        """
+        if getattr(store, "merge", "missing") is None:
+            store.merge = self._fold_in
+        if getattr(store, "landed", "missing") is None:
+            store.landed = self._landed
+        return store
 
     def _stamp(self):
         """What the store looks like from outside, cheaply."""
@@ -196,7 +250,7 @@ class Progress:
                 "counters": {k: getattr(self, k) for k in self._COUNTERS},
                 "done": set(self.sentences_done)}
 
-    def _remember(self, deck=None):
+    def _remember(self, deck=None, agreed=True):
         # `settled`, not `stamp`: a write has just been told the new version
         # by the store itself, and asking again would put a second round trip
         # in the path of every answered card.
@@ -208,7 +262,13 @@ class Progress:
         # be wrong: the cost is that today's counters can be added twice and
         # come out high until the day turns over, and the alternative is
         # handing a whole offline session to whatever the database still had.
-        self._baseline = None if store.stale() else self._snapshot(deck)
+        if store.stale():
+            self._baseline = None
+        elif agreed:
+            self._baseline = self._snapshot(deck)
+        # Otherwise it is left alone and `_landed` moves it when the write
+        # actually arrives. The baseline means "what the store is known to
+        # hold", and a push still on its way has been taken by nothing.
 
     _DAILY = ("new_done", "reviews_done", "missed_today")
 
@@ -258,7 +318,7 @@ class Progress:
         """
         store = self._store()
         with self._writing:
-            if store.stamp() == self._seen:
+            if not store.moved(self._seen):
                 return False
             raw = store.read()
             if not raw:         # nothing saved yet, or the store is unreachable
@@ -281,8 +341,11 @@ class Progress:
             # bounded so a store that refuses everything cannot hang a drill.
             for _ in range(SAVE_ATTEMPTS):
                 # Somebody else wrote while we were thinking. Fold their work
-                # in rather than over it.
-                if store.stamp() != self._seen:
+                # in rather than over it. Asked as "moved", not by comparing
+                # stamps: a store that pushes in the background moves on its
+                # own, and treating that as news sent this off to merge with
+                # a copy of what it had just sent, once per answered card.
+                if store.moved(self._seen):
                     raw = store.read()
                     # Empty means a store with nothing in it yet, or one we
                     # could not reach. Neither is somebody else's work, and
@@ -296,23 +359,18 @@ class Progress:
                     # merge if this save turns out not to land.
                     self._seen = store.settled()
 
-                data = {"cards": {deck[k].id: v.to_dict()
-                                  for k, v in sorted(self.cards.items())
-                                  if 0 <= k < len(deck)}}
-                for key in self._SETTINGS + self._COUNTERS:
-                    data[key] = getattr(self, key)
-                # Sorted so the file diffs readably and a set survives JSON.
-                data["sentences_done"] = sorted(self.sentences_done)
+                data = self._as_dict(deck)
 
                 outcome = store.write(data, base=self._seen)
                 if outcome is CONFLICT:
                     continue        # they landed first; take another turn
                 # Only once it has actually landed does this become what we
-                # and the store agree on. A push that failed leaves the
-                # agreement where it was, so everything done since still
-                # reads as ours and still wins the merge when it comes back.
+                # and the store agree on. A push still on its way, or one
+                # that failed, leaves the agreement where it was, so
+                # everything done since still reads as ours and still wins
+                # the merge whenever the store comes back.
                 if outcome is not False:
-                    self._remember(deck)
+                    self._remember(deck, agreed=not store.pending())
                 return
 
     # -- queries ----------------------------------------------------------
